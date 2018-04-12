@@ -8,7 +8,7 @@
 #define FORCE_ON_NODE
 #define LATERAL_FORCE
 #define LATERAL_UNIFORM_PRESSURE
-#define MOMEN_ON_A_POINT
+#define MOMENT_ON_A_POINT
 #define LATERAL_LINEARLY_PRESSURE
 #define AXIAL_PRESSURE
 #define AXIAL_FORCE
@@ -84,7 +84,8 @@ void MatrixTrans(int nRow, int nCol, double** pA, double** pAT);
 void LengthSinCosCalcu(int nTotalElem, Element* pElem, Node* pNode);
 void TrussElemStiffCalcu(std::ofstream& fout1, Element* pElem, Material* pMate, Section* pSect, double** pKe);
 void FrameElemStiffCalcu(std::ofstream& fout1, Element* pElem, Material* pMate, Section* pSect, double** pKe);
-void GKAssembly(int nTotalDOF, int nTotalElem, Element* pElem, Node* pNode, Material* pMate, Section* pSect, int* pDiag, double* pGK);
+void GKAssembly(int nTotalDOF, int nTotalElem, Element* pElem, Node* pNode, Material* pMate,
+	Section* pSect, int* pDiag, double* pGK);
 bool LDLTSolve(int nRow, int* pDiag, double* pGK, double* pB);
 void FixedEndForceCalcu(Element* pElem, Material* pMate, Section* pSect, Load* pLoad, double* pFixedEndF, int i);
 void LoadVectorAssembly(int nLoad, int nTotalDOF, int nFreeDOF, int* pDiag, double* pGK, Element* pElem, Material* pMate, Section* pSect, Load* pLoad, Node* pNode, double* pLoadVect, double* pDisp);
