@@ -1,69 +1,73 @@
 #pragma once
-#define TRUSS
-#define FRAME
+// å…ƒç´ ç±»å‹
+#define TRUSS 1
+#define FRAME 2
 
-#define TRUSS_NODE
-#define FRAME_NODE
+// èŠ‚ç‚¹ç±»å‹
+#define TRUSS_NODE 1
+#define FRAME_NODE 2
 
-#define FORCE_ON_NODE
-#define LATERAL_FORCE
-#define LATERAL_UNIFORM_PRESSURE
-#define MOMENT_ON_A_POINT
-#define LATERAL_LINEARLY_PRESSURE
-#define AXIAL_PRESSURE
-#define AXIAL_FORCE
-#define MOMENT_ON_BEAM
-#define TEMPERATURE
-#define SUPPORT_MOVE
+// è½½è·ç±»å‹
+#define FORCE_ON_NODE 1
+#define LATERAL_FORCE 2
+#define LATERAL_UNIFORM_PRESSURE 3
+#define MOMENT_ON_A_POINT 4
+#define LATERAL_LINEARLY_PRESSURE 5
+#define AXIAL_PRESSURE 6
+#define AXIAL_FORCE 7
+#define MOMENT_ON_BEAM 8
+#define TEMPERATURE 9
+#define SUPPORT_MOVE 10
 
-#define DIRECT_X
-#define DIRECT_Y
-#define DIRECT_R
+// æ–¹å‘å¸¸é‡
+#define DIRECT_X 0
+#define DIRECT_Y 1
+#define DIRECT_R 2
 
 struct Material {
-	double dE;					//µ¯ĞÔÄ£Á¿
-	double dMu;					//²´ËÉ±È
-	double dAlpha;				//ÏßÅòÕÍÏµÊı
+	double dE;					//å¼¹æ€§æ¨¡é‡
+	double dMu;					//æ³Šæ¾æ¯”
+	double dAlpha;				//çº¿è†¨èƒ€ç³»æ•°
 };
 
 struct Section {
-	double dA;					//ºá½ØÃæÃæ»ı
-	double dIz;					//ºá½ØÃæ»ı¹ßĞÔ¾Ø
-	double dH;					//ºá½ØÃæ¸ß
+	double dA;					//æ¨ªæˆªé¢é¢ç§¯
+	double dIz;					//æ¨ªæˆªé¢ç§¯æƒ¯æ€§çŸ©
+	double dH;					//æ¨ªæˆªé¢é«˜
 };
 
 struct Node {
-	int iType;					//½ÚµãÀàĞÍ
-	double dX, dY;				//½Úµã×ø±ê
-	int iaDOFIndex[3];			//½Úµã×ÔÓÉ¶È±àºÅ
+	int iType;					//èŠ‚ç‚¹ç±»å‹
+	double dX, dY;				//èŠ‚ç‚¹åæ ‡
+	int iaDOFIndex[3];			//èŠ‚ç‚¹è‡ªç”±åº¦ç¼–å·
 };
 
 struct Element {
-	int iType;					//µ¥ÔªÀàĞÍºÅ
-	int iaNode[2];				//µ¥ÔªÁ½¶Ë½Úµã±àºÅ
-	int iSection;				//µ¥Ôª½ØÃæË÷ÒıºÅ
-	int iMaterial;				//µ¥Ôª²ÄÁÏË÷ÒıºÅ
-	double dLength;				//µ¥Ôª³¤¶È
-	double dSin, dCos;			//µ¥Ôª¾Ö²¿×ø±êxÖáÓëÕûÌå×ø±êxÖáµÄ¼Ğ½ÇÕıÓàÏÒ
+	int iType;					//å•å…ƒç±»å‹å·
+	int iaNode[2];				//å•å…ƒä¸¤ç«¯èŠ‚ç‚¹ç¼–å·
+	int iSection;				//å•å…ƒæˆªé¢ç´¢å¼•å·
+	int iMaterial;				//å•å…ƒææ–™ç´¢å¼•å·
+	double dLength;				//å•å…ƒé•¿åº¦
+	double dSin, dCos;			//å•å…ƒå±€éƒ¨åæ ‡xè½´ä¸æ•´ä½“åæ ‡xè½´çš„å¤¹è§’æ­£ä½™å¼¦
 
-	double daEndInterForce[6];	//µ¥Ôª¸Ë¶ËÁ¦ÏòÁ¿
+	double daEndInterForce[6];	//å•å…ƒæ†ç«¯åŠ›å‘é‡
 
 };
 
 struct Load {
-	int iType;					//ÔØºÉÀàĞÍ
-	int iDirect;				//ºÉÔØ×÷ÓÃ·½Ïò£º0-XÏò£¬1-YÏò£¬2-RÏò
-	double dValue;				//ÔØºÉÖµ
-	int iLoadedElem;			//ÔØºÉ×÷ÓÃµÄµ¥ÔªºÅ
-	int iLoadedNode;			//ÔØºÉ×÷ÓÃµÄ½ÚµãºÅ
-	double dPosition;			//ÔØºÉ×÷ÓÃµÄÎ»ÖÃ»ò·Ö²¼³¤¶È
-	double dT0, dT1;			//¸ËÉÏÏÂ±íÃæÎÂ¶È±ä»¯Öµ
+	int iType;					//è½½è·ç±»å‹
+	int iDirect;				//è·è½½ä½œç”¨æ–¹å‘ï¼š0-Xå‘ï¼Œ1-Yå‘ï¼Œ2-Rå‘
+	double dValue;				//è½½è·å€¼
+	int iLoadedElem;			//è½½è·ä½œç”¨çš„å•å…ƒå·
+	int iLoadedNode;			//è½½è·ä½œç”¨çš„èŠ‚ç‚¹å·
+	double dPosition;			//è½½è·ä½œç”¨çš„ä½ç½®æˆ–åˆ†å¸ƒé•¿åº¦
+	double dT0, dT1;			//æ†ä¸Šä¸‹è¡¨é¢æ¸©åº¦å˜åŒ–å€¼
 
 };
 
 struct ConstrainedNode {
-	int iNode;					//ÊÜÔ¼Êø½ÚµãºÅ
-	int iaConstrainedDOF[3];	//10000+½ÚµãºÅ N-Óë½ÚµãNµÄÍ¬Àà×ÔÓÉ¶ÈñîºÏ
+	int iNode;					//å—çº¦æŸèŠ‚ç‚¹å·
+	int iaConstrainedDOF[3];	//10000+èŠ‚ç‚¹å· N-ä¸èŠ‚ç‚¹Nçš„åŒç±»è‡ªç”±åº¦è€¦åˆ
 
 };
 

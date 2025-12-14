@@ -9,37 +9,38 @@
 
 using namespace std;
 
+#ifndef UNIT_TEST
 int main(int argc, char * argv[])
 {
-	int nTotalNode;																									//½Úµã×ÜÊı
-	int nConstrtainedNode;																							//ÊÜÔ¼Êø½Úµã×ÜÊı
-	int nTotalElem;																									//µ¥Ôª×ÜÊı
-	int nMaterialType;																								//²ÄÁÏÖÖÀàÊı
+	int nTotalNode;																									//èŠ‚ç‚¹æ€»æ•°
+	int nConstrtainedNode;																							//å—çº¦æŸèŠ‚ç‚¹æ€»æ•°
+	int nTotalElem;																									//å•å…ƒæ€»æ•°
+	int nMaterialType;																								//ææ–™ç§ç±»æ•°
 
-	int nSectionType;																								//½ØÃæ¼¸ºÎÌØÕ÷ÖÖÀàÊı
-	int nLoad;																										//ÔØºÉ×ÜÊı
-	int nTotalDOF;																									//×Ü×ÔÓÉ¶ÈÊı
-	int nFreeDOF;																									//¶ÀÁ¢×ÔÓÉ¶ÈÊı
+	int nSectionType;																								//æˆªé¢å‡ ä½•ç‰¹å¾ç§ç±»æ•°
+	int nLoad;																										//è½½è·æ€»æ•°
+	int nTotalDOF;																									//æ€»è‡ªç”±åº¦æ•°
+	int nFreeDOF;																									//ç‹¬ç«‹è‡ªç”±åº¦æ•°
 
-	int i;																											//Ñ­»·¿ØÖÆ±äÁ¿
+	int i;																											//å¾ªç¯æ§åˆ¶å˜é‡
 	int iBuf;
 
-	ifstream fin0("test05.txt");																					//ÎÄ¼şÊäÈëÁ÷¶ÔÏó,Ô­Ê¼Êı¾İÎÄ¼ş
+	ifstream fin0("test05.txt");																					//æ–‡ä»¶è¾“å…¥æµå¯¹è±¡,åŸå§‹æ•°æ®æ–‡ä»¶
 
 	if (!fin0) {
-		cout << "Ô­Ê¼Êı¾İÎÄ¼ş´ò¿ªÊ§°Ü£¡" << endl;
+		cout << "åŸå§‹æ•°æ®æ–‡ä»¶æ‰“å¼€å¤±è´¥ï¼" << endl;
 		exit(-1);
 	}
-	ofstream fout0("Results.dat");																					//ÎÄ¼şÊä³öÁ÷¶ÔÏó£¬¼ÆËã½á¹ûÊı¾İÎÄ¼ş
+	ofstream fout0("Results.dat");																					//æ–‡ä»¶è¾“å‡ºæµå¯¹è±¡ï¼Œè®¡ç®—ç»“æœæ•°æ®æ–‡ä»¶
 	if (!fout0) {
-		cout << "¼ÆËã½á¹ûÊä³öÎÄ¼ş´ò¿ªÊ§°Ü" << endl;
+		cout << "è®¡ç®—ç»“æœè¾“å‡ºæ–‡ä»¶æ‰“å¼€å¤±è´¥" << endl;
 		exit(-1);
 	}
 
 	fin0 >> nTotalNode >> nConstrtainedNode >> nTotalElem >> nMaterialType
-		>> nSectionType >> nLoad;																					//ÊäÈë×Ü¿ØÊı¾İ
+		>> nSectionType >> nLoad;																					//è¾“å…¥æ€»æ§æ•°æ®
 
-	//...............ÄÚ´æ·ÖÅä...............................
+	//...............å†…å­˜åˆ†é…...............................
 	Node* pNode = new Node[nTotalNode];
 	ConstrainedNode* pConsNode = new ConstrainedNode[nConstrtainedNode];
 	Element* pElem = new Element[nTotalElem];
@@ -48,19 +49,19 @@ int main(int argc, char * argv[])
 	Load* pLoad = new Load[nLoad];
 	int** pElemDOF = TwoArrayIntAlloc(nTotalElem, 6);
 
-	//.............¶ÁÈë½á¹¹ÃèÊöÊı¾İ.......................
-	for (i = 0; i < nTotalElem; i++)																				//¶ÁÈë½ÚµãÊı¾İ
+	//.............è¯»å…¥ç»“æ„æè¿°æ•°æ®.......................
+	for (i = 0; i < nTotalNode; i++)													//è¯»å…¥èŠ‚ç‚¹æ•°æ®
 		fin0 >> (pNode + i)->iType >> (pNode + i)->dX >> (pNode + i)->dY;
-	for (i = 0; i < nConstrtainedNode; i++)																			//¶ÁÈëÊÜÔ¼Êø½ÚµãÊı¾İ
+	for (i = 0; i < nConstrtainedNode; i++)																			//è¯»å…¥å—çº¦æŸèŠ‚ç‚¹æ•°æ®
 		fin0 >> (pConsNode + i)->iNode >> (pConsNode + i)->iaConstrainedDOF[0] >> (pConsNode + i)->iaConstrainedDOF[1] >> (pConsNode + i)->iaConstrainedDOF[2];
-	for (i = 0; i < nTotalElem; i++)																				//¶ÁÈëµ¥ÔªÊı¾İ
+	for (i = 0; i < nTotalElem; i++)																				//è¯»å…¥å•å…ƒæ•°æ®
 		fin0 >> (pElem + i)->iType >> (pElem + i)->iaNode[0] >> (pElem + i)->iaNode[1] >> (pElem + i)->iSection >> (pElem + i)->iMaterial;
-	for (i = 0; i < nMaterialType; i++)																				//¶ÁÈë²ÄÁÏÊı¾İ
+	for (i = 0; i < nMaterialType; i++)																				//è¯»å…¥ææ–™æ•°æ®
 		fin0 >> (pMate + i)->dE >> (pMate + i)->dMu >> (pMate + i)->dAlpha;
-	for (i = 0; i < nSectionType; i++)																				//¶ÁÈë½ØÃæÊı¾İ
+	for (i = 0; i < nSectionType; i++)																				//è¯»å…¥æˆªé¢æ•°æ®
 		fin0 >> (pSect + i)->dA >> (pSect + i)->dIz >> (pSect + i)->dH;
 
-	for (i = 0; i < nLoad; i++)																						//¶ÁÈëÔØºÉÊı¾İ
+	for (i = 0; i < nLoad; i++)																						//è¯»å…¥è½½è·æ•°æ®
 		fin0 >> (pLoad + i)->iType >> (pLoad + i)->iDirect >> (pLoad + i)->dValue
 		>> (pLoad + i)->iLoadedElem >> (pLoad + i)->iLoadedNode >> (pLoad + i)->dPosition
 		>> (pLoad + i)->dT0 >> (pLoad + i)->dT1;
@@ -68,28 +69,28 @@ int main(int argc, char * argv[])
 	//----------------------------------------------------
 	cout.setf(ios::right);
 	cout << endl << endl;
-	cout << setw(14) << "×Ü¿ØÊı¾İ£º" << endl << endl;
-	cout << setw(14) << "½Úµã×ÜÊı£º" << setw(10) << nTotalNode << endl
-		<< setw(14) << "ÊÜÔ¼ÊøµÄ½ÚµãÊı£º" << setw(10) << nConstrtainedNode << endl
-		<< setw(14) << "µ¥Ôª×ÜÊı£º" << setw(10) << nTotalElem << endl
-		<< setw(14) << "²ÄÁÏ×ÜÊı£º" << setw(10) << nMaterialType << endl
-		<< setw(14) << "½ØÃæÖÖÀàÊı£º" << setw(10) << nSectionType << endl
-		<< setw(14) << "ºÉÔØÖÖÀàÊı£º" << setw(10) << nLoad << endl << endl;
+	cout << setw(14) << "æ€»æ§æ•°æ®ï¼š" << endl << endl;
+	cout << setw(14) << "èŠ‚ç‚¹æ€»æ•°ï¼š" << setw(10) << nTotalNode << endl
+		<< setw(14) << "å—çº¦æŸçš„èŠ‚ç‚¹æ•°ï¼š" << setw(10) << nConstrtainedNode << endl
+		<< setw(14) << "å•å…ƒæ€»æ•°ï¼š" << setw(10) << nTotalElem << endl
+		<< setw(14) << "ææ–™æ€»æ•°ï¼š" << setw(10) << nMaterialType << endl
+		<< setw(14) << "æˆªé¢ç§ç±»æ•°ï¼š" << setw(10) << nSectionType << endl
+		<< setw(14) << "è·è½½ç§ç±»æ•°ï¼š" << setw(10) << nLoad << endl << endl;
 	cout << "===================================================================" << endl;
 
-	cout << setw(10) << "½ÚµãÊı¾İ£º" << endl << endl;
-	cout << setw(10) << "½ÚµãÀàĞÍ£º" << setw(10) << "X" << setw(10) << "Y" << endl;
+	cout << setw(10) << "èŠ‚ç‚¹æ•°æ®ï¼š" << endl << endl;
+	cout << setw(10) << "èŠ‚ç‚¹ç±»å‹ï¼š" << setw(10) << "X" << setw(10) << "Y" << endl;
 	for (i = 0; i < nTotalNode; i++) {
 		cout << setw(10) << (pNode + i)->iType
 			<< setw(10) << (pNode + i)->dX
 			<< setw(10) << (pNode + i)->dY << endl << endl;
 
 	}
-	cout << setw(16) << "ÊÜÔ¼Êø½ÚµãÊı¾İ£º" << endl << endl;
-	cout << setw(12) << "ÊÜÔ¼Êø½ÚµãºÅ"
-		<< setw(10) << "XÏòÌØÕ÷Êı"
-		<< setw(10) << "YÏòÌØÕ÷Êı"
-		<< setw(10) << "RÏòÌØÕ÷Êı" << endl;
+	cout << setw(16) << "å—çº¦æŸèŠ‚ç‚¹æ•°æ®ï¼š" << endl << endl;
+	cout << setw(12) << "å—çº¦æŸèŠ‚ç‚¹å·"
+		<< setw(10) << "Xå‘ç‰¹å¾æ•°"
+		<< setw(10) << "Yå‘ç‰¹å¾æ•°"
+		<< setw(10) << "Rå‘ç‰¹å¾æ•°" << endl;
 
 	for (i = 0; i < nConstrtainedNode; i++) {
 		cout << setw(12) << (pConsNode + i)->iNode
@@ -99,9 +100,9 @@ int main(int argc, char * argv[])
 	}
 	cout << endl;
 
-	cout << setw(10) << "µ¥ÔªÊı¾İ£º" << endl << endl;
-	cout << setw(12) << "µ¥ÔªÀàĞÍ" << setw(12) << "Ê¼¶Ë½ÚµãºÅ" << setw(12) << "ÖÕ¶Ë½ÚµãºÅ"
-		<< setw(12) << "½ØÃæĞÍºÅ" << setw(12) << "²ÄÁÏË÷ÒıºÅ" << endl;
+	cout << setw(10) << "å•å…ƒæ•°æ®ï¼š" << endl << endl;
+	cout << setw(12) << "å•å…ƒç±»å‹" << setw(12) << "å§‹ç«¯èŠ‚ç‚¹å·" << setw(12) << "ç»ˆç«¯èŠ‚ç‚¹å·"
+		<< setw(12) << "æˆªé¢å‹å·" << setw(12) << "ææ–™ç´¢å¼•å·" << endl;
 
 	for (i = 0; i < nTotalElem; i++) {
 		cout << setw(12) << (pElem + i)->iType
@@ -113,16 +114,16 @@ int main(int argc, char * argv[])
 	}
 	cout << endl;
 
-	cout << setw(10) << "²ÄÁÏÊı¾İ£º" << endl << endl;
-	cout << setw(12) << "µ¯ĞÔÄ£Á¿" << setw(12) << "²´ËÉ±È" << setw(12) << "ÏßÅòÕÍÏµÊı" << endl;
+	cout << setw(10) << "ææ–™æ•°æ®ï¼š" << endl << endl;
+	cout << setw(12) << "å¼¹æ€§æ¨¡é‡" << setw(12) << "æ³Šæ¾æ¯”" << setw(12) << "çº¿è†¨èƒ€ç³»æ•°" << endl;
 	for (i = 0; i < nMaterialType; i++)
 		cout << setw(12) << (pMate + i)->dE
 		<< setw(12) << (pMate + i)->dMu
 		<< setw(12) << (pMate + i)->dAlpha << endl;
 	cout << endl;
 
-	cout << setw(14) << "½ØÃæ¼¸ºÎÌØÕ÷£º" << endl << endl;
-	cout << setw(12) << "Ãæ»ı" << setw(12) << "¹ßĞÔ¾Ø" << setw(12) << "½ØÃæ¸ß" << endl;
+	cout << setw(14) << "æˆªé¢å‡ ä½•ç‰¹å¾ï¼š" << endl << endl;
+	cout << setw(12) << "é¢ç§¯" << setw(12) << "æƒ¯æ€§çŸ©" << setw(12) << "æˆªé¢é«˜" << endl;
 	for (i = 0; i < nSectionType; i++)
 	{
 		cout << setw(12) << (pSect + i)->dA
@@ -131,10 +132,10 @@ int main(int argc, char * argv[])
 	}
 	cout << endl;
 
-	cout << setw(10) << "ºÉÔØÊı¾İ£º" << endl << endl;
-	cout << setw(10) << "ÀàĞÍºÅ" << setw(10) << "·½Ïò" << setw(10) << "ÔØºÉÖµ"
-		<< setw(10) << "µ¥ÔªºÅ" << setw(10) << "½ÚµãºÅ"
-		<< setw(10) << "Î»ÖÃ" << setw(10) << "ÎÂ¶ÈT0" << setw(10) << "ÎÂ¶ÈT1" << endl;
+	cout << setw(10) << "è·è½½æ•°æ®ï¼š" << endl << endl;
+	cout << setw(10) << "ç±»å‹å·" << setw(10) << "æ–¹å‘" << setw(10) << "è½½è·å€¼"
+		<< setw(10) << "å•å…ƒå·" << setw(10) << "èŠ‚ç‚¹å·"
+		<< setw(10) << "ä½ç½®" << setw(10) << "æ¸©åº¦T0" << setw(10) << "æ¸©åº¦T1" << endl;
 	for (i = 0; i < nLoad; i++)
 	{
 		cout << setw(10) << (pLoad + i)->iType
@@ -147,21 +148,21 @@ int main(int argc, char * argv[])
 
 	}
 
-	//Ô­Ê¼Êı¾İÊä³öµ½ÎÄ¼ş----------------------------------------------------------------------------
+	//åŸå§‹æ•°æ®è¾“å‡ºåˆ°æ–‡ä»¶----------------------------------------------------------------------------
 	fout0.setf(ios::right);
 	fout0 << endl << endl;
-	fout0 << setw(14) << "×Ü¿ØÊı¾İ£º" << endl << endl;
-	fout0 << setw(14) << "½Úµã×ÜÊı£º" << setw(10) << nTotalNode << endl
-		<< setw(14) << "ÊÜÔ¼Êø½ÚµãÊı£º" << setw(10) << nConstrtainedNode << endl
-		<< setw(14) << "µ¥Ôª×ÜÊı£º" << setw(10) << nTotalElem << endl
-		<< setw(14) << "²ÄÁÏ×ÜÊı£º" << setw(10) << nMaterialType << endl
-		<< setw(14) << "½ØÃæÖÖÀàÊı£º" << setw(10) << nSectionType << endl
-		<< setw(14) << "ÔØºÉÖÖÀàÊı£º" << setw(10) << nLoad << endl << endl;
+	fout0 << setw(14) << "æ€»æ§æ•°æ®ï¼š" << endl << endl;
+	fout0 << setw(14) << "èŠ‚ç‚¹æ€»æ•°ï¼š" << setw(10) << nTotalNode << endl
+		<< setw(14) << "å—çº¦æŸèŠ‚ç‚¹æ•°ï¼š" << setw(10) << nConstrtainedNode << endl
+		<< setw(14) << "å•å…ƒæ€»æ•°ï¼š" << setw(10) << nTotalElem << endl
+		<< setw(14) << "ææ–™æ€»æ•°ï¼š" << setw(10) << nMaterialType << endl
+		<< setw(14) << "æˆªé¢ç§ç±»æ•°ï¼š" << setw(10) << nSectionType << endl
+		<< setw(14) << "è½½è·ç§ç±»æ•°ï¼š" << setw(10) << nLoad << endl << endl;
 
 	fout0 << "===================================================================" << endl;
 
-	fout0 << setw(10) << "½ÚµãÊı¾İ£º" << endl << endl;
-	fout0 << setw(10) << "½ÚµãÀàĞÍ" << setw(10) << "X" << setw(10) << "Y" << endl;
+	fout0 << setw(10) << "èŠ‚ç‚¹æ•°æ®ï¼š" << endl << endl;
+	fout0 << setw(10) << "èŠ‚ç‚¹ç±»å‹" << setw(10) << "X" << setw(10) << "Y" << endl;
 	for (i = 0; i < nTotalNode; i++)
 	{
 		fout0 << setw(10) << (pNode + i)->iType
@@ -169,11 +170,11 @@ int main(int argc, char * argv[])
 			<< setw(10) << (pNode + i)->dY << endl << endl;
 
 	}
-	fout0 << setw(16) << "ÊÜÔ¼Êø½ÚµãÊı¾İ" << endl << endl;
-	fout0 << setw(12) << "ÊÜÔ¼Êø½ÚµãºÅ"
-		<< setw(10) << "XÏòÌØÕ÷Êı"
-		<< setw(10) << "YÏòÌØÕ÷Êı"
-		<< setw(10) << "RÏòÌØÕ÷Êı" << endl;
+	fout0 << setw(16) << "å—çº¦æŸèŠ‚ç‚¹æ•°æ®" << endl << endl;
+	fout0 << setw(12) << "å—çº¦æŸèŠ‚ç‚¹å·"
+		<< setw(10) << "Xå‘ç‰¹å¾æ•°"
+		<< setw(10) << "Yå‘ç‰¹å¾æ•°"
+		<< setw(10) << "Rå‘ç‰¹å¾æ•°" << endl;
 
 	for (i = 0; i < nConstrtainedNode; i++)
 	{
@@ -185,9 +186,9 @@ int main(int argc, char * argv[])
 
 	fout0 << endl;
 
-	fout0 << setw(10) << "µ¥ÔªÊı¾İ£º" << endl << endl;
-	fout0 << setw(12) << "µ¥ÔªĞÍºÅ" << setw(12) << "Ê¼¶Ë½ÚµãºÅ" << setw(12) << "ÖÕ¶Ë½ÚµãºÅ"
-		<< setw(12) << "½ØÃæĞÍºÅ" << setw(12) << "²ÄÁÏË÷ÒıºÅ" << endl;
+	fout0 << setw(10) << "å•å…ƒæ•°æ®ï¼š" << endl << endl;
+	fout0 << setw(12) << "å•å…ƒå‹å·" << setw(12) << "å§‹ç«¯èŠ‚ç‚¹å·" << setw(12) << "ç»ˆç«¯èŠ‚ç‚¹å·"
+		<< setw(12) << "æˆªé¢å‹å·" << setw(12) << "ææ–™ç´¢å¼•å·" << endl;
 	for (i = 0; i < nTotalElem; i++)
 		fout0 << setw(12) << (pElem + i)->iType
 		<< setw(12) << (pElem + i)->iaNode[0]
@@ -196,16 +197,16 @@ int main(int argc, char * argv[])
 		<< setw(12) << (pElem + i)->iMaterial << endl;
 	fout0 << endl;
 
-	fout0 << setw(10) << "²ÄÁÏÊı¾İ£º" << endl << endl;
-	fout0 << setw(12) << "µ¯ĞÔÄ£Á¿" << setw(12) << "²´ËÉ±È" << setw(12) << "ÏßÅòÕÍÏµÊı" << endl;
+	fout0 << setw(10) << "ææ–™æ•°æ®ï¼š" << endl << endl;
+	fout0 << setw(12) << "å¼¹æ€§æ¨¡é‡" << setw(12) << "æ³Šæ¾æ¯”" << setw(12) << "çº¿è†¨èƒ€ç³»æ•°" << endl;
 	for (i = 0; i < nMaterialType; i++)
 		fout0 << setw(12) << (pMate + i)->dE
 		<< setw(12) << (pMate + i)->dMu
 		<< setw(12) << (pMate + i)->dAlpha << endl;
 	fout0 << endl;
 
-	cout << setw(14) << "½ØÃæ¼¸ºÎÌØÕ÷£º" << endl << endl;
-	cout << setw(12) << "Ãæ»ı" << setw(12) << "¹ßĞÔ¾Ø" << setw(12) << "½ØÃæ¸ß" << endl;
+	cout << setw(14) << "æˆªé¢å‡ ä½•ç‰¹å¾ï¼š" << endl << endl;
+	cout << setw(12) << "é¢ç§¯" << setw(12) << "æƒ¯æ€§çŸ©" << setw(12) << "æˆªé¢é«˜" << endl;
 	for (i = 0; i < nSectionType; i++)
 		cout << setw(12) << (pSect + i)->dA
 		<< setw(12) << (pSect + i)->dIz
@@ -213,10 +214,10 @@ int main(int argc, char * argv[])
 	cout << endl;
 
 
-	cout << setw(10) << "ÔØºÉÊı¾İ£º" << endl << endl;
-	cout << setw(10) << "ÀàĞÍºÅ" << setw(10) << "·½Ïò" << setw(10) << "ÔØºÉÖµ"
-		<< setw(10) << "µ¥ÔªºÅ" << setw(10) << "½ÚµãºÅ"
-		<< setw(10) << "Î»ÖÃ" << setw(10) << "ÎÂ¶ÈT0" << setw(10) << "ÎÂ¶ÈT1" << endl;
+	cout << setw(10) << "è½½è·æ•°æ®ï¼š" << endl << endl;
+	cout << setw(10) << "ç±»å‹å·" << setw(10) << "æ–¹å‘" << setw(10) << "è½½è·å€¼"
+		<< setw(10) << "å•å…ƒå·" << setw(10) << "èŠ‚ç‚¹å·"
+		<< setw(10) << "ä½ç½®" << setw(10) << "æ¸©åº¦T0" << setw(10) << "æ¸©åº¦T1" << endl;
 	for (i = 0; i < nLoad; i++)
 		cout << setw(10) << (pLoad + i)->iType
 		<< setw(10) << (pLoad + i)->iDirect
@@ -226,48 +227,48 @@ int main(int argc, char * argv[])
 		<< setw(10) << (pLoad + i)->dPosition
 		<< setw(10) << (pLoad + i)->dT0 << setw(10) << (pLoad + i)->dT1 << endl;
 
-	////Ô­Ê¼Êı¾İÊä³öµ½ÎÄ¼ş==============================================================================
+	////åŸå§‹æ•°æ®è¾“å‡ºåˆ°æ–‡ä»¶==============================================================================
 	//fout0.setf(ios::right);
 	//fout0 << endl << endl;
-	//fout0 << setw(14) << "×Ü¿ØÊı¾İ£º" << endl << endl;
-	//fout0 << setw(14) << "½Úµã×ÜÊı£º" << setw(10) << nTotalNode << endl
-	//	<< setw(14) << "ÊÜÔ¼Êø½ÚµãÊı£º" << setw(10) << nConstrtainedNode << endl
-	//	<< setw(14) << "µ¥Ôª×ÜÊı£º" << setw(10) << nTotalElem << endl
-	//	<< setw(14) << "²ÄÁÏ×ÜÊı" << setw(10) << nMaterialType << endl
-	//	<< setw(14) << "½ØÃæÖÖÀàÊı£º" << setw(10) << nSectionType << endl
-	//	<< setw(14) << "ÔØºÉ×ÜÊı£º" << setw(10) << nLoad << endl;
+	//fout0 << setw(14) << "æ€»æ§æ•°æ®ï¼š" << endl << endl;
+	//fout0 << setw(14) << "èŠ‚ç‚¹æ€»æ•°ï¼š" << setw(10) << nTotalNode << endl
+	//	<< setw(14) << "å—çº¦æŸèŠ‚ç‚¹æ•°ï¼š" << setw(10) << nConstrtainedNode << endl
+	//	<< setw(14) << "å•å…ƒæ€»æ•°ï¼š" << setw(10) << nTotalElem << endl
+	//	<< setw(14) << "ææ–™æ€»æ•°" << setw(10) << nMaterialType << endl
+	//	<< setw(14) << "æˆªé¢ç§ç±»æ•°ï¼š" << setw(10) << nSectionType << endl
+	//	<< setw(14) << "è½½è·æ€»æ•°ï¼š" << setw(10) << nLoad << endl;
 	//fout0 << "=====================================================================" << endl;
 
 	//-------------------------------------------------------
 	LengthSinCosCalcu(nTotalElem, pElem, pNode);
-	//¼ÆËã×Ü×ÔÓÉ¶È ½Úµã×ÔÓÉ¶ÈºÍµ¥Ôª¶¨Î»ÏòÁ¿
+	//è®¡ç®—æ€»è‡ªç”±åº¦ èŠ‚ç‚¹è‡ªç”±åº¦å’Œå•å…ƒå®šä½å‘é‡
 	nTotalDOF = DOFIndexCalcu(nFreeDOF, nTotalNode, nConstrtainedNode, pConsNode, pNode);
 	ElementDOFCalcu(nTotalElem, pNode, pElem, pElemDOF);
 	//----------------------------------------------------------
-	int* pDiag = new int[nTotalDOF];//´æ·ÅÖ÷ÔªµØÖ·
-	BandAndDiagCalcu(nTotalElem, nTotalDOF, pElem, pElemDOF, pDiag);    //¼ÆËã°ë´ø¿íºÍÖ÷ÔªµØÖ·
-	TwoArrayFree(nTotalElem, pElemDOF);									//ÊÍ·Åµ¥Ôª¶¨Î»ÏòÁ¿Êı×éµÄÄÚ´æ
-	iBuf = pDiag[nTotalDOF - 1] + 1;									//¼ÆËã´øÄÚÔªÊı×ÜÊı
-	double* pGK = new double[iBuf];										//Ò»Î¬´ø¿í´æ·Å×Ü¸Õ¶È¾ØÕóµÄÏÂÈı½Ç²¿·Ö
-	double* pLoadVect = new double[nTotalDOF];							//´æ·ÅÔØºÉÏòÁ¿
-	double* pDisp = new double[nTotalDOF];								//´æ·ÅÎ»ÒÆÏòÁ¿
+	int* pDiag = new int[nTotalDOF];//å­˜æ”¾ä¸»å…ƒåœ°å€
+	BandAndDiagCalcu(nTotalElem, nTotalDOF, pElem, pElemDOF, pDiag);    //è®¡ç®—åŠå¸¦å®½å’Œä¸»å…ƒåœ°å€
+	TwoArrayFree(nTotalElem, pElemDOF);									//é‡Šæ”¾å•å…ƒå®šä½å‘é‡æ•°ç»„çš„å†…å­˜
+	iBuf = pDiag[nTotalDOF - 1] + 1;									//è®¡ç®—å¸¦å†…å…ƒæ•°æ€»æ•°
+	double* pGK = new double[iBuf];										//ä¸€ç»´å¸¦å®½å­˜æ”¾æ€»åˆšåº¦çŸ©é˜µçš„ä¸‹ä¸‰è§’éƒ¨åˆ†
+	double* pLoadVect = new double[nTotalDOF];							//å­˜æ”¾è½½è·å‘é‡
+	double* pDisp = new double[nTotalDOF];								//å­˜æ”¾ä½ç§»å‘é‡
 
-	VectorZeroize(iBuf, pGK);											//×Ü¸ÕÖÃÁã
-	VectorZeroize(nTotalDOF, pLoadVect);								//×ÜÔØºÉÏòÁ¿ÖÃÁã
-	VectorZeroize(nTotalDOF, pDisp);									//×ÜÎ»ÒÆÏòÁ¿ÖÃÁã
-	ElementEndForceInit(nTotalElem, pElem);								//³õÊ¼»¯µ¥Ôª¸Ë¶ËÁ¦ÏòÁ¿
-	//×°Åä×Ü¸Õ¶È¾ØÕóºÍ×ÜÔØºÉÏòÁ¿-----------------------------------------------------------------------------
+	VectorZeroize(iBuf, pGK);											//æ€»åˆšç½®é›¶
+	VectorZeroize(nTotalDOF, pLoadVect);								//æ€»è½½è·å‘é‡ç½®é›¶
+	VectorZeroize(nTotalDOF, pDisp);									//æ€»ä½ç§»å‘é‡ç½®é›¶
+	ElementEndForceInit(nTotalElem, pElem);								//åˆå§‹åŒ–å•å…ƒæ†ç«¯åŠ›å‘é‡
+	//è£…é…æ€»åˆšåº¦çŸ©é˜µå’Œæ€»è½½è·å‘é‡-----------------------------------------------------------------------------
 
-	GKAssembly(nTotalDOF, nTotalElem, pElem, pNode, pMate, pSect, pDiag, pGK);//×é×°×Ü¸Õ
-	LoadVectorAssembly(nLoad, nTotalDOF, nFreeDOF, pDiag, pGK, pElem, pMate, pSect, pLoad, pNode, pLoadVect, pDisp);//×é×°×ÜºÉÔØÏòÁ¿
-	LDLTSolve(nFreeDOF, pDiag, pGK, pDisp);									//½âÆ½ºâ·½³ÌÇóÎ»ÒÆ
-	InternalForceCalcu(nTotalDOF, pElem, pNode, pDisp);						//¼ÆËã¸Ë¼şÄÚÁ¦
-	SupportReactionCalcu(nTotalDOF, nFreeDOF, pDiag, pGK, pDisp, pLoadVect);	//¼ÆËãÖ§×ù·´Á¦
-	NodeDisplOutput(fout0, nTotalNode, pNode, pDisp);						//Êä³ö½ÚµãÎ»ÒÆ
-	EndInternalForceOutput(fout0, nTotalElem, pElem);						//Êä³ö¸Ë¼şÄÚÁ¦
-	SupportReactionOutput(fout0, nConstrtainedNode, pConsNode, pNode, pLoadVect);//Êä³öÖ§×ù·´Á¦
+	GKAssembly(nTotalDOF, nTotalElem, pElem, pNode, pMate, pSect, pDiag, pGK);//ç»„è£…æ€»åˆš
+	LoadVectorAssembly(nLoad, nTotalDOF, nFreeDOF, pDiag, pGK, pElem, pMate, pSect, pLoad, pNode, pLoadVect, pDisp);//ç»„è£…æ€»è·è½½å‘é‡
+	LDLTSolve(nFreeDOF, pDiag, pGK, pDisp);									//è§£å¹³è¡¡æ–¹ç¨‹æ±‚ä½ç§»
+	InternalForceCalcu(nTotalDOF, pElem, pNode, pDisp);						//è®¡ç®—æ†ä»¶å†…åŠ›
+	SupportReactionCalcu(nTotalDOF, nFreeDOF, pDiag, pGK, pDisp, pLoadVect);	//è®¡ç®—æ”¯åº§ååŠ›
+	NodeDisplOutput(fout0, nTotalNode, pNode, pDisp);						//è¾“å‡ºèŠ‚ç‚¹ä½ç§»
+	EndInternalForceOutput(fout0, nTotalElem, pElem);						//è¾“å‡ºæ†ä»¶å†…åŠ›
+	SupportReactionOutput(fout0, nConstrtainedNode, pConsNode, pNode, pLoadVect);//è¾“å‡ºæ”¯åº§ååŠ›
 
-	//ÊÍ·ÅÄÚ´æ
+	//é‡Šæ”¾å†…å­˜
 	delete[]pNode;
 	delete[]pConsNode;
 	delete[]pElem;
@@ -278,14 +279,15 @@ int main(int argc, char * argv[])
 	delete[]pGK;
 	delete[]pLoadVect;
 	delete[]pDisp;
-	//¹Ø±ÕÎÄ¼ş;
+	//å…³é—­æ–‡ä»¶;
 	fin0.close();
 	fout0.close();
 	return 0;
 }
+#endif
 
 /**
-* \brief Á½¾ØÕóÏà³Ë
+* \brief ä¸¤çŸ©é˜µç›¸ä¹˜
 * \param nRow
 * \param nCol1
 * \param nCol
@@ -308,7 +310,7 @@ void MatrixMultiply(int nRow, int nCol1, int nCol, double ** pA, double ** pB, d
 }
 
 /**
- * \brief ¾ØÕó×ó³ËÏòÁ¿
+ * \brief çŸ©é˜µå·¦ä¹˜å‘é‡
  * \param nRow
  * \param nCol
  * \param pA
@@ -336,7 +338,7 @@ void MatrixTrans(int nRow, int nCol, double ** pA, double ** pAT)
 	}
 }
 
-//¼ÆËã¸Ëµ¥Ôª³¤¶ÈºÍ·½ÏòÓàÏÒ
+//è®¡ç®—æ†å•å…ƒé•¿åº¦å’Œæ–¹å‘ä½™å¼¦
 void LengthSinCosCalcu(int nTotalElem, Element * pElem, Node * pNode)
 {
 	int i;
@@ -351,7 +353,7 @@ void LengthSinCosCalcu(int nTotalElem, Element * pElem, Node * pNode)
 		dX1 = (pNode + iNode1)->dX;
 		dY1 = (pNode + iNode1)->dY;
 		dDeltaX = dX1 - dX0;
-		dDeltaY = dY1 - dX0;
+		dDeltaY = dY1 - dY0;
 		(pElem + i)->dLength = sqrt(dDeltaX*dDeltaX + dDeltaY * dDeltaY);
 		(pElem + i)->dSin= dDeltaY/(pElem+i)->dLength;
 		(pElem + i)->dCos= dDeltaX/ (pElem + i)->dLength;
@@ -360,7 +362,7 @@ void LengthSinCosCalcu(int nTotalElem, Element * pElem, Node * pNode)
 
 }
 
-//¼ÆËãèì¼Üµ¥Ôª¸Õ¶È¾ØÕó
+//è®¡ç®—æ¡æ¶å•å…ƒåˆšåº¦çŸ©é˜µ
 void TrussElemStiffCalcu(ofstream & fout1, Element * pElem, Material * pMate, Section * pSect, double ** pKe)
 {
 	int i, j;
@@ -375,12 +377,12 @@ void TrussElemStiffCalcu(ofstream & fout1, Element * pElem, Material * pMate, Se
 	dLength = pElem->dLength;
 
 	MatrixZeroize(4, 4, pKe);
-	dBuf = dE * dA / dLength;														//dBufÎªÏß¸Õ¶È
+	dBuf = dE * dA / dLength;														//dBufä¸ºçº¿åˆšåº¦
 	pKe[0][0] = pKe[2][2] = dBuf;
-	pKe[0][2] = pKe[2][2] = -dBuf;
+	pKe[0][2] = pKe[2][0] = -dBuf;
 	for (i = 0; i < 4; i++)
 		for (j = 0; j < 4; j++) {
-			fout1.write((char*)&pKe[i][j], sizeof(double));							//½«¾Ö²¿×ø±êÏµµ¥¸Õ¼ÇÅÌ×ª»»µ½ÕûÌå×ø±êÏµ
+			fout1.write((char*)&pKe[i][j], sizeof(double));							//å°†å±€éƒ¨åæ ‡ç³»å•åˆšè®°ç›˜è½¬æ¢åˆ°æ•´ä½“åæ ‡ç³»
 		}
 	dSin = pElem->dSin;
 	dCos = pElem->dCos;
@@ -397,7 +399,7 @@ void TrussElemStiffCalcu(ofstream & fout1, Element * pElem, Material * pMate, Se
 	pKe[0][3] = pKe[3][0] = pKe[1][2] = pKe[2][1] = -dBuf1;
 }
 
-//¼ÆËã¸Õ¼Üµ¥Ôª¸Õ¶È¾ØÕó
+//è®¡ç®—åˆšæ¶å•å…ƒåˆšåº¦çŸ©é˜µ
 void FrameElemStiffCalcu(std::ofstream & fout1, Element * pElem, Material * pMate, Section * pSect, double ** pKe)
 {
 	int i, j;
@@ -436,7 +438,7 @@ void FrameElemStiffCalcu(std::ofstream & fout1, Element * pElem, Material * pMat
 
 	for (i = 0; i < 6; i++)
 		for (j = 0; j < 6; j++)
-			fout1.write((char*)&pKe[i][j], sizeof(double));				//½«¾Ö²¿×ø±êÏµµ¥¸Õ¼ÇÅÌ×ª»»µ½ÕûÌå×ø±êÏµ
+			fout1.write((char*)&pKe[i][j], sizeof(double));				//å°†å±€éƒ¨åæ ‡ç³»å•åˆšè®°ç›˜è½¬æ¢åˆ°æ•´ä½“åæ ‡ç³»
 	dSin = pElem->dSin;
 	dCos = pElem->dCos;
 	MatrixZeroize(6, 6, pT);
@@ -455,7 +457,7 @@ void FrameElemStiffCalcu(std::ofstream & fout1, Element * pElem, Material * pMat
 }
 
 /**
- * \brief ×°Åä×Ü¸Õ¶È¾ØÕó-----------------------------------
+ * \brief è£…é…æ€»åˆšåº¦çŸ©é˜µ-----------------------------------
  * \param nTotalDOF 
  * \param nTotalElem 
  * \param pElem 
@@ -476,7 +478,7 @@ void GKAssembly(int nTotalDOF, int nTotalElem, Element* pElem, Node* pNode, Mate
 	ofstream fout1("ElemStiff.dat", ios::binary);
 	if(!fout1)
 	{
-		cout << "µ¥Ôª¸Õ¶È¾ØÕóÊä³öÎÄ¼ş´ò¿ªÊ§°Ü!" << endl;
+		cout << "å•å…ƒåˆšåº¦çŸ©é˜µè¾“å‡ºæ–‡ä»¶æ‰“å¼€å¤±è´¥!" << endl;
 		exit(-1);
 	}
 
@@ -500,7 +502,7 @@ void GKAssembly(int nTotalDOF, int nTotalElem, Element* pElem, Node* pNode, Mate
 				for(j=0;j<4;j++)
 				{
 					GKj = iaDOFIndex[j];
-					if(GKi>GKj)
+					if(GKi>=GKj)
 					{
 						GKij = pDiag[GKi] - GKi + GKj;
 						pGK[GKij] += pKe0[i][j];
@@ -512,7 +514,7 @@ void GKAssembly(int nTotalDOF, int nTotalElem, Element* pElem, Node* pNode, Mate
 			FrameElemStiffCalcu(fout1, pElem + m, pMate, pSect, pKe1);
 			iNode0 = (pElem + m)->iaNode[0];
 			iNode1 = (pElem + m)->iaNode[1];
-			for(i=0;i<3;i++)									//ĞÎ³Éµ¥Ôª¶¨Î»ÏòÁ¿
+			for(i=0;i<3;i++)									//å½¢æˆå•å…ƒå®šä½å‘é‡
 			{
 				iaDOFIndex[i] = (pNode + iNode0)->iaDOFIndex[i];
 				iaDOFIndex[i + 3] = (pNode + iNode1)->iaDOFIndex[i];
@@ -568,7 +570,7 @@ bool LDLTSolve(int nRow, int * pDiag, double * pGK, double * pB)
 			{
 				if(pGK[pDiag[k]]==0.0)
 				{
-					cout << "×Ü¸ÕÏµÊıÓĞ´í!" << endl;
+					cout << "æ€»åˆšç³»æ•°æœ‰é”™!" << endl;
 					return false;
 
 				}
@@ -579,9 +581,9 @@ bool LDLTSolve(int nRow, int * pDiag, double * pGK, double * pB)
 			pGK[iAdd_ii - i + j] -= dBuf;
 		}
 	}
-	if(pGK[0]=0.0)
+	if (pGK[0] == 0.0)
 	{
-		cout << "×Ü¸ÕÏµÊıÓĞ´í£¡" << endl;
+		cout << "æ€»åˆšç³»æ•°æœ‰é”™ï¼" << endl;
 		return false;
 
 	}
@@ -598,7 +600,7 @@ bool LDLTSolve(int nRow, int * pDiag, double * pGK, double * pB)
 		pB[i] -= dBuf;
 		if(pGK[iAdd_ii]==0.0)
 		{
-			cout << "×Ü¸ÕÏµÊıÓĞ´í£¡" << endl;
+			cout << "æ€»åˆšç³»æ•°æœ‰é”™ï¼" << endl;
 			return false;
 		}
 		pB[i] /= pGK[iAdd_ii];
@@ -622,7 +624,7 @@ bool LDLTSolve(int nRow, int * pDiag, double * pGK, double * pB)
 			{
 				if(pGK[iAdd_ii]==0.0)
 				{
-					cout << "×Ü¸ÕÏµÊıÓĞ´í!" << endl;
+					cout << "æ€»åˆšç³»æ•°æœ‰é”™!" << endl;
 					return false;
 				}
 				iAdd_kk = pDiag[j + 1];
@@ -636,7 +638,7 @@ bool LDLTSolve(int nRow, int * pDiag, double * pGK, double * pB)
 
 
 /**
- * \brief ¼ÆËãµ¥Ôª¹Ì¶ËÁ¦
+ * \brief è®¡ç®—å•å…ƒå›ºç«¯åŠ›
  * \param pElem 
  * \param pMate 
  * \param pSect 
@@ -722,12 +724,12 @@ void FixedEndForceCalcu(Element * pElem, Material * pMate, Section * pSect, Load
 int DOFIndexCalcu(int & iBuf0, int nTotalNode, int nConstrainedNode, ConstrainedNode * pConsNode, Node * pNode)
 {
 	int i, j, k;
-	int iBuf;											//×Ü×ÔÓÉ¶ÈÊı
+	int iBuf;											//æ€»è‡ªç”±åº¦æ•°
 	for (i = 0; i < nTotalNode; i++)
 		for (j = 0; j < 3; j++)
-			(pNode + i)->iaDOFIndex[j] = 0;				//½«¸÷½Úµã×ÔÓÉ¶È±àºÅÖÃÁã
+			(pNode + i)->iaDOFIndex[j] = 0;				//å°†å„èŠ‚ç‚¹è‡ªç”±åº¦ç¼–å·ç½®é›¶
 	for (i = 0; i < nConstrainedNode; i++) {
-		iBuf = (pConsNode + i)->iNode;					//ÊÜÔ¼ÊøµÄ½ÚµãºÅ
+		iBuf = (pConsNode + i)->iNode;					//å—çº¦æŸçš„èŠ‚ç‚¹å·
 		for (j = 0; j < 3; j++)
 			pNode[iBuf].iaDOFIndex[j] = (pConsNode + i)->iaConstrainedDOF[j];
 	}
@@ -736,30 +738,30 @@ int DOFIndexCalcu(int & iBuf0, int nTotalNode, int nConstrainedNode, Constrained
 		if ((pNode + i)->iType == FRAME_NODE)
 		{
 			for (j = 0; j < 3; j++)
-				//¶Ô¸Ö¼Ü½ÚµãµÄÎ´Öª¶ÀÁ¢×ÔÓÉ¶È±àºÅ
+				//å¯¹é’¢æ¶èŠ‚ç‚¹çš„æœªçŸ¥ç‹¬ç«‹è‡ªç”±åº¦ç¼–å·
 				if ((pNode + i)->iaDOFIndex[j] == 0)(pNode + i)->iaDOFIndex[j] = iBuf++;
 		}
 		else
 		{
 			for (j = 0; j < 2; j++)
-				//¶Ôèì¼Ü½ÚµãµÄÎ´Öª¶ÀÁ¢×ÔÓÉ¶È±àºÅ
-				if ((pNode)->iaDOFIndex[j] == 0) (pNode + i)->iaDOFIndex[j] = iBuf++;
+				//å¯¹æ¡æ¶èŠ‚ç‚¹çš„æœªçŸ¥ç‹¬ç«‹è‡ªç”±åº¦ç¼–å·
+				if ((pNode + i)->iaDOFIndex[j] == 0) (pNode + i)->iaDOFIndex[j] = iBuf++;
 
 		}
 
 	}
-	iBuf0 = iBuf;//Î´Öª¶ÀÁ¢×ÔÓÉ¶ÈÊı
+	iBuf0 = iBuf;//æœªçŸ¥ç‹¬ç«‹è‡ªç”±åº¦æ•°
 	for (i = 0; i < nTotalNode; i++)
 	{
 		if ((pNode + i)->iType == FRAME_NODE) {
 			for (j = 0; j < 3; j++)
-				//¶Ô¸Õ¼Ü½ÚµãµÄÒÑÖª¶ÀÁ¢×ÔÓÉ¶È±àºÅ
+				//å¯¹åˆšæ¶èŠ‚ç‚¹çš„å·²çŸ¥ç‹¬ç«‹è‡ªç”±åº¦ç¼–å·
 				if ((pNode + i)->iaDOFIndex[j] == -1) (pNode + i)->iaDOFIndex[j] = iBuf++;
 		}
 		else
 		{
 			for (j = 0; j < 2; j++)
-				//¶Ôèì¼Ü½ÚµãµÄÒÑÖª¶ÀÁ¢×ÔÓÉ¶È±àºÅ
+				//å¯¹æ¡æ¶èŠ‚ç‚¹çš„å·²çŸ¥ç‹¬ç«‹è‡ªç”±åº¦ç¼–å·
 				if ((pNode + i)->iaDOFIndex[j] == -1) (pNode + i)->iaDOFIndex[j] = iBuf++;
 		}
 
@@ -770,7 +772,7 @@ int DOFIndexCalcu(int & iBuf0, int nTotalNode, int nConstrainedNode, Constrained
 		if ((pNode + i)->iType == FRAME_NODE)
 		{
 			for (j = 0; j < 3; j++)
-				if ((pNode + i)->iaDOFIndex[j] >= 1e4)//¶Ô¸Õ¼Ü´Ó½Úµã×ÔÓÉ¶È±àºÅ
+				if ((pNode + i)->iaDOFIndex[j] >= 1e4)//å¯¹åˆšæ¶ä»èŠ‚ç‚¹è‡ªç”±åº¦ç¼–å·
 				{
 					k = (pNode + i)->iaDOFIndex[j] - 1e4;
 					(pNode + i)->iaDOFIndex[j] = (pNode + k)->iaDOFIndex[j];
@@ -779,7 +781,7 @@ int DOFIndexCalcu(int & iBuf0, int nTotalNode, int nConstrainedNode, Constrained
 		else
 		{
 			for (j = 0; j < 2; j++)
-				if ((pNode + i)->iaDOFIndex[j] > 1e4) //¶Ôèì¼Ü´Ó½Úµã×ÔÓÉ¶È±àºÅ
+				if ((pNode + i)->iaDOFIndex[j] > 1e4) //å¯¹æ¡æ¶ä»èŠ‚ç‚¹è‡ªç”±åº¦ç¼–å·
 				{
 					k = (pNode + i)->iaDOFIndex[j] - 1e4;
 					(pNode + i)->iaDOFIndex[j] = (pNode + k)->iaDOFIndex[j];
@@ -790,7 +792,7 @@ int DOFIndexCalcu(int & iBuf0, int nTotalNode, int nConstrainedNode, Constrained
 }
 
 /**
- * \brief ¼ÆËãµ¥Ôª¶¨Î»ÏòÁ¿
+ * \brief è®¡ç®—å•å…ƒå®šä½å‘é‡
  * \param nTotalElem
  * \param pNode
  * \param pElem
@@ -798,25 +800,25 @@ int DOFIndexCalcu(int & iBuf0, int nTotalNode, int nConstrainedNode, Constrained
  */
 void ElementDOFCalcu(int nTotalElem, Node* pNode, Element* pElem, int** pElemDOF)
 {
-	int iNode0, iNode1; //µ¥ÔªÁ½¶Ë½ÚµãºÅ
+	int iNode0, iNode1; //å•å…ƒä¸¤ç«¯èŠ‚ç‚¹å·
 	int i, j;
 	for (i = 0; i < nTotalElem; i++)
 	{
 		iNode0 = (pElem + i)->iaNode[0];
 		iNode1 = (pElem + i)->iaNode[1];
-		if ((pElem + i)->iType == TRUSS)				//¶ÔÓÚèì¼Üµ¥Ôª
+		if ((pElem + i)->iType == TRUSS)				//å¯¹äºæ¡æ¶å•å…ƒ
 		{
-			for (i = 0; j < 2; j++)
+			for (j = 0; j < 2; j++)
 			{
 				pElemDOF[i][j] = (pNode + iNode0)->iaDOFIndex[j];
 				pElemDOF[i][j + 2] = (pNode + iNode1)->iaDOFIndex[j];
 			}
 		}
-		else //¶ÔÓÚ¸Õ¼Üµ¥Ôª
+		else //å¯¹äºåˆšæ¶å•å…ƒ
 		{
 			for (j = 0; j < 3; j++)
 			{
-				pElemDOF[i][j] = (pNode + iNode0)->iaDOFIndex[i];
+				pElemDOF[i][j] = (pNode + iNode0)->iaDOFIndex[j];
 				pElemDOF[i][j + 3] = (pNode + iNode1)->iaDOFIndex[j];
 			}
 		}
@@ -831,20 +833,20 @@ void BandAndDiagCalcu(int nTotalElem, int nTotalDOF, Element* pElem, int** pElem
 	int iDOFIndex;
 	int i, j;
 
-	for (i = 0; i < nTotalDOF; i++)								//¸ôĞĞ°ë´ø¿íÖµ1
+	for (i = 0; i < nTotalDOF; i++)								//éš”è¡ŒåŠå¸¦å®½å€¼1
 		pDiag[i] = 1;
 	for (i = 0; i < nTotalElem; i++)
 	{
 		iMiniDOF = pElemDOF[i][0];
 		if ((pElem + i)->iType == TRUSS) {
-			for (j = 0; j < 4; j++)								//´Óèì¼Üµ¥ÔªµÄ4¸ö½ÚµãÎ»ÒÆ±àºÅÖĞÑ¡È¡×îĞ¡ºÅ
+			for (j = 0; j < 4; j++)								//ä»æ¡æ¶å•å…ƒçš„4ä¸ªèŠ‚ç‚¹ä½ç§»ç¼–å·ä¸­é€‰å–æœ€å°å·
 			{
 				if (pElemDOF[i][j] < iMiniDOF)
 					iMiniDOF = pElemDOF[i][j];
 			}
 		}
 		else {
-			for (j = 0; j < 6; j++) {							//´Ó¸Õ¼Üµ¥ÔªµÄ6¸ö½ÚµãÎ»ÒÆ±àºÅÖĞÑ¡Ôñ×îĞ¡ºÅ
+			for (j = 0; j < 6; j++) {							//ä»åˆšæ¶å•å…ƒçš„6ä¸ªèŠ‚ç‚¹ä½ç§»ç¼–å·ä¸­é€‰æ‹©æœ€å°å·
 				if (pElemDOF[i][j] < iMiniDOF)
 					iMiniDOF = pElemDOF[i][j];
 			}
@@ -852,7 +854,7 @@ void BandAndDiagCalcu(int nTotalElem, int nTotalDOF, Element* pElem, int** pElem
 		if ((pElem + i)->iType == TRUSS) {
 			for (j = 0; j < 4; j++) {
 				iDOFIndex = pElemDOF[i][j];
-				iBuf = iDOFIndex - iMiniDOF + 1;				//¼ÆËã°ë´ø¿í
+				iBuf = iDOFIndex - iMiniDOF + 1;				//è®¡ç®—åŠå¸¦å®½
 
 				if (iBuf > pDiag[iDOFIndex])
 					pDiag[iDOFIndex] = iBuf;
@@ -861,7 +863,7 @@ void BandAndDiagCalcu(int nTotalElem, int nTotalDOF, Element* pElem, int** pElem
 		else {
 			for (j = 0; j < 6; j++) {
 				iDOFIndex = pElemDOF[i][j];
-				iBuf = iDOFIndex - iMiniDOF + 1;				//¼ÆËã°ë´ø¿í
+				iBuf = iDOFIndex - iMiniDOF + 1;				//è®¡ç®—åŠå¸¦å®½
 				if (iBuf > pDiag[iDOFIndex])
 					pDiag[iDOFIndex] = iBuf;
 			}
@@ -873,25 +875,25 @@ void BandAndDiagCalcu(int nTotalElem, int nTotalDOF, Element* pElem, int** pElem
 }
 
 /**
- * \brief Ë«¾«¶È¶şÎ¬Êı×éÄÚ´æ·ÖÅä
+ * \brief åŒç²¾åº¦äºŒç»´æ•°ç»„å†…å­˜åˆ†é…
  * \param nRow
  * \param nCol
  * \return
  */
 double** TwoArrayDoubAlloc(int nRow, int nCol)
 {
-	double** pd = new double*[nRow];					//ÉêÇëĞĞÊı
+	double** pd = new double*[nRow];					//ç”³è¯·è¡Œæ•°
 	if (!pd)
 	{
-		cout << "ÄÚ´æ·ÖÅäÊ§°Ü£¡" << endl;
+		cout << "å†…å­˜åˆ†é…å¤±è´¥ï¼" << endl;
 		exit(-1);
 	}
 	for (int i = 0; i < nRow; i++)
 	{
-		pd[i] = new double[nCol];						//ÉêÇëÁĞÊı
+		pd[i] = new double[nCol];						//ç”³è¯·åˆ—æ•°
 		if (!pd[i])
 		{
-			cout << "ÄÚ´æ·ÖÅäÊ§°Ü£¡" << endl;
+			cout << "å†…å­˜åˆ†é…å¤±è´¥ï¼" << endl;
 			exit(-1);
 		}
 	}
@@ -899,41 +901,41 @@ double** TwoArrayDoubAlloc(int nRow, int nCol)
 }
 
 /**
-* \brief ÕûĞÍ¶şÎ¬Êı×éÄÚ´æ·ÖÅä
+* \brief æ•´å‹äºŒç»´æ•°ç»„å†…å­˜åˆ†é…
 * \param nRow
 * \param nCol
 * \return
 */
 int** TwoArrayIntAlloc(int nRow, int nCol)
 {
-	int** pd = new int*[nRow];					//ÉêÇëĞĞÊı
+	int** pd = new int*[nRow];					//ç”³è¯·è¡Œæ•°
 	if (!pd)
 	{
-		cout << "ÄÚ´æ·ÖÅäÊ§°Ü£¡" << endl;
+		cout << "å†…å­˜åˆ†é…å¤±è´¥ï¼" << endl;
 		exit(-1);
 	}
 	for (int i = 0; i < nRow; i++)
 	{
-		pd[i] = new int[nCol];						//ÉêÇëÁĞÊı
+		pd[i] = new int[nCol];						//ç”³è¯·åˆ—æ•°
 		if (!pd[i])
 		{
-			cout << "ÄÚ´æ·ÖÅäÊ§°Ü£¡" << endl;
+			cout << "å†…å­˜åˆ†é…å¤±è´¥ï¼" << endl;
 			exit(-1);
 		}
 	}
 	return pd;
 }
 
-//¶şÎ¬Êı×éÄÚ´æÊÍ·Å
+//äºŒç»´æ•°ç»„å†…å­˜é‡Šæ”¾
 template <class T>
 void TwoArrayFree(int nRow, T** pdi)
 {
-	for (int i = 0; i < nRow; i++)					//»ØÊÕÁĞ¿Õ¼ä
+	for (int i = 0; i < nRow; i++)					//å›æ”¶åˆ—ç©ºé—´
 		delete[]pdi[i];
-	delete[]pdi;									//»ØÊÕĞĞ¿Õ¼ä
+	delete[]pdi;									//å›æ”¶è¡Œç©ºé—´
 }
 
-//¾ØÕóÖÃÁã
+//çŸ©é˜µç½®é›¶
 template <class T>
 void MatrixZeroize(int nRow, int nCol, T** pT)
 {
@@ -942,7 +944,7 @@ void MatrixZeroize(int nRow, int nCol, T** pT)
 			pT[i][j] = 0;
 }
 
-//ÏòÁ¿ÖÃÁã
+//å‘é‡ç½®é›¶
 template <class T>
 void VectorZeroize(int n, T* pT)
 {
