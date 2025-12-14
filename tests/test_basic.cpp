@@ -35,6 +35,14 @@ int main() {
     if (!ok) { std::cerr<<"LDLTSolve failed"<<std::endl; return 1; }
     if (fabs(pB[0] - 2.0) > 1e-12) { std::cerr<<"LDLT result wrong"<<std::endl; return 1; }
 
+    // Test LDLTSolve for 2x2 symmetric positive definite matrix
+    int pDiag2[2] = {0,2};
+    double pGK2[3] = {2.0, 1.0, 2.0};
+    double pB2[2] = {3.0, 3.0};
+    bool ok2 = LDLTSolve(2, pDiag2, pGK2, pB2);
+    if (!ok2) { std::cerr<<"LDLTSolve 2x2 failed"<<std::endl; return 1; }
+    if (fabs(pB2[0] - 1.0) > 1e-12 || fabs(pB2[1] - 1.0) > 1e-12) { std::cerr<<"LDLT 2x2 result wrong"<<std::endl; return 1; }
+
     // Test DOFIndexCalcu
     Node nodes2[2];
     nodes2[0].iType = TRUSS_NODE; nodes2[1].iType = TRUSS_NODE;
@@ -54,25 +62,25 @@ int main() {
     if (elemDOF[0][0] != nodes2[0].iaDOFIndex[0]) { std::cerr<<"ElemDOF 0 mismatch"<<std::endl; return 1; }
 
     // Test BandAndDiagCalcu expected pDiag values [0,2,5,9]
-    int* pDiag = new int[4];
-    for (int i=0;i<4;i++) pDiag[i]=1;
-    BandAndDiagCalcu(1, 4, elems2, elemDOF, pDiag);
-    if (pDiag[0]!=0 || pDiag[1]!=2 || pDiag[2]!=5 || pDiag[3]!=9) { std::cerr<<"BandAndDiagCalcu wrong"<<std::endl; return 1; }
+    int* pDiagBand = new int[4];
+    for (int i=0;i<4;i++) pDiagBand[i]=1;
+    BandAndDiagCalcu(1, 4, elems2, elemDOF, pDiagBand);
+    if (pDiagBand[0]!=0 || pDiagBand[1]!=2 || pDiagBand[2]!=5 || pDiagBand[3]!=9) { std::cerr<<"BandAndDiagCalcu wrong"<<std::endl; return 1; }
 
     // Test GKAssembly produces some nonzero entries
-    int iBuf = pDiag[3] + 1;
-    double* pGK = new double[iBuf];
-    for (int i=0;i<iBuf;i++) pGK[i]=0.0;
+    int iBuf = pDiagBand[3] + 1;
+    double* pGKBand = new double[iBuf];
+    for (int i=0;i<iBuf;i++) pGKBand[i]=0.0;
     Material mates[1]; mates[0].dE = 210e9; mates[0].dMu=0.3; mates[0].dAlpha=0.0;
     Section sects[1]; sects[0].dA = 0.01; sects[0].dIz=0.0; sects[0].dH=0.0;
-    GKAssembly(4, 1, elems2, nodes2, mates, sects, pDiag, pGK);
+    GKAssembly(4, 1, elems2, nodes2, mates, sects, pDiagBand, pGKBand);
     bool anyNonZero=false;
-    for (int i=0;i<iBuf;i++) if (fabs(pGK[i])>1e-12) anyNonZero=true;
+    for (int i=0;i<iBuf;i++) if (fabs(pGKBand[i])>1e-12) anyNonZero=true;
     if (!anyNonZero) { std::cerr<<"GKAssembly produced zero matrix"<<std::endl; return 1; }
 
     // cleanup
     TwoArrayFree(1, elemDOF);
-    delete[] pDiag; delete[] pGK;
+    delete[] pDiagBand; delete[] pGKBand;
 
     std::cout << "all tests passed" << std::endl;
     return 0;

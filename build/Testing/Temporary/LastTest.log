@@ -1,0 +1,19 @@
+Start testing: Dec 14 21:32 中国标准时间
+----------------------------------------------------------
+1/1 Testing: basic_tests
+1/1 Test: basic_tests
+Command: "C:/Users/guoho/Documents/GitHub/FEM_2d/build/bin/Debug/unit_tests.exe"
+Directory: C:/Users/guoho/Documents/GitHub/FEM_2d/build
+"basic_tests" start time: Dec 14 21:32 中国标准时间
+Output:
+----------------------------------------------------------
+all tests passed
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"basic_tests" end time: Dec 14 21:32 中国标准时间
+"basic_tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Dec 14 21:32 中国标准时间

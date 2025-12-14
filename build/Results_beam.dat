@@ -1,0 +1,75 @@
+
+
+  Global Data:
+
+  Total nodes:         5
+Constrained nodes:         2
+Total elements:         4
+Material types:         1
+Section types:         1
+   Load count:         3
+
+===================================================================
+Node data:
+
+  NodeType         X         Y
+         2         0         0
+
+         2       0.5         0
+
+         2         1         0
+
+         2       1.5         0
+
+         2         2         0
+
+Constrained nodes
+
+        Node         X         Y         R
+           0         0        -1         0
+           4         0        -1         0
+
+Element data:
+
+        Type       Start         End     Section    Material
+           2           0           1           0           0
+           2           1           2           0           0
+           2           2           3           0           0
+           2           3           4           0           0
+
+Material data:
+
+           E          Mu       Alpha
+     2.1e+11         0.3           0
+
+Section geometry:
+
+        Area          Iz      Height
+        0.01       1e-05         0.2
+
+Load data:
+
+      Type       Dir     Value      Elem      Node       Pos        T0        T1
+         1         1     -1000        -1         1         0         0         0
+         1         1     -1000        -1         2         0         0         0
+         1         1     -1000        -1         3         0         0         0
+Node Displacements:
+    Node          Ux          Uy          Rz
+       0 0.000188491           0-2.59854e-06
+       1 0.000190604-3.13844e-05-1.64235e-06
+       2 0.000189028-1.09623e-05-2.17741e-06
+       3 0.000187431-1.65847e-05 0.000307428
+       4 0.000188078           0-1.67172e-06
+
+Element End Forces:
+    Elem        Fx_i        Fy_i        Mz_i        Fx_j        Fy_j        Mz_j
+       0    -8875.24     6113.35     1524.32     8875.24    -6113.35     1532.35
+       1     6619.15    -4309.61    -1075.15    -6619.15     4309.61    -1079.65
+       2     6706.46     16518.1     2829.19    -6706.46    -16518.1     5429.87
+       3    -2716.46     12066.7     4314.89     2716.46    -12066.7     1718.45
+
+Support Reactions:
+    Node          Rx          Ry          Rz
+       0 0.000188491     6113.35-2.59854e-06
+       4 0.000188078    -12505.6-1.67172e-06
+

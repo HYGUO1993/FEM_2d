@@ -89,17 +89,41 @@ void LengthSinCosCalcu(int nTotalElem, Element* pElem, Node* pNode);
 void TrussElemStiffCalcu(std::ofstream& fout1, Element* pElem, Material* pMate, Section* pSect, double** pKe);
 void FrameElemStiffCalcu(std::ofstream& fout1, Element* pElem, Material* pMate, Section* pSect, double** pKe);
 void GKAssembly(int nTotalDOF, int nTotalElem, Element* pElem, Node* pNode, Material* pMate,
-	Section* pSect, int* pDiag, double* pGK);
+	Section* pSect, int* pDiag, double* pGK, const char* stiffPath = "ElemStiff.dat");
 bool LDLTSolve(int nRow, int* pDiag, double* pGK, double* pB);
 void FixedEndForceCalcu(Element* pElem, Material* pMate, Section* pSect, Load* pLoad, double* pFixedEndF, int i);
 void LoadVectorAssembly(int nLoad, int nTotalDOF, int nFreeDOF, int* pDiag, double* pGK, Element* pElem, Material* pMate, Section* pSect, Load* pLoad, Node* pNode, double* pLoadVect, double* pDisp);
 void ElementEndForceInit(int nTotalElem, Element* pElem);
 double GetElementInGK(int nRow, int iRow, int iCol, int* pDiag, double* pGK);
 void LoadVectorModify(int nTotalDOF, int nFreeDOF, int* pDiag, double* pGK, double*pDisp, double* pLoadVect);
-void InternalForceCalcu(int nTotalElem, Element* pElem, Node* pNode, double* pDisp);
+void InternalForceCalcu(int nTotalElem, Element* pElem, Node* pNode, Material* pMate, Section* pSect, double* pDisp);
 void TrussInternalForceCalcu(Element* pElem, Node* pNode, double* pDisp, double** pKe);
 void FrameInternalForceCalcu(Element* pElem, Node* pNode, double* pDisp, double** pKe);
 void SupportReactionCalcu(int nTotalDOF, int nFreeDOF, int* pDiag, double* pGK, double* pDisp, double* pLoadVect);
 void NodeDisplOutput(std::ofstream& fout, int nTotalNode, Node* pNode, double* pDisp);
 void EndInternalForceOutput(std::ofstream& fout0, int nTotalElem, Element* pElem);
 void SupportReactionOutput(std::ofstream& fout0, int nConstrainedNode, ConstrainedNode* pConsNode, Node* pNode, double* pLoadVect);
+
+// inline template definitions to ensure availability in all translation units
+template <class T>
+inline void TwoArrayFree(int nRow, T** pdi)
+{
+	for (int i = 0; i < nRow; i++)
+		delete[] pdi[i];
+	delete[] pdi;
+}
+
+template <class T>
+inline void MatrixZeroize(int nRow, int nCol, T** pT)
+{
+	for (int i = 0; i < nRow; i++)
+		for (int j = 0; j < nCol; j++)
+			pT[i][j] = 0;
+}
+
+template <class T>
+inline void VectorZeroize(int n, T* pT)
+{
+	for (int i = 0; i < n; i++)
+		pT[i] = 0;
+}

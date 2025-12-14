@@ -1,0 +1,56 @@
+
+
+  Global Data:
+
+  Total nodes:         2
+Constrained nodes:         1
+Total elements:         1
+Material types:         1
+Section types:         1
+   Load count:         1
+
+===================================================================
+Node data:
+
+  NodeType         X         Y
+         2         0         0
+
+         2         1         0
+
+Constrained nodes
+
+        Node         X         Y         R
+           0        -1        -1        -1
+
+Element data:
+
+        Type       Start         End     Section    Material
+           2           0           1           0           0
+
+Material data:
+
+           E          Mu       Alpha
+     2.1e+11         0.3           0
+
+Section geometry:
+
+        Area          Iz      Height
+        0.01   8.333e-06         0.1
+
+Load data:
+
+      Type       Dir     Value      Elem      Node       Pos        T0        T1
+         1         1     -1000        -1         1         0         0         0
+Node Displacements:
+    Node          Ux          Uy          Rz
+       0           0           0           0
+       1           0-0.000190484-0.000285726
+
+Element End Forces:
+    Elem        Fx_i        Fy_i        Mz_i        Fx_j        Fy_j        Mz_j
+       0           0        1000        1000           0       -1000           0
+
+Support Reactions:
+    Node          Rx          Ry          Rz
+       0           0        1000        1000
+
