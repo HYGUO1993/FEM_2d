@@ -17,10 +17,12 @@ int main(int argc, char * argv[])
 	bool quiet = false;
 	string stiffPath = "ElemStiff.dat";
 	bool writeStiff = true;
+	bool inputSpecified = false;
 	for (int ai = 1; ai < argc; ++ai) {
 		string arg = argv[ai];
 		if (arg == "--input" && ai + 1 < argc) {
 			inputPath = argv[++ai];
+			inputSpecified = true;
 		} else if (arg == "--output" && ai + 1 < argc) {
 			outputPath = argv[++ai];
 		} else if (arg == "--quiet") {
@@ -45,10 +47,23 @@ int main(int argc, char * argv[])
 	int i;																											//循环控制变量
 	int iBuf;
 
-	ifstream fin0(inputPath.c_str());																					//文件输入流对象,原始数据文件
+	ifstream fin0(inputPath.c_str());																							//文件输入流对象,原始数据文件
+
+	// When using the default input, allow running from build directories.
+	if (!fin0 && !inputSpecified) {
+		const char* fallbackInputs[] = { "../test05.txt", "../../test05.txt", "../../../test05.txt" };
+		for (const char* candidate : fallbackInputs) {
+			fin0.clear();
+			fin0.open(candidate);
+			if (fin0) {
+				inputPath = candidate;
+				break;
+			}
+		}
+	}
 
 	if (!fin0) {
-		if (!quiet) cout << "Failed to open input file!" << endl;
+		if (!quiet) cout << "Failed to open input file: " << inputPath << endl;
 		return -1;
 	}
 	ofstream fout0(outputPath.c_str());																					//文件输出流对象，计算结果数据文件

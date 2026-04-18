@@ -203,7 +203,7 @@ Node        Rx        Ry        Rz
 
 ### 安装GUI依赖
 ```bash
-pip install PySide6 pyvista
+pip install PySide6 matplotlib numpy
 ```
 
 ### 启动GUI
@@ -214,12 +214,16 @@ python python/fem_gui.py
 ### GUI功能
 - 📁 文件菜单：新建、打开、保存
 - ✏️ 编辑菜单：撤销、重做
-- 🔬 分析菜单：求解
-- 👁️ 视图菜单：显示变形、显示内力
+- 🔬 分析菜单：调用 `build/bin/Release/fem_run.exe` 执行求解
+- 👁️ 视图菜单：显示变形、显示内力、显示反力
 - 🌳 模型树：查看节点、单元、载荷等
 - 📊 属性面板：查看对象属性
+- 🖼️ 中央区域：内嵌 Matplotlib 交互画布（缩放/平移）
+- 🎛️ 可视化控制：变形倍率、反力缩放、显示项开关、一键重绘
+- 💾 导出图片：支持 PNG/JPEG/SVG
+- 🧾 运行日志：显示求解器执行输出
 
-**注意：** GUI功能仍在开发中，部分功能尚未完全集成。
+**注意：** 当前 GUI 采用“调用现有 C++ 可执行程序 + 内嵌绘图渲染”的方式工作，尚未集成交互式建模器和原生三维视图。
 
 ---
 
@@ -277,7 +281,7 @@ A: 检查约束是否充分：
 ### Q: GUI无法启动？
 A: 安装PySide6：
 ```bash
-pip install PySide6
+pip install PySide6 matplotlib numpy
 ```
 
 ---

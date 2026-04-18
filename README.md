@@ -1,6 +1,38 @@
 # FEM_2d 项目说明
 本项目是一个用于教学/实验的二维杆/桁架/刚架有限元程序，支持读取结构与载荷、组装整体刚度、求解位移、输出杆端力与支座反力，并提供 Python 可视化脚本生成变形图与反力箭头。
 
+---
+
+## 🚀 快速启动 GUI（最方便！）
+
+### Windows 用户
+
+**如果出现 "DLL load failed" 错误：**
+- 双击 `修复DLL错误.bat` ⭐（自动修复 Windows 系统库问题）
+- 然后双击 `启动GUI.bat` 启动 GUI
+
+**正常情况下，直接双击任一文件即可启动 GUI：**
+- `启动GUI.bat` ⭐ （中文按钮）
+- `start_gui.bat` （英文按钮）
+
+更多帮助见 [QUICKSTART_Windows.md](QUICKSTART_Windows.md)
+
+### VS Code 用户
+按快捷键启动：
+```
+Ctrl+Shift+P → 搜索 "Launch FEM_2d GUI" → Enter
+```
+或在"终端"菜单中选择"运行任务"
+
+### 命令行启动
+```bash
+python quick_start_gui.py        # 推荐：跨平台
+python python/fem_gui.py         # 直接调用
+.\start_gui.bat                  # Windows 批处理
+```
+
+---
+
 - 语言与平台：C++（C++11），支持 Linux / Windows / macOS，Python 3 可视化
 - 可执行文件： build/bin/fem_run（或 .exe）
 - 单元测试： build/bin/unit_tests（或 .exe）
@@ -21,14 +53,27 @@
 快速开始
 
 - 构建与测试（推荐 VS 2022/MSBuild）：
-  - & 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe' .\\build\\FEM_2d.sln /p:Configuration=Debug /m
-  - & .\\build\\bin\\Debug\\unit_tests.exe
-- 运行示例：
-  - 框架悬臂示例（梁）： & .\\build\\bin\\Debug\\fem_run.exe --no-stiff --input test05.txt --output build\\Results_frame.dat
-  - 简支梁三点载荷： & .\\build\\bin\\Debug\\fem_run.exe --no-stiff --input test_beam.txt --output build\\Results_beam.dat
-- 可视化：
+  - & 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe' .\\build\\FEM_2d.sln /p:Configuration=Release /m
+  - & .\\build\\bin\\Release\\unit_tests.exe
+- **启动 GUI（推荐）**：
+  - Windows：`python quick_start_gui.py` 或 `.\scripts\run_gui.ps1`
+  - macOS/Linux：`python3 python/fem_gui.py`
+  - 详见 `GUI_USAGE.md` 完整使用指南
+- 命令行运行示例：
+  - 框架悬臂示例（梁）： & .\\build\\bin\\Release\\fem_run.exe --no-stiff --input test05.txt --output build\\Results_frame.dat
+  - 简支梁三点载荷： & .\\build\\bin\\Release\\fem_run.exe --no-stiff --input test_beam.txt --output build\\Results_beam.dat
+- 命令行可视化：
   - python scripts\\visualize_results.py --results build\\Results_frame.dat --scale 1000 --out build\\plot_frame.png
   - python scripts\\visualize_results.py --results build\\Results_beam.dat --scale 2000 --out build\\plot_beam.png
+
+Windows 双击封装
+
+- 运行求解（避免控制台一闪而过）：双击 `scripts\\run_release.bat`
+- 运行可视化（自动生成结果并出图）：双击 `scripts\\run_visualize.bat`
+- **启动交互式 GUI**：双击 `scripts\\run_gui.bat` 或运行 `python quick_start_gui.py`
+  - GUI 提供完整的交互式界面、实时参数调整和可视化
+  - 详细使用说明见 `GUI_USAGE.md`
+- 可视化输出图片默认保存到：`build\\plot.png`
 目录结构
 
 - barsystem.cpp 主程序与核心有限元函数
@@ -214,3 +259,11 @@ Skyline 存储与访问
   - 简支梁：两端约束 `Y`，不约束 `X/Rz`，中跨施加竖向集中力
   - 位移倍率 `--scale` 需与几何尺度匹配；脚本已对过大位移进行裁剪
   - 若出现奇异或位移异常，请检查约束是否充分以及单元类型是否正确
+
+## 文档与指南
+
+- **[GUI_USAGE.md](GUI_USAGE.md)** - 交互式 GUI 应用完整使用指南
+  - 快速开始、菜单说明、可视化控制、常见任务、故障排除
+- **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - 命令行工具使用指南
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - 开发者文档与源代码说明
+- **[RELEASE_NOTES.md](RELEASE_NOTES.md)** - 版本更新历史
