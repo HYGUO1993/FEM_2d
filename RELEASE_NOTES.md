@@ -1,4 +1,4 @@
-# FEM_2d Release v1.0
+# FEM_2d Release v1.0.1
 
 ## 概述
 
@@ -151,6 +151,10 @@ ctest
 
 ## 版本历史
 
+### v1.0.1 (2026-04-18)
+- 修复：移除误提交的 `build/` 目录（含硬编码 Linux 路径的 CMakeCache.txt），解决 macOS/Windows CI 构建失败问题
+- 添加 `.gitignore`，防止构建产物再次被误提交
+
 ### v1.0 (2026-04-18)
 - 初始发布版本
 - 完整的 FEM 核心功能
@@ -170,7 +174,6 @@ ctest
 ---
 
 **构建信息：**
-- 分支: claude/improve-visualization-for-engineers
-- 编译日期: 2026-04-18
+- 版本: v1.0.1
 - 核心代码: C++11
-- 测试状态: ✅ 通过
+- 测试状态: ✅ 通过（Linux / macOS / Windows）
