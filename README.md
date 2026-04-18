@@ -1,10 +1,23 @@
 # FEM_2d 项目说明
 本项目是一个用于教学/实验的二维杆/桁架/刚架有限元程序，支持读取结构与载荷、组装整体刚度、求解位移、输出杆端力与支座反力，并提供 Python 可视化脚本生成变形图与反力箭头。
 
-- 语言与平台：C++（C++11），Windows（VS 2022/MSVC），Python 3.12 可视化
-- 可执行文件： build\\bin\\Debug\\fem_run.exe
-- 单元测试： build\\bin\\Debug\\unit_tests.exe
-- 可视化脚本： scripts\\visualize_results.py
+- 语言与平台：C++（C++11），支持 Linux / Windows / macOS，Python 3 可视化
+- 可执行文件： build/bin/fem_run（或 .exe）
+- 单元测试： build/bin/unit_tests（或 .exe）
+- 可视化脚本： scripts/visualize_results.py
+
+## 下载预编译程序
+
+从 [Releases 页面](https://github.com/HYGUO1993/FEM_2d/releases) 下载对应平台的压缩包：
+
+| 平台 | 文件 |
+|------|------|
+| Linux (x64, 静态链接) | `fem_2d_linux_x64.tar.gz` |
+| Windows (x64) | `fem_2d_windows_x64.zip` |
+| macOS (x64) | `fem_2d_macos_x64.tar.gz` |
+
+解压后直接运行 `fem_run`（或 `fem_run.exe`）即可，无需安装任何依赖。
+
 快速开始
 
 - 构建与测试（推荐 VS 2022/MSBuild）：
