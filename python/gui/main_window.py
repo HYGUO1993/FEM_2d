@@ -5,7 +5,7 @@ This module implements the main application window with menu bar, toolbar,
 status bar, and docked panels for model tree and properties.
 """
 
-from PySide6.QtWidgets import (
+from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QMenuBar, QMenu, QToolBar, QStatusBar, QDockWidget,
     QTreeWidget, QTreeWidgetItem, QTextEdit, QLabel,
@@ -13,8 +13,8 @@ from PySide6.QtWidgets import (
     QCheckBox, QDoubleSpinBox, QFormLayout, QPlainTextEdit,
     QTabWidget
 )
-from PySide6.QtCore import Qt, Signal, Slot
-from PySide6.QtGui import QAction, QIcon, QKeySequence, QFont
+from PyQt6.QtCore import Qt, pyqtSignal as Signal, pyqtSlot as Slot
+from PyQt6.QtGui import QAction, QIcon, QKeySequence, QFont
 
 import os
 import subprocess
@@ -42,9 +42,16 @@ class MainWindow(QMainWindow):
         self.current_file = None
         self.model = None
         self.is_modified = False
-        self.project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-        self.last_results_path = os.path.join(self.project_root, "build", "Results_gui.dat")
-        self.last_plot_path = os.path.join(self.project_root, "build", "plot_gui.png")
+        import sys, tempfile
+        if getattr(sys, 'frozen', False):
+            self.app_dir = os.path.dirname(sys.executable)
+            self.work_dir = os.getcwd()
+        else:
+            self.app_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+            self.work_dir = self.app_dir
+
+        self.last_results_path = os.path.join(tempfile.gettempdir(), "FEM_2d_Results.dat")
+        self.last_plot_path = os.path.join(os.path.expanduser("~"), "Desktop", "plot_gui.png")
 
         # Setup matplotlib theme
         setup_matplotlib_dark_theme()
@@ -64,24 +71,24 @@ class MainWindow(QMainWindow):
     def _create_actions(self):
         """Create application actions."""
         self.new_action = QAction("新建 (&N)", self)
-        self.new_action.setShortcut(QKeySequence.New)
+        self.new_action.setShortcut(QKeySequence.StandardKey.New)
         self.new_action.triggered.connect(self.new_model)
 
         self.open_action = QAction("打开... (&O)", self)
-        self.open_action.setShortcut(QKeySequence.Open)
+        self.open_action.setShortcut(QKeySequence.StandardKey.Open)
         self.open_action.triggered.connect(self.open_model)
 
         self.save_action = QAction("保存 (&S)", self)
-        self.save_action.setShortcut(QKeySequence.Save)
+        self.save_action.setShortcut(QKeySequence.StandardKey.Save)
         self.save_action.triggered.connect(self.save_model)
 
         self.exit_action = QAction("退出 (&X)", self)
-        self.exit_action.setShortcut(QKeySequence.Quit)
+        self.exit_action.setShortcut(QKeySequence.StandardKey.Quit)
         self.exit_action.triggered.connect(self.close)
 
         # Analysis actions
         self.solve_action = QAction("求解运行 (F5)", self)
-        self.solve_action.setShortcut(Qt.Key_F5)
+        self.solve_action.setShortcut(Qt.Key.Key_F5)
         self.solve_action.triggered.connect(self.solve_model)
 
         self.open_example_action = QAction("加载测试例子 (test05.txt)", self)
@@ -150,16 +157,16 @@ class MainWindow(QMainWindow):
     def _create_docks(self):
         # Model tree dock
         self.tree_dock = QDockWidget("模型结构", self)
-        self.tree_dock.setAllowedAreas(Qt.LeftDockWidgetArea)
+        self.tree_dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea)
         self.model_tree = QTreeWidget()
         self.model_tree.setHeaderLabel("组件")
         self._populate_tree()
         self.tree_dock.setWidget(self.model_tree)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.tree_dock)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.tree_dock)
 
         # File Editor Dock
         self.editor_dock = QDockWidget("输入数据编辑", self)
-        self.editor_dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.editor_dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
         editor_widget = QWidget()
         el = QVBoxLayout(editor_widget)
         self.text_editor = QPlainTextEdit()
@@ -173,11 +180,11 @@ class MainWindow(QMainWindow):
         el.addWidget(self.text_editor)
         el.addWidget(btn_apply)
         self.editor_dock.setWidget(editor_widget)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.editor_dock)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.editor_dock)
         
         # Viz controls
         self.viz_ctrl_dock = QDockWidget("视图控制", self)
-        self.viz_ctrl_dock.setAllowedAreas(Qt.RightDockWidgetArea)
+        self.viz_ctrl_dock.setAllowedAreas(Qt.DockWidgetArea.RightDockWidgetArea)
         ctrl_widget = QWidget()
         ctrl_layout = QFormLayout(ctrl_widget)
 
@@ -247,7 +254,7 @@ class MainWindow(QMainWindow):
         ctrl_layout.addRow(self.btn_open_report)
 
         self.viz_ctrl_dock.setWidget(ctrl_widget)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.viz_ctrl_dock)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.viz_ctrl_dock)
 
     def _create_central_widget(self):
         central = QWidget()
@@ -387,7 +394,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def _apply_editor_text(self):
         if not self.current_file:
-            self.current_file = os.path.join(self.project_root, "build", "temp_input.txt")
+            self.current_file = os.path.join(tempfile.gettempdir(), "temp_input.txt")
             
         try:
             with open(self.current_file, 'w', encoding='utf-8') as f:
@@ -418,7 +425,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def open_default_example(self):
-        example = os.path.join(self.project_root, "test05.txt")
+        example = os.path.join(self.app_dir, "example_continuous_beam.txt")
         if not os.path.exists(example):
             QMessageBox.warning(self, "文件丢失", f"找不到例子文件:\\n{example}")
             return
@@ -427,7 +434,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def open_model(self):
         filename, _ = QFileDialog.getOpenFileName(
-            self, "打开文件", self.project_root, "文本文件 (*.txt);;所有文件 (*)"
+            self, "打开文件", self.work_dir, "文本文件 (*.txt);;所有文件 (*)"
         )
         if filename:
             self._load_model_file(filename)
@@ -436,7 +443,7 @@ class MainWindow(QMainWindow):
     def save_model(self):
         if not self.current_file:
             filename, _ = QFileDialog.getSaveFileName(
-                self, "保存文件", self.project_root, "文本文件 (*.txt);;所有文件 (*)"
+                self, "保存文件", self.work_dir, "文本文件 (*.txt);;所有文件 (*)"
             )
             if not filename: return False
             self.current_file = filename
@@ -455,10 +462,14 @@ class MainWindow(QMainWindow):
 
     def _find_solver(self):
         """Find the fem_run executable."""
+        import sys
+        if getattr(sys, 'frozen', False):
+            return os.path.join(self.app_dir, "bin", "fem_run.exe")
+            
         candidates = [
-            os.path.join(self.project_root, "build", "bin", "Release", "fem_run.exe"),
-            os.path.join(self.project_root, "build", "bin", "Debug", "fem_run.exe"),
-            os.path.join(self.project_root, "build", "bin", "Release", "fem_run"),
+            os.path.join(self.app_dir, "build", "bin", "Release", "fem_run.exe"),
+            os.path.join(self.app_dir, "build", "bin", "Debug", "fem_run.exe"),
+            os.path.join(self.app_dir, "build", "bin", "Release", "fem_run"),
         ]
         for c in candidates:
             if os.path.exists(c): return c
@@ -491,7 +502,7 @@ class MainWindow(QMainWindow):
                 info = subprocess.STARTUPINFO()
                 info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                 
-            proc = subprocess.run(solve_cmd, cwd=self.project_root, capture_output=True, text=True, startupinfo=info)
+            proc = subprocess.run(solve_cmd, cwd=self.work_dir, capture_output=True, text=True, startupinfo=info)
             
             if proc.stdout: self._append_log(proc.stdout.strip())
             if proc.stderr: self._append_log("[ERR] " + proc.stderr.strip())
@@ -554,10 +565,10 @@ class MainWindow(QMainWindow):
         if self.is_modified:
             reply = QMessageBox.question(
                 self, "未保存", "有未保存的修改，是否在退出前保存？",
-                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel
+                QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel
             )
-            if reply == QMessageBox.Save:
+            if reply == QMessageBox.StandardButton.Save:
                 if not self.save_model(): event.ignore(); return
-            elif reply == QMessageBox.Cancel:
+            elif reply == QMessageBox.StandardButton.Cancel:
                 event.ignore(); return
         event.accept()

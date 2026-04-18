@@ -4,7 +4,7 @@ Theme for FEM_2d GUI Application
 Provides dark theme CSS (QSS), color palettes, and matplotlib configuration.
 """
 
-from PySide6.QtGui import QPalette, QColor
+from PyQt6.QtGui import QPalette, QColor
 
 # Catppuccin Macchiato inspired palette
 PALETTE = {
@@ -206,19 +206,19 @@ def apply_theme(app):
     
     # Also set dark palette as fallback
     palette = QPalette()
-    palette.setColor(QPalette.Window, QColor(PALETTE['base']))
-    palette.setColor(QPalette.WindowText, QColor(PALETTE['text']))
-    palette.setColor(QPalette.Base, QColor(PALETTE['mantle']))
-    palette.setColor(QPalette.AlternateBase, QColor(PALETTE['surface0']))
-    palette.setColor(QPalette.ToolTipBase, QColor(PALETTE['crust']))
-    palette.setColor(QPalette.ToolTipText, QColor(PALETTE['text']))
-    palette.setColor(QPalette.Text, QColor(PALETTE['text']))
-    palette.setColor(QPalette.Button, QColor(PALETTE['surface1']))
-    palette.setColor(QPalette.ButtonText, QColor(PALETTE['text']))
-    palette.setColor(QPalette.BrightText, QColor(PALETTE['red']))
-    palette.setColor(QPalette.Link, QColor(PALETTE['blue']))
-    palette.setColor(QPalette.Highlight, QColor(PALETTE['surface2']))
-    palette.setColor(QPalette.HighlightedText, QColor(PALETTE['text']))
+    palette.setColor(QPalette.ColorRole.Window, QColor(PALETTE['base']))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor(PALETTE['text']))
+    palette.setColor(QPalette.ColorRole.Base, QColor(PALETTE['mantle']))
+    palette.setColor(QPalette.ColorRole.AlternateBase, QColor(PALETTE['surface0']))
+    palette.setColor(QPalette.ColorRole.ToolTipBase, QColor(PALETTE['crust']))
+    palette.setColor(QPalette.ColorRole.ToolTipText, QColor(PALETTE['text']))
+    palette.setColor(QPalette.ColorRole.Text, QColor(PALETTE['text']))
+    palette.setColor(QPalette.ColorRole.Button, QColor(PALETTE['surface1']))
+    palette.setColor(QPalette.ColorRole.ButtonText, QColor(PALETTE['text']))
+    palette.setColor(QPalette.ColorRole.BrightText, QColor(PALETTE['red']))
+    palette.setColor(QPalette.ColorRole.Link, QColor(PALETTE['blue']))
+    palette.setColor(QPalette.ColorRole.Highlight, QColor(PALETTE['surface2']))
+    palette.setColor(QPalette.ColorRole.HighlightedText, QColor(PALETTE['text']))
     
     app.setPalette(palette)
 

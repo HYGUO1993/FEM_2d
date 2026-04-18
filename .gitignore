@@ -1,6 +1,6 @@
 # Build output
-build/
 dist/
+build/pyi/
 
 # CMake generated files
 CMakeCache.txt
@@ -9,11 +9,16 @@ cmake_install.cmake
 Makefile
 *.cmake
 
-# Compiled binaries
+# cx_Freeze build output
+build/exe*/
+FEM_2d_Studio.egg-info/
+
+# Compiled binaries (except the FEM solver we want to track)
 *.o
 *.a
 *.so
 *.exe
+!build/bin/Release/fem_run.exe
 
 # IDE / editor files
 .vscode/
@@ -22,3 +27,11 @@ Makefile
 
 # macOS
 .DS_Store
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Conda env
+.env
