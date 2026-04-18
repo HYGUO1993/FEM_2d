@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/unit_tests.dir/link.d CMakeFiles/unit_tests.dir/tests/test_basic.cpp.o CMakeFiles/unit_tests.dir/barsystem.cpp.o -o bin/unit_tests
