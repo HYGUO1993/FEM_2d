@@ -1,0 +1,131 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    name: Build Linux (static)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake g++
+
+      - name: Configure (static release)
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXE_LINKER_FLAGS="-static"
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Package
+        run: |
+          mkdir -p dist/fem_2d_linux_x64
+          cp build/bin/fem_run dist/fem_2d_linux_x64/
+          cp test05.txt test_beam.txt dist/fem_2d_linux_x64/
+          cp -r scripts dist/fem_2d_linux_x64/
+          cp README.md RELEASE_NOTES.md dist/fem_2d_linux_x64/
+          cd dist
+          tar czf fem_2d_linux_x64.tar.gz fem_2d_linux_x64/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-binary
+          path: dist/fem_2d_linux_x64.tar.gz
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Run tests
+        run: ctest --test-dir build --build-config Release --output-on-failure
+
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist/fem_2d_windows_x64
+          Copy-Item build/bin/Release/fem_run.exe dist/fem_2d_windows_x64/
+          Copy-Item test05.txt, test_beam.txt dist/fem_2d_windows_x64/
+          Copy-Item -Recurse scripts dist/fem_2d_windows_x64/
+          Copy-Item README.md, RELEASE_NOTES.md dist/fem_2d_windows_x64/
+          Compress-Archive -Path dist/fem_2d_windows_x64 -DestinationPath dist/fem_2d_windows_x64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-binary
+          path: dist/fem_2d_windows_x64.zip
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Package
+        run: |
+          mkdir -p dist/fem_2d_macos_x64
+          cp build/bin/fem_run dist/fem_2d_macos_x64/
+          cp test05.txt test_beam.txt dist/fem_2d_macos_x64/
+          cp -r scripts dist/fem_2d_macos_x64/
+          cp README.md RELEASE_NOTES.md dist/fem_2d_macos_x64/
+          cd dist
+          tar czf fem_2d_macos_x64.tar.gz fem_2d_macos_x64/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-binary
+          path: dist/fem_2d_macos_x64.tar.gz
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build-linux, build-windows, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "FEM_2d ${{ github.ref_name }}"
+          body_path: RELEASE_NOTES.md
+          files: |
+            artifacts/linux-binary/fem_2d_linux_x64.tar.gz
+            artifacts/windows-binary/fem_2d_windows_x64.zip
+            artifacts/macos-binary/fem_2d_macos_x64.tar.gz
