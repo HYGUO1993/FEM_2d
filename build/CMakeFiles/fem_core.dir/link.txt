@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -Wl,--dependency-file=CMakeFiles/fem_core.dir/link.d -shared -Wl,-soname,libfem_core.so.1 -o lib/libfem_core.so.1.0.0 CMakeFiles/fem_core.dir/barsystem.cpp.o CMakeFiles/fem_core.dir/src/fem_core.cpp.o CMakeFiles/fem_core.dir/src/fem_api.cpp.o

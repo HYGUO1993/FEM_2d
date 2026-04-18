@@ -95,51 +95,6 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 .PHONY : rebuild_cache/fast
 
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
-
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
-.PHONY : list_install_components/fast
-
-# Special rule for the target install
-install: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
-	/usr/local/bin/cmake -P cmake_install.cmake
-.PHONY : install
-
-# Special rule for the target install
-install/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
-	/usr/local/bin/cmake -P cmake_install.cmake
-.PHONY : install/fast
-
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
-	/usr/local/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
-	/usr/local/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
-
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
-	/usr/local/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
-	/usr/local/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip/fast
-
 # The main all target
 all: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/runner/work/FEM_2d/FEM_2d/build/CMakeFiles /home/runner/work/FEM_2d/FEM_2d/build//CMakeFiles/progress.marks
@@ -172,19 +127,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named fem_core
-
-# Build rule for target.
-fem_core: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 fem_core
-.PHONY : fem_core
-
-# fast build rule for target.
-fem_core/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_core.dir/build.make CMakeFiles/fem_core.dir/build
-.PHONY : fem_core/fast
-
-#=============================================================================
 # Target rules for targets named fem_run
 
 # Build rule for target.
@@ -215,7 +157,6 @@ barsystem.o: barsystem.cpp.o
 
 # target to build an object file
 barsystem.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_core.dir/build.make CMakeFiles/fem_core.dir/barsystem.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_run.dir/build.make CMakeFiles/fem_run.dir/barsystem.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/barsystem.cpp.o
 .PHONY : barsystem.cpp.o
@@ -225,7 +166,6 @@ barsystem.i: barsystem.cpp.i
 
 # target to preprocess a source file
 barsystem.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_core.dir/build.make CMakeFiles/fem_core.dir/barsystem.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_run.dir/build.make CMakeFiles/fem_run.dir/barsystem.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/barsystem.cpp.i
 .PHONY : barsystem.cpp.i
@@ -235,58 +175,9 @@ barsystem.s: barsystem.cpp.s
 
 # target to generate assembly for a file
 barsystem.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_core.dir/build.make CMakeFiles/fem_core.dir/barsystem.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_run.dir/build.make CMakeFiles/fem_run.dir/barsystem.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/barsystem.cpp.s
 .PHONY : barsystem.cpp.s
-
-src/fem_api.o: src/fem_api.cpp.o
-.PHONY : src/fem_api.o
-
-# target to build an object file
-src/fem_api.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_core.dir/build.make CMakeFiles/fem_core.dir/src/fem_api.cpp.o
-.PHONY : src/fem_api.cpp.o
-
-src/fem_api.i: src/fem_api.cpp.i
-.PHONY : src/fem_api.i
-
-# target to preprocess a source file
-src/fem_api.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_core.dir/build.make CMakeFiles/fem_core.dir/src/fem_api.cpp.i
-.PHONY : src/fem_api.cpp.i
-
-src/fem_api.s: src/fem_api.cpp.s
-.PHONY : src/fem_api.s
-
-# target to generate assembly for a file
-src/fem_api.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_core.dir/build.make CMakeFiles/fem_core.dir/src/fem_api.cpp.s
-.PHONY : src/fem_api.cpp.s
-
-src/fem_core.o: src/fem_core.cpp.o
-.PHONY : src/fem_core.o
-
-# target to build an object file
-src/fem_core.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_core.dir/build.make CMakeFiles/fem_core.dir/src/fem_core.cpp.o
-.PHONY : src/fem_core.cpp.o
-
-src/fem_core.i: src/fem_core.cpp.i
-.PHONY : src/fem_core.i
-
-# target to preprocess a source file
-src/fem_core.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_core.dir/build.make CMakeFiles/fem_core.dir/src/fem_core.cpp.i
-.PHONY : src/fem_core.cpp.i
-
-src/fem_core.s: src/fem_core.cpp.s
-.PHONY : src/fem_core.s
-
-# target to generate assembly for a file
-src/fem_core.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fem_core.dir/build.make CMakeFiles/fem_core.dir/src/fem_core.cpp.s
-.PHONY : src/fem_core.cpp.s
 
 tests/test_basic.o: tests/test_basic.cpp.o
 .PHONY : tests/test_basic.o
@@ -319,24 +210,13 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
-	@echo "... install"
-	@echo "... install/local"
-	@echo "... install/strip"
-	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... test"
-	@echo "... fem_core"
 	@echo "... fem_run"
 	@echo "... unit_tests"
 	@echo "... barsystem.o"
 	@echo "... barsystem.i"
 	@echo "... barsystem.s"
-	@echo "... src/fem_api.o"
-	@echo "... src/fem_api.i"
-	@echo "... src/fem_api.s"
-	@echo "... src/fem_core.o"
-	@echo "... src/fem_core.i"
-	@echo "... src/fem_core.s"
 	@echo "... tests/test_basic.o"
 	@echo "... tests/test_basic.i"
 	@echo "... tests/test_basic.s"

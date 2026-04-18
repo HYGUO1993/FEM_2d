@@ -1,4 +1,4 @@
-CMakeFiles/fem_core.dir/barsystem.cpp.o: \
+CMakeFiles/unit_tests.dir/barsystem.cpp.o: \
  /home/runner/work/FEM_2d/FEM_2d/barsystem.cpp /usr/include/stdc-predef.h \
  /usr/include/c++/13/cstdlib \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
