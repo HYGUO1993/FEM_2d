@@ -339,7 +339,7 @@ int main(int argc, char * argv[])
 	SupportReactionCalcu(nTotalDOF, nFreeDOF, pDiag, pGK, pDisp, pLoadVect);	//计算支座反力
 	NodeDisplOutput(fout0, nTotalNode, pNode, pDisp);						//输出节点位移
 	EndInternalForceOutput(fout0, nTotalElem, pElem);						//输出杆件内力
-	SupportReactionOutput(fout0, nConstrtainedNode, pConsNode, pNode, pLoadVect);//输出支座反力
+	SupportReactionOutput(fout0, nConstrtainedNode, pConsNode, pNode, pLoadVect, nFreeDOF);//输出支座反力
 
 	//释放内存
 	delete[]pNode;
@@ -636,6 +636,8 @@ void GKAssembly(int nTotalDOF, int nTotalElem, Element* pElem, Node* pNode, Mate
 double GetElementInGK(int nRow, int iRow, int iCol, int* pDiag, double* pGK)
 {
 	if (iRow < iCol) { int t = iRow; iRow = iCol; iCol = t; }
+	int length = (iRow == 0) ? 1 : (pDiag[iRow] - pDiag[iRow - 1]);
+	if (iRow - iCol >= length) return 0.0;
 	int idx = pDiag[iRow] - iRow + iCol;
 	return pGK[idx];
 }
@@ -1030,7 +1032,7 @@ void EndInternalForceOutput(std::ofstream& fout0, int nTotalElem, Element* pElem
 	fout0 << std::endl;
 }
 
-void SupportReactionOutput(std::ofstream& fout0, int nConstrainedNode, ConstrainedNode* pConsNode, Node* pNode, double* pLoadVect)
+void SupportReactionOutput(std::ofstream& fout0, int nConstrainedNode, ConstrainedNode* pConsNode, Node* pNode, double* pLoadVect, int nFreeDOF)
 {
 	fout0 << "Support Reactions:" << std::endl;
 	fout0 << setw(8) << "Node" << setw(12) << "Rx" << setw(12) << "Ry" << setw(12) << "Rz" << std::endl;
@@ -1039,9 +1041,9 @@ void SupportReactionOutput(std::ofstream& fout0, int nConstrainedNode, Constrain
 		int ix = pNode[nodeId].iaDOFIndex[0];
 		int iy = pNode[nodeId].iaDOFIndex[1];
 		int ir = pNode[nodeId].iaDOFIndex[2];
-		double rx = (ix >= 0) ? pLoadVect[ix] : 0.0;
-		double ry = (iy >= 0) ? pLoadVect[iy] : 0.0;
-		double rz = (ir >= 0) ? pLoadVect[ir] : 0.0;
+		double rx = (ix >= nFreeDOF) ? pLoadVect[ix] : 0.0;
+		double ry = (iy >= nFreeDOF) ? pLoadVect[iy] : 0.0;
+		double rz = (ir >= nFreeDOF) ? pLoadVect[ir] : 0.0;
 		fout0 << setw(8) << nodeId << setw(12) << rx << setw(12) << ry << setw(12) << rz << std::endl;
 	}
 	fout0 << std::endl;

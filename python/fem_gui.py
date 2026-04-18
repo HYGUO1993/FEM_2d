@@ -95,8 +95,10 @@ def main():
     app.setOrganizationName("FEM_2d Development Team")
     app.setApplicationVersion("1.0.0")
 
-    # Set application style
+    # Set application style and theme
+    from gui.theme import apply_theme
     app.setStyle("Fusion")
+    apply_theme(app)
 
     # Check dependencies
     dep_error = check_dependencies()

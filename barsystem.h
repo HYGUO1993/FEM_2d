@@ -102,7 +102,7 @@ void FrameInternalForceCalcu(Element* pElem, Node* pNode, double* pDisp, double*
 void SupportReactionCalcu(int nTotalDOF, int nFreeDOF, int* pDiag, double* pGK, double* pDisp, double* pLoadVect);
 void NodeDisplOutput(std::ofstream& fout, int nTotalNode, Node* pNode, double* pDisp);
 void EndInternalForceOutput(std::ofstream& fout0, int nTotalElem, Element* pElem);
-void SupportReactionOutput(std::ofstream& fout0, int nConstrainedNode, ConstrainedNode* pConsNode, Node* pNode, double* pLoadVect);
+void SupportReactionOutput(std::ofstream& fout0, int nConstrainedNode, ConstrainedNode* pConsNode, Node* pNode, double* pLoadVect, int nFreeDOF);
 
 // inline template definitions to ensure availability in all translation units
 template <class T>
