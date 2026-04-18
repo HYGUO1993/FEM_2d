@@ -1,5 +1,0 @@
-/home/runner/work/FEM_2d/FEM_2d/build/CMakeFiles/fem_run.dir
-/home/runner/work/FEM_2d/FEM_2d/build/CMakeFiles/unit_tests.dir
-/home/runner/work/FEM_2d/FEM_2d/build/CMakeFiles/test.dir
-/home/runner/work/FEM_2d/FEM_2d/build/CMakeFiles/edit_cache.dir
-/home/runner/work/FEM_2d/FEM_2d/build/CMakeFiles/rebuild_cache.dir
