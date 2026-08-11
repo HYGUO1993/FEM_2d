@@ -152,8 +152,8 @@ cmake --build build --config Release
 ### 文档
 | 文件 | 说明 |
 |------|------|
-| `GUI_USAGE.md` | 📖 完整 GUI 使用手册 |
-| `GUI_QUICK_REFERENCE.md` | 快速参考卡 |
+| `docs/guides/GUI_USAGE.md` | 📖 完整 GUI 使用手册 |
+| `docs/guides/GUI_QUICK_REFERENCE.md` | 快速参考卡 |
 | `README.md` | 项目说明 |
 
 ---

@@ -6,7 +6,6 @@
 ```bash
 git clone https://github.com/HYGUO1993/FEM_2d.git
 cd FEM_2d
-git checkout claude/improve-visualization-for-engineers
 ```
 
 ### 步骤2：编译程序
