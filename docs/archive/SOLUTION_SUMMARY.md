@@ -154,10 +154,10 @@ FEM_2d/
 
 | 用户场景 | 推荐文档 |
 |---------|---------|
-| 第一次使用 | `QUICKSTART_Windows.md` |
-| 遇到问题 | `TROUBLESHOOTING.md` → `diagnose.py` |
-| DLL 错误 | `FIX_GUI_ERRORS.md` → 运行 `修复DLL错误.bat` |
-| 深入了解 | `WINDOWS_DLL_ERROR.md` |
+| 第一次使用 | `docs/guides/QUICKSTART_Windows.md` |
+| 遇到问题 | `docs/guides/TROUBLESHOOTING.md` → `diagnose.py` |
+| DLL 错误 | `docs/guides/FIX_GUI_ERRORS.md` → 运行 `修复DLL错误.bat` |
+| 深入了解 | `docs/guides/WINDOWS_DLL_ERROR.md` |
 
 ---
 

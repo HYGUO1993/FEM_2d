@@ -145,9 +145,9 @@ GUI 成功启动！
    ```
 
 2. **查看文档**
-   - 第一次使用：`QUICKSTART_Windows.md`
-   - 遇到问题：`TROUBLESHOOTING.md`
-   - DLL 错误：`FIX_GUI_ERRORS.md` 或 `WINDOWS_DLL_ERROR.md`
+   - 第一次使用：`docs/guides/QUICKSTART_Windows.md`
+   - 遇到问题：`docs/guides/TROUBLESHOOTING.md`
+   - DLL 错误：`docs/guides/FIX_GUI_ERRORS.md` 或 `docs/guides/WINDOWS_DLL_ERROR.md`
 
 3. **尝试自动修复**
    ```bash

@@ -38,7 +38,7 @@ python diagnose.py
 
 - **"DLL load failed"** → 使用 `修复DLL错误.bat`
 - **"No module named PySide6"** → 运行 `python quick_start_gui.py`
-- **其他错误** → 查看 `FIX_GUI_ERRORS.md`
+- **其他错误** → 查看 `docs/guides/FIX_GUI_ERRORS.md`
 
 ### 步骤 2: 运行对应的修复
 

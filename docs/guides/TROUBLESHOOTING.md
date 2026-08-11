@@ -79,7 +79,7 @@ python quick_start_gui.py
 
 ## 📚 文档和参考
 
-### `FIX_GUI_ERRORS.md`
+### `docs/guides/FIX_GUI_ERRORS.md`
 **内容**: 快速错误修复指南
 - DLL 加载错误的 3 种修复方法
 - 缺失包的安装方法
@@ -89,7 +89,7 @@ python quick_start_gui.py
 
 ---
 
-### `WINDOWS_DLL_ERROR.md`
+### `docs/guides/WINDOWS_DLL_ERROR.md`
 **内容**: Windows DLL 问题详细解决方案
 - 问题原因详解
 - 6 种修复方法
@@ -101,7 +101,7 @@ python quick_start_gui.py
 
 ---
 
-### `QUICKSTART_Windows.md`
+### `docs/guides/QUICKSTART_Windows.md`
 **内容**: Windows 专用快速启动指南
 - 最简单的启动方式
 - 分步操作指南
