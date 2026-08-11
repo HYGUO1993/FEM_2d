@@ -10,6 +10,7 @@
 using namespace std;
 
 #ifndef UNIT_TEST
+#include "version.h"
 int main(int argc, char * argv[])
 {
 	string inputPath = "test05.txt";
@@ -20,7 +21,10 @@ int main(int argc, char * argv[])
 	bool inputSpecified = false;
 	for (int ai = 1; ai < argc; ++ai) {
 		string arg = argv[ai];
-		if (arg == "--input" && ai + 1 < argc) {
+		if (arg == "--version") {
+			cout << "FEM_2d version " << FEM2D_VERSION << endl;
+			return 0;
+		} else if (arg == "--input" && ai + 1 < argc) {
 			inputPath = argv[++ai];
 			inputSpecified = true;
 		} else if (arg == "--output" && ai + 1 < argc) {

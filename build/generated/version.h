@@ -1,0 +1,9 @@
+#ifndef FEM2D_VERSION_H
+#define FEM2D_VERSION_H
+
+#define FEM2D_VERSION_MAJOR 1
+#define FEM2D_VERSION_MINOR 0
+#define FEM2D_VERSION_PATCH 1
+#define FEM2D_VERSION "1.0.1"
+
+#endif
