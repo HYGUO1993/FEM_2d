@@ -6,12 +6,13 @@ A modern graphical user interface for 2D finite element analysis,
 designed for engineering education and practice.
 
 Requirements:
-    - PySide6 (Qt for Python)
+    - PyQt6
     - Matplotlib (2D plotting)
     - NumPy
+    - qtawesome (vector icons — optional but recommended)
 
 Installation:
-    pip install PySide6 matplotlib numpy
+    pip install PyQt6 matplotlib numpy qtawesome
 """
 
 import sys
@@ -70,6 +71,13 @@ def check_dependencies():
         import numpy
     except ImportError:
         missing.append("numpy")
+
+    # qtawesome is optional — warn but do not block
+    try:
+        import qtawesome  # noqa: F401
+    except ImportError:
+        print("Info: qtawesome not found. Toolbar icons will be text-only. "
+              "Install with: pip install qtawesome")
 
     # Check for FEM backend
     try:

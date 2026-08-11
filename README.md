@@ -58,6 +58,7 @@ python python/fem_gui.py         # 直接调用
 - **启动 GUI（推荐）**：
   - Windows：`python quick_start_gui.py` 或 `.\scripts\run_gui.ps1`
   - macOS/Linux：`python3 python/fem_gui.py`
+  - GUI 依赖（一次性安装）：`pip install PyQt6 matplotlib numpy qtawesome`
   - 详见 `docs/guides/GUI_USAGE.md` 完整使用指南
 - 命令行运行示例：
   - 框架悬臂示例（梁）： & .\\build\\bin\\Release\\fem_run.exe --no-stiff --input test05.txt --output build\\Results_frame.dat
