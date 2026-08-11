@@ -87,7 +87,7 @@ python quick_start_gui.py
 A: 尝试这些步骤：
 1. 重启计算机（安装 VC++ 后需要重启）
 2. 运行 `python diagnose.py` 检查当前状态
-3. 查看 `WINDOWS_DLL_ERROR.md` 获取其他解决方案
+3. 查看 `docs/guides/WINDOWS_DLL_ERROR.md` 获取其他解决方案
 4. 尝试使用 Conda：`conda install -c conda-forge PySide6`
 
 ### Q: 安装 Visual C++ 需要多久？
@@ -96,7 +96,7 @@ A: 通常 2-5 分钟，取决于网络速度和系统。
 
 ### Q: 可以使用命令行替代 GUI 吗？
 
-A: 可以！查看 `USAGE_GUIDE.md` 了解命令行用法。
+A: 可以！查看 `docs/guides/USAGE_GUIDE.md` 了解命令行用法。
 
 ---
 
@@ -109,8 +109,8 @@ A: 可以！查看 `USAGE_GUIDE.md` 了解命令行用法。
 | `启动GUI.bat` / `start_gui.bat` | 启动图形界面 |
 | `quick_start_gui.py` | Python 依赖检查和启动工具 |
 | `diagnose.py` | 环境诊断工具 |
-| `FIX_GUI_ERRORS.md` | 快速错误修复指南 |
-| `WINDOWS_DLL_ERROR.md` | Windows DLL 问题详细解决方案 |
+| `docs/guides/FIX_GUI_ERRORS.md` | 快速错误修复指南 |
+| `docs/guides/WINDOWS_DLL_ERROR.md` | Windows DLL 问题详细解决方案 |
 
 ---
 

@@ -41,7 +41,7 @@ python diagnose.py
 conda install -c conda-forge PySide6 matplotlib numpy
 ```
 
-👉 详细步骤见：[WINDOWS_DLL_ERROR.md](WINDOWS_DLL_ERROR.md)
+👉 详细步骤见：[docs/guides/WINDOWS_DLL_ERROR.md](WINDOWS_DLL_ERROR.md)
 
 ---
 
@@ -64,9 +64,9 @@ conda install -c conda-forge PySide6 matplotlib numpy
 ### 情况 3: 其他错误
 
 运行诊断并查看错误信息，然后查看相关文档：
-- 📖 [GUI_USAGE.md](GUI_USAGE.md) - GUI 完整使用手册
-- 📖 [INSTALL_DEPENDENCIES.md](INSTALL_DEPENDENCIES.md) - 依赖问题详解
-- 📖 [WINDOWS_DLL_ERROR.md](WINDOWS_DLL_ERROR.md) - Windows 特定问题
+- 📖 [docs/guides/GUI_USAGE.md](GUI_USAGE.md) - GUI 完整使用手册
+- 📖 [docs/guides/INSTALL_DEPENDENCIES.md](INSTALL_DEPENDENCIES.md) - 依赖问题详解
+- 📖 [docs/guides/WINDOWS_DLL_ERROR.md](WINDOWS_DLL_ERROR.md) - Windows 特定问题
 
 ---
 
