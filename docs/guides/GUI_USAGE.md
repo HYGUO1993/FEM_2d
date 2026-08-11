@@ -303,8 +303,8 @@ python3 python/fem_gui.py
 
 ### 项目文档
 - `README.md` - 项目整体说明
-- `USAGE_GUIDE.md` - 命令行工具使用指南
-- `DEVELOPMENT.md` - 开发者文档
+- `docs/guides/USAGE_GUIDE.md` - 命令行工具使用指南
+- `docs/development/DEVELOPMENT.md` - 开发者文档
 
 ### 问题报告
 如遇到问题，请：

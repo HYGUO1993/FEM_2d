@@ -117,11 +117,11 @@ FEM_2d/
 ├── 启动GUI.bat                 ← 快速启动 GUI
 ├── start_gui.bat               ← 启动 GUI（English）
 ├── README.md                   ← 主文档（已更新）
-├── QUICKSTART_Windows.md       ← Windows 快速指南（NEW）
-├── TROUBLESHOOTING.md          ← 故障排除清单（NEW）
-├── FIX_GUI_ERRORS.md           ← 错误修复指南
-├── WINDOWS_DLL_ERROR.md        ← DLL 问题详解
-├── INSTALL_DEPENDENCIES.md     ← 依赖安装指南
+├── docs/guides/QUICKSTART_Windows.md       ← Windows 快速指南（NEW）
+├── docs/guides/TROUBLESHOOTING.md          ← 故障排除清单（NEW）
+├── docs/guides/FIX_GUI_ERRORS.md           ← 错误修复指南
+├── docs/guides/WINDOWS_DLL_ERROR.md        ← DLL 问题详解
+├── docs/guides/INSTALL_DEPENDENCIES.md     ← 依赖安装指南
 └── ...其他文件...
 ```
 
