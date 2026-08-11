@@ -24,16 +24,16 @@ if errorlevel 1 (
 )
 
 echo [1/2] Checking dependencies...
-python -c "import PySide6, matplotlib, numpy" 2>nul
+python -c "import PyQt6, matplotlib, numpy" 2>nul
 if errorlevel 1 (
     echo [2/2] Installing required packages...
     python -m pip install --upgrade pip -q 2>nul
-    python -m pip install PySide6 matplotlib numpy
+    python -m pip install PyQt6 matplotlib numpy
     if errorlevel 1 (
         echo.
         echo [ERROR] Failed to install dependencies
         echo.
-        echo Try: python -m pip install --user PySide6 matplotlib numpy
+        echo Try: python -m pip install --user PyQt6 matplotlib numpy
         echo.
         pause
         exit /b 1

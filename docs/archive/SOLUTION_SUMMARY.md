@@ -107,6 +107,8 @@
 
 ## 📊 文件结构总览
 
+> 注：以下为阶段总结时的核心文件视图；当前仓库文档已统一归档到 `docs/` 目录（含 `guides/`、`development/`、`archive/`）。
+
 ```
 FEM_2d/
 ├── 修复DLL错误.bat              ← 双击修复 DLL 问题
@@ -117,11 +119,11 @@ FEM_2d/
 ├── 启动GUI.bat                 ← 快速启动 GUI
 ├── start_gui.bat               ← 启动 GUI（English）
 ├── README.md                   ← 主文档（已更新）
-├── QUICKSTART_Windows.md       ← Windows 快速指南（NEW）
-├── TROUBLESHOOTING.md          ← 故障排除清单（NEW）
-├── FIX_GUI_ERRORS.md           ← 错误修复指南
-├── WINDOWS_DLL_ERROR.md        ← DLL 问题详解
-├── INSTALL_DEPENDENCIES.md     ← 依赖安装指南
+├── docs/guides/QUICKSTART_Windows.md       ← Windows 快速指南（NEW）
+├── docs/guides/TROUBLESHOOTING.md          ← 故障排除清单（NEW）
+├── docs/guides/FIX_GUI_ERRORS.md           ← 错误修复指南
+├── docs/guides/WINDOWS_DLL_ERROR.md        ← DLL 问题详解
+├── docs/guides/INSTALL_DEPENDENCIES.md     ← 依赖安装指南
 └── ...其他文件...
 ```
 
@@ -154,10 +156,10 @@ FEM_2d/
 
 | 用户场景 | 推荐文档 |
 |---------|---------|
-| 第一次使用 | `QUICKSTART_Windows.md` |
-| 遇到问题 | `TROUBLESHOOTING.md` → `diagnose.py` |
-| DLL 错误 | `FIX_GUI_ERRORS.md` → 运行 `修复DLL错误.bat` |
-| 深入了解 | `WINDOWS_DLL_ERROR.md` |
+| 第一次使用 | `docs/guides/QUICKSTART_Windows.md` |
+| 遇到问题 | `docs/guides/TROUBLESHOOTING.md` → `diagnose.py` |
+| DLL 错误 | `docs/guides/FIX_GUI_ERRORS.md` → 运行 `修复DLL错误.bat` |
+| 深入了解 | `docs/guides/WINDOWS_DLL_ERROR.md` |
 
 ---
 

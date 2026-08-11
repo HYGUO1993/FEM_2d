@@ -6,7 +6,6 @@
 ```bash
 git clone https://github.com/HYGUO1993/FEM_2d.git
 cd FEM_2d
-git checkout claude/improve-visualization-for-engineers
 ```
 
 ### 步骤2：编译程序
@@ -203,7 +202,7 @@ Node        Rx        Ry        Rz
 
 ### 安装GUI依赖
 ```bash
-pip install PySide6 matplotlib numpy
+pip install PyQt6 matplotlib numpy qtawesome
 ```
 
 ### 启动GUI
@@ -279,9 +278,9 @@ A: 检查约束是否充分：
 - 确保结构不会发生刚体位移
 
 ### Q: GUI无法启动？
-A: 安装PySide6：
+A: 安装PyQt6：
 ```bash
-pip install PySide6 matplotlib numpy
+pip install PyQt6 matplotlib numpy qtawesome
 ```
 
 ---
@@ -297,8 +296,8 @@ FEM_2d/
 ├── test_beam.txt          # 简支梁示例
 ├── README.md              # 项目说明
 ├── RELEASE_NOTES.md       # 发布说明
-├── USAGE_GUIDE.md         # 本文件
-├── DEVELOPMENT.md         # 开发文档
+├── docs/guides/USAGE_GUIDE.md         # 本文件
+├── docs/development/DEVELOPMENT.md    # 开发文档
 ├── scripts/
 │   ├── visualize_results.py    # 可视化脚本
 │   ├── build_and_test.sh       # Linux/macOS构建
@@ -321,7 +320,7 @@ FEM_2d/
 ## 下一步学习
 
 1. **阅读完整文档：** README.md
-2. **查看开发文档：** DEVELOPMENT.md
+2. **查看开发文档：** docs/development/DEVELOPMENT.md
 3. **运行所有示例：** test05.txt 和 test_beam.txt
 4. **创建自己的模型：** 参考输入文件格式
 5. **尝试GUI：** python python/fem_gui.py

@@ -14,7 +14,7 @@ Error: The procedure entry point could not be located in the dynamic link librar
 
 ## 原因
 
-PySide6（PyQt）在 Windows 上需要以下系统库：
+PyQt6（PyQt）在 Windows 上需要以下系统库：
 - Visual C++ 运行时库
 - OpenGL 支持
 - Windows Media Foundation
@@ -48,30 +48,30 @@ https://visualstudio.microsoft.com/visual-cpp-build-tools/
 
 ---
 
-### 方案 3：重新安装 PySide6（有时有效）
+### 方案 3：重新安装 PyQt6（有时有效）
 
 ```bash
 # 清理缓存
 python -m pip cache purge
 
 # 强制重新安装
-python -m pip install --force-reinstall --no-cache-dir PySide6
+python -m pip install --force-reinstall --no-cache-dir PyQt6
 
 # 或卸载后重新安装
-python -m pip uninstall -y PySide6
-python -m pip install PySide6
+python -m pip uninstall -y PyQt6
+python -m pip install PyQt6
 ```
 
 ---
 
 ### 方案 4：使用 PyQt5 替代（绕过方案）
 
-如果 PySide6 仍然无法工作，可以改用 PyQt5：
+如果 PyQt6 仍然无法工作，可以改用 PyQt5：
 
 1. **修改 `python/gui/main_window.py`**：
-   - 将 `from PySide6.QtWidgets import ...` 改为 `from PyQt5.QtWidgets import ...`
-   - 将 `from PySide6.QtCore import ...` 改为 `from PyQt5.QtCore import ...`
-   - 将 `from PySide6.QtGui import ...` 改为 `from PyQt5.QtGui import ...`
+   - 将 `from PyQt6.QtWidgets import ...` 改为 `from PyQt5.QtWidgets import ...`
+   - 将 `from PyQt6.QtCore import ...` 改为 `from PyQt5.QtCore import ...`
+   - 将 `from PyQt6.QtGui import ...` 改为 `from PyQt5.QtGui import ...`
 
 2. **修改 `python/fem_gui.py`**：
    - 同样改为 `from PyQt5...`
@@ -101,7 +101,7 @@ conda create -n fem2d python=3.10 -y
 conda activate fem2d
 
 # 安装依赖（conda 处理系统库更好）
-conda install -c conda-forge PySide6 matplotlib numpy -y
+conda install -c conda-forge PyQt6 matplotlib numpy -y
 
 # 运行 GUI
 python python/fem_gui.py
@@ -136,9 +136,9 @@ start build/plot.png
 
 2. **查看 DLL 依赖**（高级用户）：
    ```bash
-   # 使用 dependency walker 检查 PySide6 的 DLL 依赖
+   # 使用 dependency walker 检查 PyQt6 的 DLL 依赖
    # 下载：depends.exe 或使用 Python 工具
-   python -c "import PySide6; print(PySide6.__path__)"
+   python -c "import PyQt6; print(PyQt6.__path__)"
    ```
 
 3. **重启计算机**：
@@ -158,7 +158,7 @@ python diagnose.py
 python quick_start_gui.py
 ```
 
-如果诊断中"IMPORT TEST"的 PySide6 行现在显示 ✓，说明问题已解决。
+如果诊断中"IMPORT TEST"的 PyQt6 行现在显示 ✓，说明问题已解决。
 
 ---
 
@@ -173,7 +173,7 @@ python quick_start_gui.py
 
 ## 参考资源
 
-- PySide6 官方文档：https://doc.qt.io/qtforpython/
+- PyQt6 官方文档：https://doc.qt.io/qtforpython/
 - PyQt5 官网：https://www.riverbankcomputing.com/software/pyqt/
 - Visual C++ 运行时：https://support.microsoft.com/en-us/help/2977003
 - Qt 官方：https://www.qt.io/

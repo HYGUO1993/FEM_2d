@@ -5,7 +5,7 @@
 ### `python diagnose.py`
 **功能**: 完整的环境诊断
 - ✅ 检查 Python 版本和路径
-- ✅ 验证所有依赖包（PySide6, matplotlib, numpy）
+- ✅ 验证所有依赖包（PyQt6, matplotlib, numpy）
 - ✅ 检查 FEM 求解器编译状态
 - ✅ **精确识别 Windows DLL 加载错误**
 - ✅ 提供针对性的解决方案
@@ -17,7 +17,7 @@
 [!!] WINDOWS DLL LOADING ERROR DETECTED
 Solutions (try in order):
   1. Install Visual C++ Redistributable
-  2. Reinstall PySide6 after installing VC++
+  2. Reinstall PyQt6 after installing VC++
   3. Try conda install
 ```
 
@@ -32,7 +32,7 @@ Solutions (try in order):
 1. 检测 Visual C++ 运行时是否已安装
 2. 如果缺失，自动下载并安装
 3. 清除 pip 缓存
-4. 重新安装 PySide6
+4. 重新安装 PyQt6
 5. 验证修复是否成功
 
 **何时使用**: 看到 "DLL load failed" 或 "找不到指定的程序" 错误
@@ -79,7 +79,7 @@ python quick_start_gui.py
 
 ## 📚 文档和参考
 
-### `FIX_GUI_ERRORS.md`
+### `docs/guides/FIX_GUI_ERRORS.md`
 **内容**: 快速错误修复指南
 - DLL 加载错误的 3 种修复方法
 - 缺失包的安装方法
@@ -89,7 +89,7 @@ python quick_start_gui.py
 
 ---
 
-### `WINDOWS_DLL_ERROR.md`
+### `docs/guides/WINDOWS_DLL_ERROR.md`
 **内容**: Windows DLL 问题详细解决方案
 - 问题原因详解
 - 6 种修复方法
@@ -101,7 +101,7 @@ python quick_start_gui.py
 
 ---
 
-### `QUICKSTART_Windows.md`
+### `docs/guides/QUICKSTART_Windows.md`
 **内容**: Windows 专用快速启动指南
 - 最简单的启动方式
 - 分步操作指南
@@ -123,7 +123,7 @@ python quick_start_gui.py
 3. 根据诊断结果选择修复工具
    ├─→ DLL 错误 → 运行 修复DLL错误.bat
    ├─→ 缺失包 → 运行 python quick_start_gui.py
-   └─→ 其他 → 查看 FIX_GUI_ERRORS.md
+   └─→ 其他 → 查看 docs/guides/FIX_GUI_ERRORS.md
    ↓
 4. 验证修复: python diagnose.py
    ↓
@@ -140,9 +140,9 @@ python quick_start_gui.py
    ```
 
 2. **查看相关文档**
-   - `FIX_GUI_ERRORS.md` - 快速修复指南
-   - `WINDOWS_DLL_ERROR.md` - DLL 问题详解
-   - `QUICKSTART_Windows.md` - Windows 快速指南
+   - `docs/guides/FIX_GUI_ERRORS.md` - 快速修复指南
+   - `docs/guides/WINDOWS_DLL_ERROR.md` - DLL 问题详解
+   - `docs/guides/QUICKSTART_Windows.md` - Windows 快速指南
 
 3. **尝试命令行方式**
    ```bash
@@ -155,10 +155,10 @@ python quick_start_gui.py
 
 | 问题 | 诊断工具 | 修复工具 | 文档 |
 |------|---------|---------|------|
-| GUI 无法启动 | `diagnose.py` | `修复DLL错误.bat` | `FIX_GUI_ERRORS.md` |
-| DLL 加载失败 | `diagnose.py` | `修复DLL错误.bat` | `WINDOWS_DLL_ERROR.md` |
-| 缺失依赖包 | `diagnose.py` | `quick_start_gui.py` | `INSTALL_DEPENDENCIES.md` |
-| 首次使用 | - | - | `QUICKSTART_Windows.md` |
+| GUI 无法启动 | `diagnose.py` | `修复DLL错误.bat` | `docs/guides/FIX_GUI_ERRORS.md` |
+| DLL 加载失败 | `diagnose.py` | `修复DLL错误.bat` | `docs/guides/WINDOWS_DLL_ERROR.md` |
+| 缺失依赖包 | `diagnose.py` | `quick_start_gui.py` | `docs/guides/INSTALL_DEPENDENCIES.md` |
+| 首次使用 | - | - | `docs/guides/QUICKSTART_Windows.md` |
 
 ---
 

@@ -29,17 +29,17 @@ echo [2/3] Installing required packages...
 echo.
 
 REM Try multiple installation methods
-python -m pip install PySide6 matplotlib numpy
+python -m pip install PyQt6 matplotlib numpy qtawesome
 if errorlevel 1 (
     echo.
     echo [WARNING] Standard installation failed, trying --user flag...
-    python -m pip install --user PySide6 matplotlib numpy
+    python -m pip install --user PyQt6 matplotlib numpy qtawesome
     if errorlevel 1 (
         echo.
         echo [ERROR] Installation failed with both methods
         echo.
         echo Try using conda instead:
-        echo   conda install -c conda-forge PySide6 matplotlib numpy
+        echo   conda install -c conda-forge PyQt6 matplotlib numpy qtawesome
         echo.
         pause
         exit /b 1
@@ -48,7 +48,7 @@ if errorlevel 1 (
 
 echo.
 echo [3/3] Verifying installation...
-python -c "import PySide6; import matplotlib; import numpy; print('[SUCCESS] All packages installed!')"
+python -c "import PyQt6; import matplotlib; import numpy; print('[SUCCESS] All packages installed!')"
 if errorlevel 1 (
     echo [ERROR] Verification failed
     pause

@@ -44,11 +44,11 @@ def main():
     missing = []
     
     try:
-        import PySide6
-        print("  ✓ PySide6")
+        import PyQt6
+        print("  ✓ PyQt6")
     except ImportError:
-        print("  ✗ PySide6 (missing)")
-        missing.append("PySide6")
+        print("  ✗ PyQt6 (missing)")
+        missing.append("PyQt6")
     
     try:
         import matplotlib

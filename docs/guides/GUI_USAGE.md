@@ -64,10 +64,10 @@ python3 python/fem_gui.py
 
 ```bash
 # 使用 pip
-pip install PySide6 matplotlib numpy
+pip install PyQt6 matplotlib numpy qtawesome
 
 # 或使用 conda
-conda install -c conda-forge PySide6 matplotlib numpy
+conda install -c conda-forge PyQt6 matplotlib numpy
 ```
 
 ---
@@ -205,12 +205,12 @@ conda install -c conda-forge PySide6 matplotlib numpy
 2. 如使用 Anaconda，激活相应环境后再启动脚本
 3. 在 Windows 中，确保 Python 安装时选择了"Add Python to PATH"
 
-### 问题 2：缺少依赖包（PySide6、matplotlib、numpy）
+### 问题 2：缺少依赖包（PyQt6、matplotlib、numpy）
 **原因**：Python 包未安装
 
 **解决方案**：
 ```bash
-pip install PySide6 matplotlib numpy
+pip install PyQt6 matplotlib numpy qtawesome
 ```
 
 ### 问题 3：应用启动但无法求解
@@ -303,8 +303,8 @@ python3 python/fem_gui.py
 
 ### 项目文档
 - `README.md` - 项目整体说明
-- `USAGE_GUIDE.md` - 命令行工具使用指南
-- `DEVELOPMENT.md` - 开发者文档
+- `docs/guides/USAGE_GUIDE.md` - 命令行工具使用指南
+- `docs/development/DEVELOPMENT.md` - 开发者文档
 
 ### 问题报告
 如遇到问题，请：

@@ -146,7 +146,7 @@ ctest
 
 详细的开发文档请参见：
 - `README.md` - 完整使用说明
-- `DEVELOPMENT.md` - 开发者文档
+- `docs/development/DEVELOPMENT.md` - 开发者文档
 - `.github/copilot-instructions.md` - 代码规范
 
 ## 版本历史

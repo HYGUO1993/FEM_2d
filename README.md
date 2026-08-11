@@ -15,7 +15,7 @@
 - `启动GUI.bat` ⭐ （中文按钮）
 - `start_gui.bat` （英文按钮）
 
-更多帮助见 [QUICKSTART_Windows.md](QUICKSTART_Windows.md)
+更多帮助见 [docs/guides/QUICKSTART_Windows.md](docs/guides/QUICKSTART_Windows.md)
 
 ### VS Code 用户
 按快捷键启动：
@@ -58,7 +58,8 @@ python python/fem_gui.py         # 直接调用
 - **启动 GUI（推荐）**：
   - Windows：`python quick_start_gui.py` 或 `.\scripts\run_gui.ps1`
   - macOS/Linux：`python3 python/fem_gui.py`
-  - 详见 `GUI_USAGE.md` 完整使用指南
+  - GUI 依赖（一次性安装）：`pip install PyQt6 matplotlib numpy qtawesome`
+  - 详见 `docs/guides/GUI_USAGE.md` 完整使用指南
 - 命令行运行示例：
   - 框架悬臂示例（梁）： & .\\build\\bin\\Release\\fem_run.exe --no-stiff --input test05.txt --output build\\Results_frame.dat
   - 简支梁三点载荷： & .\\build\\bin\\Release\\fem_run.exe --no-stiff --input test_beam.txt --output build\\Results_beam.dat
@@ -72,7 +73,7 @@ Windows 双击封装
 - 运行可视化（自动生成结果并出图）：双击 `scripts\\run_visualize.bat`
 - **启动交互式 GUI**：双击 `scripts\\run_gui.bat` 或运行 `python quick_start_gui.py`
   - GUI 提供完整的交互式界面、实时参数调整和可视化
-  - 详细使用说明见 `GUI_USAGE.md`
+  - 详细使用说明见 `docs/guides/GUI_USAGE.md`
 - 可视化输出图片默认保存到：`build\\plot.png`
 目录结构
 
@@ -262,8 +263,9 @@ Skyline 存储与访问
 
 ## 文档与指南
 
-- **[GUI_USAGE.md](GUI_USAGE.md)** - 交互式 GUI 应用完整使用指南
+- **[docs/README.md](docs/README.md)** - 文档导航与分类说明
+- **[GUI_USAGE.md](docs/guides/GUI_USAGE.md)** - 交互式 GUI 应用完整使用指南
   - 快速开始、菜单说明、可视化控制、常见任务、故障排除
-- **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - 命令行工具使用指南
-- **[DEVELOPMENT.md](DEVELOPMENT.md)** - 开发者文档与源代码说明
+- **[USAGE_GUIDE.md](docs/guides/USAGE_GUIDE.md)** - 命令行工具使用指南
+- **[DEVELOPMENT.md](docs/development/DEVELOPMENT.md)** - 开发者文档与源代码说明
 - **[RELEASE_NOTES.md](RELEASE_NOTES.md)** - 版本更新历史

@@ -66,7 +66,7 @@ python python/fem_gui.py
 首次启动时，脚本会：
 
 1. ✓ 检查 Python 环境
-2. ✓ 自动检查缺失的依赖包（PySide6、matplotlib、numpy）
+2. ✓ 自动检查缺失的依赖包（PyQt6、matplotlib、numpy）
 3. ✓ 自动安装缺失的包（如需要）
 4. ✓ 检查 FEM 求解器是否可用
 5. ✓ 启动 GUI 应用
@@ -92,7 +92,7 @@ python python/fem_gui.py
 
 **解决：**
 ```bash
-pip install PySide6 matplotlib numpy
+pip install PyQt6 matplotlib numpy qtawesome
 ```
 
 ### 问题："Solve" 按钮无法使用
@@ -152,8 +152,8 @@ cmake --build build --config Release
 ### 文档
 | 文件 | 说明 |
 |------|------|
-| `GUI_USAGE.md` | 📖 完整 GUI 使用手册 |
-| `GUI_QUICK_REFERENCE.md` | 快速参考卡 |
+| `docs/guides/GUI_USAGE.md` | 📖 完整 GUI 使用手册 |
+| `docs/guides/GUI_QUICK_REFERENCE.md` | 快速参考卡 |
 | `README.md` | 项目说明 |
 
 ---

@@ -27,7 +27,7 @@ def check_packages():
     print("=" * 60)
     
     packages = {
-        'PySide6': 'GUI Framework',
+        'PyQt6': 'GUI Framework',
         'matplotlib': 'Plotting Library',
         'numpy': 'Numerical Computing',
     }
@@ -93,18 +93,18 @@ def test_imports():
     
     issues = []
     
-    # Test PySide6 import with details
+    # Test PyQt6 import with details
     pyside6_ok = False
     try:
-        from PySide6.QtWidgets import QApplication
-        print("[OK] PySide6.QtWidgets imported successfully")
+        from PyQt6.QtWidgets import QApplication
+        print("[OK] PyQt6.QtWidgets imported successfully")
         pyside6_ok = True
     except ModuleNotFoundError as e:
-        print("[NO] PySide6 not installed: {}".format(e))
+        print("[NO] PyQt6 not installed: {}".format(e))
         issues.append(('pyside6', 'notinstalled', str(e)))
     except (ImportError, OSError) as e:
         error_msg = str(e)
-        print("[NO] Error loading PySide6: {}".format(error_msg))
+        print("[NO] Error loading PyQt6: {}".format(error_msg))
         
         # Check for DLL loading errors on Windows
         if "DLL load failed" in error_msg or "procedure entry point" in error_msg or "找不到指定的程序" in error_msg:
@@ -161,7 +161,7 @@ def suggest_fixes(import_issues):
         if has_dll_error:
             print("[!!] WINDOWS DLL LOADING ERROR DETECTED")
             print()
-            print("This means PySide6 package is installed, but Windows is missing")
+            print("This means PyQt6 package is installed, but Windows is missing")
             print("required system libraries (Visual C++ runtime, Qt libraries, etc.)")
             print()
             print("Solutions (try in order):")
@@ -169,16 +169,16 @@ def suggest_fixes(import_issues):
             print("     https://support.microsoft.com/en-us/help/2977003")
             print("     -> Download & install 'vc_redist.x64.exe' (or x86 if 32-bit Python)")
             print()
-            print("  2. Reinstall PySide6 after installing VC++ runtime:")
+            print("  2. Reinstall PyQt6 after installing VC++ runtime:")
             print("     python -m pip cache purge")
-            print("     python -m pip install --force-reinstall PySide6")
+            print("     python -m pip install --force-reinstall PyQt6")
             print()
             print("  3. Or use conda (better system library handling):")
-            print("     conda install -c conda-forge PySide6")
+            print("     conda install -c conda-forge PyQt6")
             print()
             print("[!] Or run auto-fix: fix_dll_error.bat (or 修复DLL错误.bat)")
             print()
-            print("[!] See WINDOWS_DLL_ERROR.md for complete solutions")
+            print("[!] See docs/guides/WINDOWS_DLL_ERROR.md for complete solutions")
         
         # Check for missing packages
         missing_packages = [issue[0] for issue in import_issues if issue[1] == 'notinstalled']
@@ -214,11 +214,11 @@ def main():
     
     print("=" * 60)
     print("For more help, see:")
-    print("  - QUICKSTART.md")
-    print("  - GUI_USAGE.md")
-    print("  - INSTALL_DEPENDENCIES.md")
-    print("  - WINDOWS_DLL_ERROR.md (if you see DLL errors)")
-    print("  - 修复依赖问题.md")
+    print("  - docs/guides/QUICKSTART.md")
+    print("  - docs/guides/GUI_USAGE.md")
+    print("  - docs/guides/INSTALL_DEPENDENCIES.md")
+    print("  - docs/guides/WINDOWS_DLL_ERROR.md (if you see DLL errors)")
+    print("  - docs/guides/修复依赖问题.md")
     print("=" * 60)
 
 if __name__ == "__main__":
