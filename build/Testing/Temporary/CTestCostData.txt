@@ -1,2 +1,2 @@
-basic_tests 1 0.00171909
+basic_tests 2 0.00123222
 ---

@@ -242,7 +242,7 @@ python python/fem_gui.py
 - `python/gui/__init__.py` (10 行)
 - `python/fem_gui.py` (80 行) - GUI 入口
 - `python/test_api.py` (200 行) - 测试脚本
-- `DEVELOPMENT.md` (本文件)
+- `docs/development/DEVELOPMENT.md` (本文件)
 
 **修改文件：**
 - `CMakeLists.txt` - 添加共享库和 Python 绑定支持

@@ -297,8 +297,8 @@ FEM_2d/
 ├── test_beam.txt          # 简支梁示例
 ├── README.md              # 项目说明
 ├── RELEASE_NOTES.md       # 发布说明
-├── USAGE_GUIDE.md         # 本文件
-├── DEVELOPMENT.md         # 开发文档
+├── docs/guides/USAGE_GUIDE.md         # 本文件
+├── docs/development/DEVELOPMENT.md    # 开发文档
 ├── scripts/
 │   ├── visualize_results.py    # 可视化脚本
 │   ├── build_and_test.sh       # Linux/macOS构建
@@ -321,7 +321,7 @@ FEM_2d/
 ## 下一步学习
 
 1. **阅读完整文档：** README.md
-2. **查看开发文档：** DEVELOPMENT.md
+2. **查看开发文档：** docs/development/DEVELOPMENT.md
 3. **运行所有示例：** test05.txt 和 test_beam.txt
 4. **创建自己的模型：** 参考输入文件格式
 5. **尝试GUI：** python python/fem_gui.py

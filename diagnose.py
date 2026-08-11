@@ -178,7 +178,7 @@ def suggest_fixes(import_issues):
             print()
             print("[!] Or run auto-fix: fix_dll_error.bat (or 修复DLL错误.bat)")
             print()
-            print("[!] See WINDOWS_DLL_ERROR.md for complete solutions")
+            print("[!] See docs/guides/WINDOWS_DLL_ERROR.md for complete solutions")
         
         # Check for missing packages
         missing_packages = [issue[0] for issue in import_issues if issue[1] == 'notinstalled']
@@ -214,11 +214,11 @@ def main():
     
     print("=" * 60)
     print("For more help, see:")
-    print("  - QUICKSTART.md")
-    print("  - GUI_USAGE.md")
-    print("  - INSTALL_DEPENDENCIES.md")
-    print("  - WINDOWS_DLL_ERROR.md (if you see DLL errors)")
-    print("  - 修复依赖问题.md")
+    print("  - docs/guides/QUICKSTART.md")
+    print("  - docs/guides/GUI_USAGE.md")
+    print("  - docs/guides/INSTALL_DEPENDENCIES.md")
+    print("  - docs/guides/WINDOWS_DLL_ERROR.md (if you see DLL errors)")
+    print("  - docs/guides/修复依赖问题.md")
     print("=" * 60)
 
 if __name__ == "__main__":
