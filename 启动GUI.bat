@@ -18,7 +18,7 @@ call conda activate fem_gui_env 2>nul
 if errorlevel 1 (
     echo [INFO] Environment 'fem_gui_env' not found.
     echo [INFO] Creating 'fem_gui_env' with required dependencies...
-    call conda create -y -n fem_gui_env python=3.10 PySide6 matplotlib numpy -c conda-forge
+    call conda create -y -n fem_gui_env python=3.10 PyQt6 matplotlib numpy -c conda-forge
     call conda activate fem_gui_env 2>nul
     if errorlevel 1 (
         echo.

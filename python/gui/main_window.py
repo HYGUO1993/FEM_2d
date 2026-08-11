@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import (
     Qt, pyqtSignal as Signal, pyqtSlot as Slot,
-    QPropertyAnimation, QEasingCurve, QSize, QThread, pyqtSignal,
+    QPropertyAnimation, QEasingCurve, QSize, QThread,
     pyqtProperty,
 )
 from PyQt6.QtGui import QAction, QKeySequence, QFont, QColor, QTransform
@@ -72,8 +72,8 @@ def _secondary_button(text: str, icon_name: str = None) -> QPushButton:
 # Solve worker thread
 # ---------------------------------------------------------------------------
 class SolveWorker(QThread):
-    finished = pyqtSignal(bool, str)
-    log_line = pyqtSignal(str)
+    finished = Signal(bool, str)
+    log_line = Signal(str)
 
     def __init__(self, exe_path, input_path, output_path, work_dir):
         super().__init__()

@@ -17,7 +17,7 @@ fix_dll_error.bat
 这个工具会自动：
 1. ✅ 检测 Visual C++ 运行时是否已安装
 2. ✅ 如果缺失，自动下载并安装
-3. ✅ 重新安装 PySide6
+3. ✅ 重新安装 PyQt6
 4. ✅ 验证修复是否成功
 
 **然后启动 GUI：**
@@ -37,7 +37,7 @@ python diagnose.py
 看到什么错误？
 
 - **"DLL load failed"** → 使用 `修复DLL错误.bat`
-- **"No module named PySide6"** → 运行 `python quick_start_gui.py`
+- **"No module named PyQt6"** → 运行 `python quick_start_gui.py`
 - **其他错误** → 查看 `docs/guides/FIX_GUI_ERRORS.md`
 
 ### 步骤 2: 运行对应的修复
@@ -54,7 +54,7 @@ python quick_start_gui.py
 
 #### 或使用 Conda（最可靠）
 ```bash
-conda install -c conda-forge PySide6 matplotlib numpy
+conda install -c conda-forge PyQt6 matplotlib numpy
 ```
 
 ### 步骤 3: 启动 GUI
@@ -73,7 +73,7 @@ python quick_start_gui.py
 
 | 目的 | 命令 | 说明 |
 |------|------|------|
-| 修复 DLL 错误 | `修复DLL错误.bat` | 自动安装 Visual C++ + 重装 PySide6 |
+| 修复 DLL 错误 | `修复DLL错误.bat` | 自动安装 Visual C++ + 重装 PyQt6 |
 | 启动 GUI | `启动GUI.bat` | 直接打开图形界面 |
 | 诊断问题 | `python diagnose.py` | 查看详细的环境信息 |
 | 快速安装依赖 | `python quick_start_gui.py` | 自动检查并安装依赖 |
@@ -88,7 +88,7 @@ A: 尝试这些步骤：
 1. 重启计算机（安装 VC++ 后需要重启）
 2. 运行 `python diagnose.py` 检查当前状态
 3. 查看 `docs/guides/WINDOWS_DLL_ERROR.md` 获取其他解决方案
-4. 尝试使用 Conda：`conda install -c conda-forge PySide6`
+4. 尝试使用 Conda：`conda install -c conda-forge PyQt6`
 
 ### Q: 安装 Visual C++ 需要多久？
 

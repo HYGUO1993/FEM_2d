@@ -25,10 +25,10 @@ python diagnose.py
    - 下载：Visual C++ Redistributable（x64 版本）
    - 双击安装，重启计算机
 
-2. 重新安装 PySide6：
+2. 重新安装 PyQt6：
    ```bash
    python -m pip cache purge
-   python -m pip install --force-reinstall PySide6
+   python -m pip install --force-reinstall PyQt6
    ```
 
 3. 尝试启动 GUI：
@@ -38,25 +38,25 @@ python diagnose.py
 
 **或使用 conda（更可靠）：**
 ```bash
-conda install -c conda-forge PySide6 matplotlib numpy
+conda install -c conda-forge PyQt6 matplotlib numpy
 ```
 
 👉 详细步骤见：[docs/guides/WINDOWS_DLL_ERROR.md](WINDOWS_DLL_ERROR.md)
 
 ---
 
-### 情况 2: "No module named PySide6"
+### 情况 2: "No module named PyQt6"
 
 这是 Python 包**未安装**。
 
 **修复：**
 ```bash
-python -m pip install --user PySide6 matplotlib numpy
+python -m pip install --user PyQt6 matplotlib numpy
 ```
 
 或：
 ```bash
-conda install -c conda-forge PySide6 matplotlib numpy
+conda install -c conda-forge PyQt6 matplotlib numpy
 ```
 
 ---

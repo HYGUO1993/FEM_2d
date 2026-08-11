@@ -202,7 +202,7 @@ Node        Rx        Ry        Rz
 
 ### 安装GUI依赖
 ```bash
-pip install PySide6 matplotlib numpy
+pip install PyQt6 matplotlib numpy qtawesome
 ```
 
 ### 启动GUI
@@ -278,9 +278,9 @@ A: 检查约束是否充分：
 - 确保结构不会发生刚体位移
 
 ### Q: GUI无法启动？
-A: 安装PySide6：
+A: 安装PyQt6：
 ```bash
-pip install PySide6 matplotlib numpy
+pip install PyQt6 matplotlib numpy qtawesome
 ```
 
 ---

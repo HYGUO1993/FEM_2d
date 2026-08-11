@@ -5,7 +5,7 @@
 ### `python diagnose.py`
 **功能**: 完整的环境诊断
 - ✅ 检查 Python 版本和路径
-- ✅ 验证所有依赖包（PySide6, matplotlib, numpy）
+- ✅ 验证所有依赖包（PyQt6, matplotlib, numpy）
 - ✅ 检查 FEM 求解器编译状态
 - ✅ **精确识别 Windows DLL 加载错误**
 - ✅ 提供针对性的解决方案
@@ -17,7 +17,7 @@
 [!!] WINDOWS DLL LOADING ERROR DETECTED
 Solutions (try in order):
   1. Install Visual C++ Redistributable
-  2. Reinstall PySide6 after installing VC++
+  2. Reinstall PyQt6 after installing VC++
   3. Try conda install
 ```
 
@@ -32,7 +32,7 @@ Solutions (try in order):
 1. 检测 Visual C++ 运行时是否已安装
 2. 如果缺失，自动下载并安装
 3. 清除 pip 缓存
-4. 重新安装 PySide6
+4. 重新安装 PyQt6
 5. 验证修复是否成功
 
 **何时使用**: 看到 "DLL load failed" 或 "找不到指定的程序" 错误

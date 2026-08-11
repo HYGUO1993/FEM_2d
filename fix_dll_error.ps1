@@ -1,5 +1,5 @@
 # Windows DLL Error Auto-fix Script
-# Purpose: Automatically install Visual C++ runtime and reinstall PySide6
+# Purpose: Automatically install Visual C++ runtime and reinstall PyQt6
 # Usage: Run in PowerShell (right-click, select "Run with PowerShell")
 
 Write-Host "====================================================" -ForegroundColor Cyan
@@ -79,19 +79,19 @@ if (-not $vcInstalled) {
 }
 
 Write-Host ""
-Write-Host "[Step 3] Clearing pip cache and reinstalling PySide6..." -ForegroundColor Green
+Write-Host "[Step 3] Clearing pip cache and reinstalling PyQt6..." -ForegroundColor Green
 
 try {
     Write-Host "[*] Clearing pip cache..." -ForegroundColor Cyan
     python -m pip cache purge
     
-    Write-Host "[*] Uninstalling old PySide6..." -ForegroundColor Cyan
-    python -m pip uninstall -y PySide6
+    Write-Host "[*] Uninstalling old PyQt6..." -ForegroundColor Cyan
+    python -m pip uninstall -y PyQt6
     
-    Write-Host "[*] Installing latest PySide6..." -ForegroundColor Cyan
-    python -m pip install --force-reinstall PySide6
+    Write-Host "[*] Installing latest PyQt6..." -ForegroundColor Cyan
+    python -m pip install --force-reinstall PyQt6
     
-    Write-Host "[OK] PySide6 reinstallation complete!" -ForegroundColor Green
+    Write-Host "[OK] PyQt6 reinstallation complete!" -ForegroundColor Green
 }
 catch {
     Write-Host "[!] Installation failed: $_" -ForegroundColor Red
@@ -101,9 +101,9 @@ Write-Host ""
 Write-Host "[Step 4] Verifying fix..." -ForegroundColor Green
 
 try {
-    $output = python -c "from PySide6.QtWidgets import QApplication; print('OK')" 2>&1
+    $output = python -c "from PyQt6.QtWidgets import QApplication; print('OK')" 2>&1
     if ($output -eq "OK") {
-        Write-Host "[OK] PySide6 import successful!" -ForegroundColor Green
+        Write-Host "[OK] PyQt6 import successful!" -ForegroundColor Green
         Write-Host ""
         Write-Host "====================================================" -ForegroundColor Green
         Write-Host "  Fix successful! You can now launch the GUI" -ForegroundColor Green
@@ -112,7 +112,7 @@ try {
         Write-Host "Launch GUI: python quick_start_gui.py" -ForegroundColor Cyan
         Write-Host "Or run diagnostics: python diagnose.py" -ForegroundColor Cyan
     } else {
-        Write-Host "[!] PySide6 import still has issues:" -ForegroundColor Yellow
+        Write-Host "[!] PyQt6 import still has issues:" -ForegroundColor Yellow
         Write-Host $output -ForegroundColor Yellow
     }
 }

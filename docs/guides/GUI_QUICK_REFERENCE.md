@@ -15,10 +15,10 @@
 ## 环境要求
 
 - Python 3.8+
-- 依赖包：`PySide6 matplotlib numpy`
+- 依赖包：`PyQt6 matplotlib numpy`
 - 安装命令：
-  - `pip install PySide6 matplotlib numpy`
-  - 或 `conda install -c conda-forge PySide6 matplotlib numpy`
+  - `pip install PyQt6 matplotlib numpy`
+  - 或 `conda install -c conda-forge PyQt6 matplotlib numpy`
 
 ## 常用操作流程
 
@@ -39,7 +39,7 @@
 
 ## 常见问题
 
-- 缺失包：`python -m pip install PySide6 matplotlib numpy`
+- 缺失包：`python -m pip install PyQt6 matplotlib numpy`
 - 点击求解无可执行文件：先运行 `bash scripts/build_and_test.sh`（或 PowerShell 版本）
 - DLL 加载失败：见 `docs/guides/WINDOWS_DLL_ERROR.md`
 

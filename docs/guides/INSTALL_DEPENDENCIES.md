@@ -18,7 +18,7 @@
 ### 方案 1：使用 `--user` 标志（最可能成功！）
 
 ```bash
-python -m pip install --user PySide6 matplotlib numpy
+python -m pip install --user PyQt6 matplotlib numpy
 ```
 
 **适用于：** 大多数情况，特别是权限受限时
@@ -28,7 +28,7 @@ python -m pip install --user PySide6 matplotlib numpy
 ### 方案 2：使用 conda（如果已安装 Anaconda）
 
 ```bash
-conda install -c conda-forge PySide6 matplotlib numpy
+conda install -c conda-forge PyQt6 matplotlib numpy
 ```
 
 **适用于：** Anaconda/Miniconda 用户
@@ -44,7 +44,7 @@ conda install -c conda-forge PySide6 matplotlib numpy
 python -m pip install --upgrade pip
 
 # 然后逐个安装
-python -m pip install --user PySide6
+python -m pip install --user PyQt6
 python -m pip install --user matplotlib
 python -m pip install --user numpy
 ```
@@ -58,7 +58,7 @@ python -m pip install --user numpy
 ping pypi.org
 
 # 然后使用不同的 PyPI 源
-python -m pip install -i https://pypi.org/simple PySide6 matplotlib numpy
+python -m pip install -i https://pypi.org/simple PyQt6 matplotlib numpy
 ```
 
 ---
@@ -67,10 +67,10 @@ python -m pip install -i https://pypi.org/simple PySide6 matplotlib numpy
 
 ```bash
 # 阿里云镜像
-python -m pip install -i https://mirrors.aliyun.com/pypi/simple PySide6 matplotlib numpy
+python -m pip install -i https://mirrors.aliyun.com/pypi/simple PyQt6 matplotlib numpy
 
 # 或清华大学镜像
-python -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple PySide6 matplotlib numpy
+python -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple PyQt6 matplotlib numpy
 ```
 
 ---
@@ -81,12 +81,12 @@ python -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple PySide6 matplo
 
 ```bash
 # 逐个测试
-python -c "import PySide6; print('PySide6: OK')"
+python -c "import PyQt6; print('PyQt6: OK')"
 python -c "import matplotlib; print('matplotlib: OK')"
 python -c "import numpy; print('numpy: OK')"
 
 # 或一次全部测试
-python -c "import PySide6, matplotlib, numpy; print('All OK!')"
+python -c "import PyQt6, matplotlib, numpy; print('All OK!')"
 ```
 
 ---
@@ -121,7 +121,7 @@ pip config unset global.index-url
 
 ```bash
 python -m pip cache purge
-python -m pip install --user --no-cache-dir PySide6 matplotlib numpy
+python -m pip install --user --no-cache-dir PyQt6 matplotlib numpy
 ```
 
 ---
@@ -164,7 +164,7 @@ python -m ensurepip --upgrade
 
 使用 `--user` 标志：
 ```bash
-python -m pip install --user PySide6 matplotlib numpy
+python -m pip install --user PyQt6 matplotlib numpy
 ```
 
 ### 错误：`Collecting ... ERROR: Could not find a version`
@@ -175,7 +175,7 @@ python -m pip install --user PySide6 matplotlib numpy
 
 ```bash
 # 临时忽略 SSL 验证
-python -m pip install --trusted-host pypi.python.org --user PySide6 matplotlib numpy
+python -m pip install --trusted-host pypi.python.org --user PyQt6 matplotlib numpy
 ```
 
 ---
