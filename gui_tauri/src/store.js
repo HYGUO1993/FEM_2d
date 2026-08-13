@@ -33,11 +33,26 @@ const initialState = {
   pendingLlmModel: null,
   solveTime: "",
   solving: false,
+  // —— 撤销/重做历史栈 (模型 JSON 快照字符串) ——
+  past: [],
+  future: [],
   // —— 布局偏好 ——
   sidebarWidth: savedUi?.sidebarWidth ?? 240, // 左栏宽 px
   rightWidth: savedUi?.rightWidth ?? 320,     // 右栏宽 px
   llmPosition: savedUi?.llmPosition ?? "right", // "right" | "bottom"
 };
+
+const HISTORY_LIMIT = 50;
+
+/** 记录当前模型到历史栈 (在模型修改前调用) */
+function pushHistory(state) {
+  const snap = JSON.stringify(state.model);
+  // 与栈顶相同则跳过 (例如 moveNode 拖拽连续回调)
+  if (state.past[state.past.length - 1] === snap) return state.past;
+  const past = [...state.past, snap];
+  if (past.length > HISTORY_LIMIT) past.shift();
+  return past;
+}
 
 export const useStore = create((set, get) => ({
   ...initialState,
@@ -50,16 +65,66 @@ export const useStore = create((set, get) => ({
   setTool: (tool) => set({ tool, pendingNodeA: null }),
   select: (sel) => set({ selection: sel }),
 
-  // 整体替换模型（加载项目 / LLM 应用）
-  setModel: (model) =>
-    set({ model, selection: null, results: null, solved: false, pendingNodeA: null }),
+  // —— 撤销 / 重做 ——
+  undo: () => {
+    const s = get();
+    const prev = s.past[s.past.length - 1];
+    if (prev == null) {
+      set({ toast: { msg: "没有可撤销的操作", isError: false } });
+      return;
+    }
+    set({
+      past: s.past.slice(0, -1),
+      future: [...s.future, JSON.stringify(s.model)],
+      model: JSON.parse(prev),
+      results: null,
+      solved: false,
+      selection: null,
+    });
+  },
+  redo: () => {
+    const s = get();
+    const next = s.future[s.future.length - 1];
+    if (next == null) {
+      set({ toast: { msg: "没有可重做的操作", isError: false } });
+      return;
+    }
+    set({
+      future: s.future.slice(0, -1),
+      past: [...s.past, JSON.stringify(s.model)],
+      model: JSON.parse(next),
+      results: null,
+      solved: false,
+      selection: null,
+    });
+  },
+  canUndo: () => get().past.length > 0,
+  canRedo: () => get().future.length > 0,
+
+  // 整体替换模型（加载项目 / LLM 应用 / 导入）
+  setModel: (model) => {
+    const s = get();
+    const past = pushHistory(s);
+    set({
+      past,
+      future: [],
+      model,
+      selection: null,
+      results: null,
+      solved: false,
+      pendingNodeA: null,
+    });
+  },
 
   // —— 节点 ——
   addNode: (x, y) =>
     set((s) => {
+      const past = pushHistory(s);
       const id = nextId(s.model.nodes);
       const nodes = [...s.model.nodes, { id, type: "frame", x, y }];
       return {
+        past,
+        future: [],
         model: { ...s.model, nodes },
         results: null,
         solved: false,
@@ -69,6 +134,8 @@ export const useStore = create((set, get) => ({
 
   moveNode: (id, x, y) =>
     set((s) => ({
+      past: pushHistory(s),
+      future: [],
       model: { ...s.model, nodes: s.model.nodes.map((n) => (n.id === id ? { ...n, x, y } : n)) },
       results: null,
       solved: false,
@@ -76,6 +143,8 @@ export const useStore = create((set, get) => ({
 
   updateNode: (id, patch) =>
     set((s) => ({
+      past: pushHistory(s),
+      future: [],
       model: { ...s.model, nodes: s.model.nodes.map((n) => (n.id === id ? { ...n, ...patch } : n)) },
       results: null,
       solved: false,
@@ -84,8 +153,11 @@ export const useStore = create((set, get) => ({
   // 级联删除: 引用该节点的 elements/loads/constraints 一并删除
   deleteNode: (id) =>
     set((s) => {
+      const past = pushHistory(s);
       const m = s.model;
       return {
+        past,
+        future: [],
         model: {
           ...m,
           nodes: m.nodes.filter((n) => n.id !== id),
@@ -108,12 +180,15 @@ export const useStore = create((set, get) => ({
         (e) => (e.nodeI === nodeI && e.nodeJ === nodeJ) || (e.nodeI === nodeJ && e.nodeJ === nodeI)
       );
       if (dup) return { pendingNodeA: null };
+      const past = pushHistory(s);
       const id = nextId(s.model.elements);
       const elements = [
         ...s.model.elements,
         { id, type: "frame", nodeI, nodeJ, section: 0, material: 0 },
       ];
       return {
+        past,
+        future: [],
         model: { ...s.model, elements },
         results: null,
         solved: false,
@@ -123,6 +198,8 @@ export const useStore = create((set, get) => ({
 
   updateElement: (id, patch) =>
     set((s) => ({
+      past: pushHistory(s),
+      future: [],
       model: { ...s.model, elements: s.model.elements.map((e) => (e.id === id ? { ...e, ...patch } : e)) },
       results: null,
       solved: false,
@@ -130,6 +207,8 @@ export const useStore = create((set, get) => ({
 
   deleteElement: (id) =>
     set((s) => ({
+      past: pushHistory(s),
+      future: [],
       model: { ...s.model, elements: s.model.elements.filter((e) => e.id !== id) },
       results: null,
       solved: false,
@@ -139,9 +218,12 @@ export const useStore = create((set, get) => ({
   // —— 荷载 ——
   addLoad: (node, direction, value) =>
     set((s) => {
+      const past = pushHistory(s);
       const id = nextId(s.model.loads);
       const loads = [...s.model.loads, { type: "nodalForce", direction, value, node }];
       return {
+        past,
+        future: [],
         model: { ...s.model, loads },
         results: null,
         solved: false,
@@ -151,6 +233,8 @@ export const useStore = create((set, get) => ({
 
   deleteLoad: (id) =>
     set((s) => ({
+      past: pushHistory(s),
+      future: [],
       model: { ...s.model, loads: s.model.loads.filter((l) => l.id !== id) },
       results: null,
       solved: false,
@@ -160,6 +244,7 @@ export const useStore = create((set, get) => ({
   // —— 约束 ——
   toggleConstraint: (node, dof) =>
     set((s) => {
+      const past = pushHistory(s);
       const m = s.model;
       const existing = m.constraints.find((c) => c.node === node);
       let constraints;
@@ -173,6 +258,8 @@ export const useStore = create((set, get) => ({
         constraints = [...m.constraints, { node, dofs: [dof] }];
       }
       return {
+        past,
+        future: [],
         model: { ...m, constraints },
         results: null,
         solved: false,
@@ -181,6 +268,8 @@ export const useStore = create((set, get) => ({
 
   removeConstraint: (node) =>
     set((s) => ({
+      past: pushHistory(s),
+      future: [],
       model: { ...s.model, constraints: s.model.constraints.filter((c) => c.node !== node) },
       results: null,
       solved: false,
@@ -189,6 +278,8 @@ export const useStore = create((set, get) => ({
   // —— 材料 / 截面 ——
   updateMaterial: (id, patch) =>
     set((s) => ({
+      past: pushHistory(s),
+      future: [],
       model: {
         ...s.model,
         materials: s.model.materials.map((mt) => (mt.id === id ? { ...mt, ...patch } : mt)),
@@ -199,6 +290,8 @@ export const useStore = create((set, get) => ({
 
   updateSection: (id, patch) =>
     set((s) => ({
+      past: pushHistory(s),
+      future: [],
       model: {
         ...s.model,
         sections: s.model.sections.map((sc) => (sc.id === id ? { ...sc, ...patch } : sc)),

@@ -227,6 +227,11 @@ export default function CanvasView() {
   const forceDiagrams =
     solved && results && diagramMode ? computeForceDiagram(model, results, diagramMode, view) : [];
 
+  // 节点位移标注: 求解后显示 ux/uy (mm 或 m), 若变形图可见
+  const displacementMap = new Map(
+    (results?.displacements || []).map((d) => [d.node, d])
+  );
+
   const pendingNode = pendingNodeA != null ? nodes.find((n) => n.id === pendingNodeA) : null;
 
   const DIAGRAM_META = {
@@ -323,6 +328,29 @@ export default function CanvasView() {
             </text>
           </g>
         ))}
+
+        {/* 节点位移标注 (求解后, 画在节点下方) */}
+        {solved && results && !diagramMode && (
+          <g className="disp-labels">
+            {nodes.map((n) => {
+              const d = displacementMap.get(n.id);
+              if (!d) return null;
+              const ux = d.ux || 0;
+              const uy = d.uy || 0;
+              if (Math.abs(ux) < 1e-12 && Math.abs(uy) < 1e-12) return null;
+              const mag = Math.hypot(ux, uy);
+              const mm = mag >= 1e-3; // >1mm 用 mm 显示
+              const txt = mm
+                ? `${(mag * 1000).toFixed(1)}mm`
+                : `${(mag * 1000).toFixed(3)}mm`;
+              return (
+                <text key={`dl-${n.id}`} className="disp-label" x={n.cx} y={n.cy + 16}>
+                  {txt}
+                </text>
+              );
+            })}
+          </g>
+        )}
 
         {/* element 模式第一个点高亮 */}
         {pendingNode && (

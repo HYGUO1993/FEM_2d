@@ -515,6 +515,18 @@ g.selected .constraint {
   pointer-events: none;
 }
 
+/* 节点位移标注 */
+.disp-label {
+  fill: var(--success);
+  font-size: 10px;
+  font-family: var(--mono);
+  text-anchor: middle;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(15, 17, 21, 0.9);
+  stroke-width: 3px;
+}
+
 .pending-node {
   stroke: var(--accent);
   stroke-width: 2;
@@ -778,6 +790,22 @@ g.selected .constraint {
   display: flex;
   gap: 8px;
   margin-bottom: 10px;
+}
+
+.extreme-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.extreme-row .stat-card .label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-card .value.neg {
+  color: var(--error);
 }
 
 .stat-card {

@@ -1,276 +1,189 @@
-# FEM_2d 项目说明
-本项目是一个用于教学/实验的二维杆/桁架/刚架有限元程序，支持读取结构与载荷、组装整体刚度、求解位移、输出杆端力与支座反力，并提供 Python 可视化脚本生成变形图与反力箭头。
+# FemLab Studio
+
+> 二维杆系有限元分析（平面刚架 / 桁架）教学软件 — 画布建模 · 即时求解 · 内力图可视化 · LLM 辅助
+
+FemLab Studio 是一个用于教学和工程实践的二维杆/桁架/刚架有限元程序。支持交互式画布建模、调用求解内核计算位移/内力/反力，并在画布上叠加显示变形图与轴力/剪力/弯矩图。内置 LLM 建模助手，可用自然语言描述结构并自动生成模型。
+
+![GUI](docs/images/gui_preview.png)
 
 ---
 
-## 🚀 快速启动 GUI（最方便！）
+## ✨ 核心特性
 
-### Windows 用户
+| 功能 | 说明 |
+|---|---|
+| 🎨 画布建模 | 节点 / 杆件 / 荷载 / 约束 拖拽式编辑，网格吸附 |
+| ⚡ 即时求解 | 一键求解，位移 / 杆端内力（N·V·M）/ 支座反力 |
+| 📊 内力图 | 画布叠加 **轴力图 / 剪力图 / 弯矩图**，颜色区分 |
+| 📏 挠度显示 | 变形图 + 节点位移数值标注 |
+| 🤖 LLM 助手 | 自然语言描述结构 → 自动生成 JSON 模型（OpenAI 兼容 API）|
+| 💾 项目管理 | 本地保存 / 导入导出 JSON 模型文件 |
+| ↩️ 撤销重做 | Ctrl+Z / Ctrl+Y，误操作可恢复 |
+| 🎛 可调布局 | 三栏拖拽调宽，LLM 面板右侧/底部切换 |
 
-**如果出现 "DLL load failed" 错误：**
-- 双击 `修复DLL错误.bat` ⭐（自动修复 Windows 系统库问题）
-- 然后双击 `启动GUI.bat` 启动 GUI
+---
 
-**正常情况下，直接双击任一文件即可启动 GUI：**
-- `启动GUI.bat` ⭐ （中文按钮）
-- `start_gui.bat` （英文按钮）
+## 🚀 快速开始
 
-更多帮助见 [docs/guides/QUICKSTART_Windows.md](docs/guides/QUICKSTART_Windows.md)
+### 方式一：桌面应用（推荐）
 
-### VS Code 用户
-按快捷键启动：
+**Windows** 用户可直接运行发布版安装包（MSI / setup.exe），或开发运行：
+
+```powershell
+# 1. 构建前端
+cd gui_tauri
+npm install
+npm run build
+
+# 2. 运行 Tauri 应用
+cd src-tauri
+cargo tauri dev          # 开发模式
+cargo tauri build        # 打包安装包 (MSI + NSIS)
 ```
-Ctrl+Shift+P → 搜索 "Launch FEM_2d GUI" → Enter
-```
-或在"终端"菜单中选择"运行任务"
 
-### 命令行启动
+构建产物：
+- 调试 exe：`gui_tauri/src-tauri/target/debug/femlab-studio.exe`
+- 安装包：`gui_tauri/src-tauri/target/release/bundle/`
+
+### 方式二：命令行求解 (femcli)
+
 ```bash
-python quick_start_gui.py        # 推荐：跨平台
-python python/fem_gui.py         # 直接调用
-.\start_gui.bat                  # Windows 批处理
+# 构建求解器
+cmake -S . -B build
+cmake --build build --parallel
+
+# 校验模型
+build/bin/femcli.exe validate examples/beam_simple.json
+
+# 求解并输出 JSON 结果
+build/bin/femcli.exe solve examples/beam_simple.json -o result.json
 ```
 
 ---
 
-- 语言与平台：C++（C++11），支持 Linux / Windows / macOS，Python 3 可视化
-- 可执行文件： build/bin/fem_run（或 .exe）
-- 单元测试： build/bin/unit_tests（或 .exe）
-- 可视化脚本： scripts/visualize_results.py
+## 🎮 界面速览
 
-## 下载预编译程序
+- **左侧栏**：项目管理（新建 / 保存本地 / 导入本地）、项目列表
+- **中央画布**：结构模型编辑区，右下角切换「原图 / 轴力N / 剪力V / 弯矩M」
+- **右侧栏**：工具栏（选择/节点/杆件/荷载/约束/删除）、属性面板、求解结果、LLM 助手
+- **顶栏**：LLM 位置切换、撤销/重做、重置视图、求解
 
-从 [Releases 页面](https://github.com/HYGUO1993/femlab-studio/releases) 下载对应平台的压缩包：
+### 快捷键
 
-| 平台 | 文件 |
-|------|------|
-| Linux (x64, 静态链接) | `fem_2d_linux_x64.tar.gz` |
-| Windows (x64) | `fem_2d_windows_x64.zip` |
-| macOS (x64) | `fem_2d_macos_x64.tar.gz` |
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl+Enter` | 求解 |
+| `Ctrl+Z` / `Ctrl+Y` | 撤销 / 重做 |
+| `Delete` / `Backspace` | 删除选中对象 |
 
-解压后直接运行 `fem_run`（或 `fem_run.exe`）即可，无需安装任何依赖。
+---
 
-快速开始
+## 🤖 LLM 建模助手
 
-- 构建与测试（推荐 VS 2022/MSBuild）：
-  - & 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe' .\\build\\FEM_2d.sln /p:Configuration=Release /m
-  - & .\\build\\bin\\Release\\unit_tests.exe
-- **启动 GUI（推荐）**：
-  - Windows：`python quick_start_gui.py` 或 `.\scripts\run_gui.ps1`
-  - macOS/Linux：`python3 python/fem_gui.py`
-  - GUI 依赖（一次性安装）：`pip install PyQt6 matplotlib numpy qtawesome`
-  - 详见 `docs/guides/GUI_USAGE.md` 完整使用指南
-- 命令行运行示例：
-  - 框架悬臂示例（梁）： & .\\build\\bin\\Release\\fem_run.exe --no-stiff --input test05.txt --output build\\Results_frame.dat
-  - 简支梁三点载荷： & .\\build\\bin\\Release\\fem_run.exe --no-stiff --input test_beam.txt --output build\\Results_beam.dat
-- **femcli — JSON 统一模型命令行(推荐新用法)**：
-  - 求解 JSON 模型： `build\\bin\\femcli.exe solve examples\\beam_simple.json -o result.json`
-  - 兼容旧 txt： `build\\bin\\femcli.exe solve -i test_beam.txt -o result.json --legacy-txt`
-  - 校验模型： `build\\bin\\femcli.exe validate examples\\beam_simple.json`
-  - 模型格式见 `docs/FEM_MODEL_SCHEMA.md`,LLM 接入见 `docs/LLM_INTEGRATION.md`
-- 命令行可视化：
-  - python scripts\\visualize_results.py --results build\\Results_frame.dat --scale 1000 --out build\\plot_frame.png
-  - python scripts\\visualize_results.py --results build\\Results_beam.dat --scale 2000 --out build\\plot_beam.png
+1. 点击右侧「设置」配置 API（OpenAI 兼容：base_url / api_key / model）
+2. 用自然语言描述结构，例如：
+   > 建立一个 3x3 框架，每个构件 1000mm，每层水平荷载 10kN，截面随机定
+3. 助手返回模型 JSON → 点击「应用到画布 + 求解」
 
-Windows 双击封装
+模型格式见 [docs/FEM_MODEL_SCHEMA.md](docs/FEM_MODEL_SCHEMA.md)，接口见 [docs/LLM_INTEGRATION.md](docs/LLM_INTEGRATION.md)。
 
-- 运行求解（避免控制台一闪而过）：双击 `scripts\\run_release.bat`
-- 运行可视化（自动生成结果并出图）：双击 `scripts\\run_visualize.bat`
-- **启动交互式 GUI**：双击 `scripts\\run_gui.bat` 或运行 `python quick_start_gui.py`
-  - GUI 提供完整的交互式界面、实时参数调整和可视化
-  - 详细使用说明见 `docs/guides/GUI_USAGE.md`
-- 可视化输出图片默认保存到：`build\\plot.png`
-目录结构
+---
 
-- barsystem.cpp 主程序与核心有限元函数
-- barsystem.h 数据结构与函数声明
-- tests\\test_basic.cpp 轻量单元测试
-- CMakeLists.txt 构建配置（Windows 生成 VS 解决方案）
-- scripts\\visualize_results.py Python 可视化脚本
-- test05.txt 、 test_beam.txt 示例输入
-- build\\ 构建产物（可执行、结果与图像）
-程序入口与主流程
+## 📦 模型格式
 
-- 入口： barsystem.cpp:12-39 解析命令行参数 --input/--output/--quiet/--no-stiff/--stiff
-- 核心计算流程（关键调用位置： barsystem.cpp:280-339 ）
-  - 读取全局与实体数据（节点/约束/元素/材料/截面/载荷）
-  - 计算单元长度与方向余弦： barsystem.cpp:400-416
-  - 自由度编号与带宽地址： barsystem.cpp:767-835 、 barsystem.cpp:872-918
-  - 组装整体刚度矩阵 Skyline 下三角： barsystem.cpp:523-614
-  - 组装载荷向量（目前支持节点集中力 FORCE_ON_NODE ）： barsystem.cpp:1035-1050
-  - LDLT 求解自由度位移： barsystem.cpp:631-680
-  - 杆端内力计算（按单元刚度乘以局部位移）： barsystem.cpp:1052-1101
-  - 支座反力： barsystem.cpp:1103-1113 （约束 DOF 处的反力回写到 pLoadVect ）
-  - 结果输出（位移/内力/反力）： barsystem.cpp:987-1033
-数据格式（输入文件） 第 1 行为总控数据：
+统一使用 JSON 模型（示例见 [examples/](examples/)）：
 
-- TotalNodes ConstrainedNodes TotalElements MaterialTypes SectionTypes LoadCount
-- 示例： 2 1 1 1 1 1 表示 2 节点、1 约束节点、1 单元、1 材料、1 截面、1 载荷
-后续块：
+```json
+{
+  "schemaVersion": "1.0",
+  "title": "2m 简支梁跨中集中力",
+  "solver": "builtin",
+  "nodes": [
+    { "id": 0, "type": "frame", "x": 0.0, "y": 0.0 },
+    { "id": 1, "type": "frame", "x": 1.0, "y": 0.0 },
+    { "id": 2, "type": "frame", "x": 2.0, "y": 0.0 }
+  ],
+  "constraints": [
+    { "node": 0, "dofs": ["ux", "uy"] },
+    { "node": 2, "dofs": ["uy"] }
+  ],
+  "elements": [
+    { "id": 0, "type": "frame", "nodeI": 0, "nodeJ": 1, "section": 0, "material": 0 },
+    { "id": 1, "type": "frame", "nodeI": 1, "nodeJ": 2, "section": 0, "material": 0 }
+  ],
+  "materials": [ { "id": 0, "E": 210000000000.0, "mu": 0.3, "alpha": 0.0 } ],
+  "sections": [ { "id": 0, "A": 0.01, "Iz": 1e-5, "height": 0.1 } ],
+  "loads": [ { "type": "nodalForce", "direction": "y", "value": -10000.0, "node": 1 } ]
+}
+```
 
-- 节点（每行）： NodeType X Y ， NodeType=1 桁架节点、 NodeType=2 刚架节点
-- 约束（每行）： Node X Y R ，值 -1 表示该 DOF 受约束， 0 表示自由
-- 元素（每行）： ElemType StartNode EndNode SectionIndex [MaterialIndex可选]
-  - ElemType=1 桁架单元， ElemType=2 刚架单元
-- 材料（每行）： E Mu Alpha
-- 截面（每行）： A Iz H （梁问题必须有 Iz>0 ）
-- 载荷（每行）： Type Dir Value LoadedElem LoadedNode Position T0 T1
-  - 节点集中力： Type=1 ，方向 Dir=0(X)/1(Y)/2(R) ，示例： 1 1 -1000 -1 1 0 0 0 表示在节点 1 施加竖向 -1000N
+---
 
-数据字段详解
+## 🛠 开发
 
-- 节点类型 `NodeType`：
-  - `1`（TRUSS）：节点仅使用 `Ux, Uy` 两个 DOF，旋转 `Rz` 不参与
-  - `2`（FRAME）：节点使用 `Ux, Uy, Rz` 三个 DOF（平面刚架）
-- 约束行 `Node X Y R`：
-  - `-1` 表示该自由度被约束（位移或转角为 0），`0` 表示自由
-  - 约束节点编号为 `Node`，对应节点的 `Ux(U)`、`Uy(V)`、`Rz(θ)` 三个分量
-- 元素行：
-  - TRUSS 单元使用 4 自由度局部向量 `[Ux_i, Uy_i, Ux_j, Uy_j]`
-  - FRAME 单元使用 6 自由度局部向量 `[Ux_i, Uy_i, Rz_i, Ux_j, Uy_j, Rz_j]`
-- 材料与截面：
-  - 材料 `E`（弹性模量）、`Mu`（泊松比）、`Alpha`（热膨胀系数，当前未用于计算）
-  - 截面 `A`（面积）、`Iz`（关于 Z 的惯性矩，FRAME 弯曲刚度依赖 `Iz`）、`H`（辅助几何参数，当前不参与刚度）
+### 项目结构
 
-坐标系与自由度
+```
+FEM_2d/
+├── gui_tauri/                # Tauri 桌面应用
+│   ├── src/                  # React 前端
+│   │   ├── canvas/           #   画布渲染 (SVG)
+│   │   ├── components/       #   界面组件
+│   │   ├── store.js          #   zustand 全局状态
+│   │   └── ipc.js            #   Tauri IPC 封装
+│   └── src-tauri/            # Rust 后端
+│       └── src/lib.rs        #   求解/项目/LLM/导入导出 命令
+├── barsystem.cpp/h           # FEM 核心求解引擎 (C++11)
+├── femcli.cpp                # JSON 命令行求解器
+├── CMakeLists.txt            # C++ 构建配置
+├── docs/                     # 文档
+├── examples/                 # JSON 模型示例
+├── tests/                    # C++ 单元测试
+├── verify/                   # 求解器验证脚本
+└── third_party/              # nlohmann/json 等
+```
 
-- 节点自由度编号：`Node.iaDOFIndex[0..2]` 分别对应 `Ux, Uy, Rz`（见位移输出： c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:987-1001）
-- 单元局部坐标系沿杆轴方向定义，长度与方向余弦由 `LengthSinCosCalcu` 计算（ c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:540 ）
-- 元端力输出顺序：`Fx_i, Fy_i, Mz_i, Fx_j, Fy_j, Mz_j`（ c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:1003-1016 ）
-- 桁架（TRUSS）不输出端弯矩（`Mz_i, Mz_j = 0`），刚架（FRAME）输出三向端力与端弯矩
+### 技术栈
 
-Skyline 存储与访问
+| 层 | 技术 |
+|---|---|
+| 前端 | React 19 · Vite 8 · zustand 5 · SVG |
+| 桌面壳 | Tauri v2 (WebView2) |
+| 后端 | Rust (IPC) + C++11 (FEM 核心) |
+| 测试 | CTest / verify 脚本 / GitHub Actions CI |
 
-- 总刚度矩阵以 Skyline 下三角形式存储与装配（ c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:523-614 ）
-- 单元刚度装配函数：`GKAssembly`（ c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:528-619 ）
-- 访问函数：`GetElementInGK` 使用索引公式 `idx = pDiag[iRow] - iRow + iCol`（下三角）读取条目（ c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:621-626 ）
+### 常用命令
 
-示例文件：
+```bash
+# 前端构建
+cd gui_tauri && npm run build
 
-- 悬臂梁（框架） test05.txt ：固定左端三向约束，右端节点竖向力
-- 简支梁三点载荷 test_beam.txt ：两端约束 Y，跨中三节点竖向力
+# 桌面应用调试
+cd gui_tauri/src-tauri && cargo tauri dev
 
-示例输入片段
+# C++ 构建 + 测试
+cmake -S . -B build && cmake --build build --parallel
+ctest --test-dir build
+```
 
-- `test05.txt`（悬臂框架）片段：
-  - `2 1 1 1 1 1`
-  - `2 0.0 0.0`
-  - `2 2.0 0.0`
-  - `0 0 -1 -1`（左端三向约束）
-  - `2 0 1 0`
-  - `210000000000 0.3 0.0`
-  - `0.01 1e-05 0.2`
-  - `1 1 -1000 -1 1 0 0 0`（右端竖向-1000N）
-- `test_beam.txt`（简支梁）片段：
-  - `5 2 4 1 1 3`
-  - `2 0.0 0.0` … `2 2.0 0.0`（5 节点沿 X 布置）
-  - `0 0 -1 0`、`4 0 -1 0`（两端 Y 约束）
-  - `2 0 1 0`、`2 1 2 0`、`2 2 3 0`、`2 3 4 0`（四个元素）
-  - `210000000000 0.3 0.0`；`0.01 1e-05 0.2`（材料与截面，梁需 `Iz>0`）
-  - `1 1 -1000 -1 1 0 0 0`、`1 1 -1000 -1 2 0 0 0`、`1 1 -1000 -1 3 0 0 0`（中跨三节点竖向力）
-输出文件（Results.dat/Results_*.dat） 包含以下块：
+---
 
-- 全局与实体数据回显（节点/约束/元素/材料/截面/载荷）
-- 节点位移（按 DOF 序）： Node Displacements （ barsystem.cpp:987-1001 ）
-- 杆端力（局部端力 6 分量）： Element End Forces （ barsystem.cpp:1003-1016 ）
-- 支座反力（约束节点处）： Support Reactions （ barsystem.cpp:1018-1033 ）
-注意：
+## 📚 文档
 
-- 若输入为水平桁架对竖向节点力，体系在竖向接近奇异，位移可能极大或被数值裁剪，可视化需要使用 FRAME 或斜桁架。
-可视化脚本 脚本： scripts\\visualize_results.py
+- [模型 Schema](docs/FEM_MODEL_SCHEMA.md) — JSON 模型字段定义
+- [LLM 集成](docs/LLM_INTEGRATION.md) — LLM 建模助手接口
+- [命令行用法](docs/guides/USAGE_GUIDE.md) — femcli 详细用法
+- [开发者文档](docs/development/DEVELOPMENT.md) — 源码说明
 
-- 解析 Results.dat 并绘制：
-  - 原始几何（灰色）
-  - 位移后的变形图（红色）
-  - 支座反力箭头（蓝色）
-  - 元素颜色随轴力大小渐变（plasma）
-- 用法：
-  - python scripts\\visualize_results.py --results build\\Results_frame.dat --scale 1000 --out build\\plot_frame.png
-- 可选参数：
-  - --hide-reactions 关闭支座反力箭头
-  - --hide-forces 关闭元素轴力着色
-  - --reac-scale <float> 调整箭头长度比例
-- 解析稳健性：
-  - 对于数值列相邻无空格的情况，使用正则提取数字，避免解析失败（见 parse_results： scripts\\visualize_results.py:11-108 ）
-  - 变形倍率自动裁剪，避免极端值导致图形异常（见 plot_structure： scripts\\visualize_results.py:118-129 ）
-  - 轴力着色采用 `plasma`，归一化范围按当前结果自动估计（见 plot_structure： scripts\\visualize_results.py:156-169 ）
+## 📝 版本历史
 
-命令行参数（fem_run.exe）
+见 [RELEASE_NOTES.md](RELEASE_NOTES.md)
 
-- `--input <path>` 指定输入文件，默认 `test05.txt`
-- `--output <path>` 指定结果输出文件，默认 `Results.dat`
-- `--quiet` 静默模式（减少控制台输出）
-- `--stiff <path>` 输出单元刚度矩阵到文件（文本），默认路径 `ElemStiff.dat`
-- `--no-stiff` 关闭单元刚度矩阵输出
-- 示例：
-  - `& .\\build\\bin\\Debug\\fem_run.exe --input test_beam.txt --output build\\Results_beam.dat --no-stiff`
-  - `& .\\build\\bin\\Debug\\fem_run.exe --input test05.txt --output build\\Results_frame.dat --stiff build\\ElemStiff.txt`
-核心函数参考
+## 📄 许可证
 
-- 程序入口与参数解析： c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:12-39
-- 刚度组装 Skyline 下三角： c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:523-614
-- LDLT 求解器： c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:631-680 （回代： 669-673 ）
-- 位移输出： c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:987-1001
-- 杆端力输出： c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:1003-1016
-- 反力输出： c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:1018-1033
-- 载荷装配（节点力）： c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:1035-1050
-- 杆端内力计算（Truss/Frame）： c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:1052-1101
-已知限制与建议
+见仓库 LICENSE 文件
 
-- 载荷装配目前仅支持节点集中力；分布荷载、温度荷载等可通过扩展 LoadVectorAssembly 与 FixedEndForceCalcu 实现。
-- 对近奇异体系（如水平桁架承受竖向力），建议改为刚架单元或提供适当约束。
-- 支座反力采用 A·u - 已施加载荷 ，如需严格处理，应在装配时将边界条件与载荷一致性考虑完整。
-- 数值稳定性：LDLT 对零主元采用微小对角保护（ 1e-12 ），在物理问题上应通过合理模型避免奇异。
+## 🤝 联系我们
 
-故障诊断
-
-- 位移几乎为零：检查是否错误使用 `TRUSS` 分析梁问题；梁需 `FRAME` 且 `Iz>0`
-- 位移过大或 `NaN`：检查约束是否充分；脚本已进行裁剪，但建议修正模型
-- 反力看起来不平衡：确认载荷方向与单位，支座反力计算为 `A·u - P`
-- 可视化没有颜色变化：轴力着色依赖 `Element End Forces`；确认内力输出正常
-常用命令速查
-
-- 构建：
-  - & 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe' .\\build\\FEM_2d.sln /p:Configuration=Debug /m
-- 测试：
-  - & .\\build\\bin\\Debug\\unit_tests.exe
-- 运行：
-  - & .\\build\\bin\\Debug\\fem_run.exe --no-stiff --input test05.txt --output build\\Results_frame.dat
-  - & .\\build\\bin\\Debug\\fem_run.exe --no-stiff --input test_beam.txt --output build\\Results_beam.dat
-- 可视化：
-  - python scripts\\visualize_results.py --results build\\Results_frame.dat --scale 1000 --out build\\plot_frame.png
-  - python scripts\\visualize_results.py --results build\\Results_beam.dat --scale 2000 --out build\\plot_beam.png
- - 一键构建（CMake）：
-   - PowerShell：`& scripts\\build_and_test.ps1`
-   - Bash：`bash scripts/build_and_test.sh`
-后续可扩展方向
-
-- 完善 LoadVectorAssembly 支持分布荷载与温度荷载（ barsystem.h 已声明多个 Load 类型）
-- 在 InternalForceCalcu 中加入固端力叠加与截面力（剪力/弯矩）更丰富的输出
-- 增加简支梁、连续梁、桁架网架等更多示例输入及对应图像
-- 为 Python 可视化添加数值标签、剪力/弯矩图、变形倍率自动估计
-
-附加说明
-
-- 函数补充：
-  - 杆端力数组初始化： c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:978-985
-  - 反力计算： c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:1103-1113
-  - 载荷装配（节点力）： c:\\Users\\guoho\\Documents\\GitHub\\FEM_2d\\barsystem.cpp:1035-1050
-- 结果字段含义：
-  - Node Displacements：每行 `Node Ux Uy Rz`，单位与输入一致
-  - Element End Forces：每行 `Elem Fx_i Fy_i Mz_i Fx_j Fy_j Mz_j`，为局部坐标端力
-  - Support Reactions：每行 `Node Rx Ry Rz`，为约束自由度处的反力
-- 建模与使用建议：
-  - 梁/刚架问题请使用 `FRAME` 单元且截面 `Iz>0`，否则无弯曲刚度
-  - 简支梁：两端约束 `Y`，不约束 `X/Rz`，中跨施加竖向集中力
-  - 位移倍率 `--scale` 需与几何尺度匹配；脚本已对过大位移进行裁剪
-  - 若出现奇异或位移异常，请检查约束是否充分以及单元类型是否正确
-
-## 文档与指南
-
-- **[docs/README.md](docs/README.md)** - 文档导航与分类说明
-- **[GUI_USAGE.md](docs/guides/GUI_USAGE.md)** - 交互式 GUI 应用完整使用指南
-  - 快速开始、菜单说明、可视化控制、常见任务、故障排除
-- **[USAGE_GUIDE.md](docs/guides/USAGE_GUIDE.md)** - 命令行工具使用指南
-- **[DEVELOPMENT.md](docs/development/DEVELOPMENT.md)** - 开发者文档与源代码说明
-- **[RELEASE_NOTES.md](RELEASE_NOTES.md)** - 版本更新历史
+- GitHub: https://github.com/HYGUO1993/femlab-studio
+- Issues: https://github.com/HYGUO1993/femlab-studio/issues

@@ -52,6 +52,11 @@ export default function ResultsPanel() {
             ))}
           </div>
 
+          {/* 内力极值汇总 */}
+          {(results.endForces || []).length > 0 && (
+            <ExtremeCard results={results} />
+          )}
+
           {/* 变形图倍率 */}
           {solved && (
             <div className="deform-row">
@@ -144,6 +149,40 @@ export default function ResultsPanel() {
           </table>
         </>
       )}
+    </div>
+  );
+}
+
+/** 内力极值汇总: 扫描所有单元端力, 输出 N/V/M 的 max|值| 及所在单元 */
+function ExtremeCard({ results }) {
+  const ef = results.endForces || [];
+  if (!ef.length) return null;
+  const keys = ["N", "V", "M"];
+  const stats = keys.map((k) => {
+    let maxAbs = 0;
+    let maxAbsVal = 0;
+    let elem = "-";
+    for (const e of ef) {
+      for (const side of ["nodeI", "nodeJ"]) {
+        const v = e[side]?.[k];
+        if (typeof v === "number" && Math.abs(v) > maxAbs) {
+          maxAbs = Math.abs(v);
+          maxAbsVal = v;
+          elem = e.element;
+        }
+      }
+    }
+    return { k, maxAbsVal, elem };
+  });
+
+  return (
+    <div className="extreme-row">
+      {stats.map((s) => (
+        <div className="stat-card" key={s.k}>
+          <div className="label">max|{s.k}| (单元{s.elem})</div>
+          <div className={`value ${s.maxAbsVal < 0 ? "neg" : ""}`}>{fmt(s.maxAbsVal)}</div>
+        </div>
+      ))}
     </div>
   );
 }

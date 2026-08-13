@@ -1,166 +1,121 @@
-# FEM_2d Release v1.0.1
+# FemLab Studio Release v0.2.0
 
 ## 概述
 
-FEM_2d 是一个用于教学和工程实践的二维杆系/桁架/刚架有限元分析程序。本版本包含完整的C++核心计算引擎和Python可视化脚本。
+**FemLab Studio** 是二维杆系/桁架/刚架有限元分析教学软件，包含：
+- **Tauri 桌面应用**（`gui_tauri/`）— 交互式画布建模、求解、可视化一体
+- **femcli**（`femcli.cpp`）— JSON 模型命令行求解器
+- **FEM 核心引擎**（`barsystem.cpp`）— C++11 平面刚架/桁架求解
 
-## 主要功能
+## 主要功能 (v0.2.0)
 
-- ✅ 二维桁架（Truss）和刚架（Frame）结构分析
-- ✅ 支持多种材料和截面类型
-- ✅ 节点集中力载荷
-- ✅ 位移、内力和支座反力计算
-- ✅ Python 可视化（变形图、内力图、支座反力）
+- ✅ 画布交互式建模：节点 / 杆件 / 荷载 / 约束 编辑
+- ✅ 求解：位移、杆端内力（N/V/M）、支座反力
+- ✅ 结果可视化：变形图 + **轴力图 / 剪力图 / 弯矩图** 叠加显示
+- ✅ 节点位移数值标注（挠度直观显示）
+- ✅ LLM 自然语言建模助手（OpenAI 兼容 API）
+- ✅ 项目本地保存 / 导入导出 JSON 文件
+- ✅ 撤销 / 重做（Ctrl+Z / Ctrl+Y）
+- ✅ 快捷键：Delete 删除选中、Ctrl+Enter 求解
+- ✅ 可自定义布局：三栏拖拽调宽、LLM 面板右侧/底部切换
+- ✅ 完整安装包：MSI + NSIS setup.exe
 
 ## 快速开始
 
-### 1. 构建程序
+### 桌面应用（推荐）
 
-**Linux/macOS:**
-```bash
-./scripts/build_and_test.sh
-```
-
-**Windows (PowerShell):**
 ```powershell
-./scripts/build_and_test.ps1
+# 开发运行
+cd gui_tauri
+npm install
+npm run build
+cd src-tauri
+cargo tauri dev
+
+# 或直接运行已构建的 exe
+.\gui_tauri\src-tauri\target\debug\femlab-studio.exe
 ```
 
-或手动构建：
-```bash
-mkdir build && cd build
-cmake ..
-cmake --build .
-```
-
-### 2. 运行示例
-
-```bash
-# 悬臂梁示例
-./build/bin/fem_run --input test05.txt --output build/Results.dat
-
-# 简支梁示例
-./build/bin/fem_run --input test_beam.txt --output build/Results_beam.dat
-```
-
-### 3. 可视化结果
+### 命令行求解 (femcli)
 
 ```bash
-# 安装 Python 依赖
-pip install matplotlib numpy
+# 校验模型
+build/bin/femcli.exe validate examples/beam_simple.json
 
-# 生成可视化图像
-python scripts/visualize_results.py --results build/Results.dat --scale 1000 --out plot.png
+# 求解
+build/bin/femcli.exe solve examples/beam_simple.json -o result.json
 ```
 
-## 文件说明
+### 构建 (Windows / Linux / macOS)
 
-### 核心文件
-- `barsystem.cpp/h` - FEM 核心计算引擎
-- `test05.txt` - 悬臂梁示例
-- `test_beam.txt` - 简支梁示例
-
-### 脚本文件
-- `scripts/visualize_results.py` - 结果可视化脚本
-- `scripts/build_and_test.sh` - Linux/macOS构建脚本
-- `scripts/build_and_test.ps1` - Windows构建脚本
-
-### GUI 应用 (Beta)
-- `python/fem_gui.py` - 图形化界面入口（需要 PySide6）
-- `python/gui/` - GUI 模块
-
-## 输入文件格式
-
-第一行为总控数据：
-```
-节点数 约束节点数 单元数 材料类型数 截面类型数 载荷数
+```bash
+cmake -S . -B build
+cmake --build build --parallel
+ctest --test-dir build
 ```
 
-示例（test05.txt）：
+## 模型格式
+
+使用 JSON 模型（见 `docs/FEM_MODEL_SCHEMA.md` 与 `examples/`）：
+
+```json
+{
+  "schemaVersion": "1.0",
+  "nodes": [{ "id": 0, "type": "frame", "x": 0, "y": 0 }],
+  "constraints": [{ "node": 0, "dofs": ["ux", "uy"] }],
+  "elements": [{ "id": 0, "type": "frame", "nodeI": 0, "nodeJ": 1, "section": 0, "material": 0 }],
+  "materials": [{ "id": 0, "E": 210000000000, "mu": 0.3, "alpha": 0 }],
+  "sections": [{ "id": 0, "A": 0.01, "Iz": 1e-5, "height": 0.1 }],
+  "loads": [{ "type": "nodalForce", "direction": "y", "value": -10000, "node": 1 }]
+}
 ```
-2 1 1 1 1 1
-2 0.0 0.0
-2 1.0 0.0
-0 -1 -1 -1
-2 0 1 0
-210000000000 0.3 0.0
-0.01 8.333e-6 0.1
-1 1 -1000 -1 1 0 0 0
+
+## 目录结构
+
+```
+FEM_2d/
+├── gui_tauri/          # Tauri 桌面应用 (React 19 + Vite 8 + zustand 5)
+├── barsystem.cpp/h     # FEM 核心求解引擎
+├── femcli.cpp          # JSON 模型命令行求解器
+├── CMakeLists.txt      # 构建配置
+├── docs/               # 文档 (schema / LLM 集成 / 教程)
+├── examples/           # JSON 模型示例
+├── tests/              # 单元测试
+├── verify/             # 求解器验证脚本
+└── third_party/        # 第三方头文件 (nlohmann/json)
 ```
 
-详细格式说明请参见 README.md
+## 技术栈
 
-## 命令行参数
-
-- `--input <file>` - 输入文件路径（默认: test05.txt）
-- `--output <file>` - 输出文件路径（默认: Results.dat）
-- `--quiet` - 静默模式
-- `--stiff <file>` - 输出单元刚度矩阵
-- `--no-stiff` - 不输出单元刚度矩阵
-
-## 可视化选项
-
-- `--results <file>` - 结果文件路径
-- `--scale <float>` - 变形倍率
-- `--out <file>` - 输出图片路径
-- `--hide-reactions` - 隐藏支座反力
-- `--hide-forces` - 隐藏内力着色
-- `--reac-scale <float>` - 反力箭头比例
-
-## 系统要求
-
-**编译环境:**
-- CMake 3.10+
-- C++11 编译器（GCC 7+, Clang 5+, MSVC 2017+）
-
-**可视化:**
-- Python 3.7+
-- matplotlib
-- numpy
-
-**GUI (可选):**
-- PySide6
-- PyVista
+| 层 | 技术 |
+|---|---|
+| 前端 | React 19, Vite 8, zustand 5, SVG 画布 |
+| 桌面壳 | Tauri v2 (WebView2) |
+| 后端 | Rust (IPC), C++11 (FEM 核心) |
+| 构建 | CMake, cargo, npm |
 
 ## 测试
 
-运行单元测试：
 ```bash
-./build/bin/unit_tests
+# 单元测试
+ctest --test-dir build
+
+# 求解器验证
+python verify/verify_femcli.py
 ```
-
-或使用 CTest：
-```bash
-cd build
-ctest
-```
-
-## 已知限制
-
-- 当前仅支持节点集中力载荷
-- 不支持分布载荷（均布、三角形等）
-- 不支持温度载荷
-- GUI 功能仍在开发中
-
-## 开发文档
-
-详细的开发文档请参见：
-- `README.md` - 完整使用说明
-- `docs/development/DEVELOPMENT.md` - 开发者文档
-- `.github/copilot-instructions.md` - 代码规范
 
 ## 版本历史
 
+### v0.2.0 (2026-08-13)
+- 全新 Tauri 桌面端：画布建模 / 求解 / N·V·M 内力图 / LLM 辅助 / 撤销重做
+- femcli JSON 命令行求解器
+- 旧 PyQt6 GUI 退役归档（`_archive_local/`）
+
 ### v1.0.1 (2026-04-18)
-- 修复：移除误提交的 `build/` 目录（含硬编码 Linux 路径的 CMakeCache.txt），解决 macOS/Windows CI 构建失败问题
-- 添加 `.gitignore`，防止构建产物再次被误提交
+- 修复 CI 构建失败，添加 .gitignore
 
 ### v1.0 (2026-04-18)
-- 初始发布版本
-- 完整的 FEM 核心功能
-- Python 可视化脚本
-- 基础 GUI 框架
-- 单元测试
+- C++ 核心引擎 + Python 可视化 + 基础 GUI
 
 ## 许可证
 
@@ -168,12 +123,5 @@ ctest
 
 ## 联系方式
 
-- GitHub: https://github.com/HYGUO1993/FEM_2d
-- Issues: https://github.com/HYGUO1993/FEM_2d/issues
-
----
-
-**构建信息：**
-- 版本: v1.0.1
-- 核心代码: C++11
-- 测试状态: ✅ 通过（Linux / macOS / Windows）
+- GitHub: https://github.com/HYGUO1993/femlab-studio
+- Issues: https://github.com/HYGUO1993/femlab-studio/issues

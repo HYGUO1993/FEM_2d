@@ -60,6 +60,8 @@ export default function App() {
   const setSidebarWidth = useStore((s) => s.setSidebarWidth);
   const setRightWidth = useStore((s) => s.setRightWidth);
   const setLlmPosition = useStore((s) => s.setLlmPosition);
+  const canUndo = useStore((s) => s.past.length > 0);
+  const canRedo = useStore((s) => s.future.length > 0);
 
   // 启动初始化: 拉项目列表 + LLM 配置 + 加载最近项目
   useEffect(() => {
@@ -111,12 +113,36 @@ export default function App() {
     return () => clearTimeout(t);
   }, [model, currentProject]);
 
-  // Ctrl+Enter 求解快捷键
+  // 快捷键: Ctrl+Enter 求解 / Ctrl+Z 撤销 / Ctrl+Y+Ctrl+Shift+Z 重做 / Delete 删除
   useEffect(() => {
     const h = (e) => {
+      const st = useStore.getState();
+      // 输入框内不触发全局快捷键 (除了 Ctrl+Enter)
+      const tag = e.target?.tagName;
+      const inInput = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
-        useStore.getState().solve();
+        st.solve();
+        return;
+      }
+      if (inInput) return;
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        st.undo();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === "y" || (e.shiftKey && e.key.toLowerCase() === "z"))) {
+        e.preventDefault();
+        st.redo();
+        return;
+      }
+      if ((e.key === "Delete" || e.key === "Backspace") && st.selection) {
+        e.preventDefault();
+        const sel = st.selection;
+        if (sel.type === "node") st.deleteNode(sel.id);
+        else if (sel.type === "element") st.deleteElement(sel.id);
+        else if (sel.type === "load") st.deleteLoad(sel.id);
+        else if (sel.type === "constraint") st.removeConstraint(sel.id);
       }
     };
     window.addEventListener("keydown", h);
@@ -143,6 +169,22 @@ export default function App() {
             title="切换 LLM 对话位置"
           >
             {llmPosition === "right" ? "LLM 移到底部" : "LLM 移到右侧"}
+          </button>
+          <button
+            className="btn ghost"
+            onClick={() => useStore.getState().undo()}
+            disabled={!canUndo}
+            title="撤销 (Ctrl+Z)"
+          >
+            ↩ 撤销
+          </button>
+          <button
+            className="btn ghost"
+            onClick={() => useStore.getState().redo()}
+            disabled={!canRedo}
+            title="重做 (Ctrl+Y)"
+          >
+            ↪ 重做
           </button>
           <button className="btn ghost" onClick={() => useStore.getState().resetView()}>
             重置视图

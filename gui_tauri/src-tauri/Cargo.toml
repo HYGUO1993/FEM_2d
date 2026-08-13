@@ -1,6 +1,6 @@
 [package]
 name = "femlab-studio"
-version = "0.1.0"
+version = "0.2.0"
 description = "FemLab Studio - 二维杆系有限元分析桌面端"
 authors = ["FemLab"]
 edition = "2021"
