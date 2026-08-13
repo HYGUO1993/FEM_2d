@@ -41,28 +41,144 @@ export function computeElements(model, view, selection) {
 }
 
 /**
- * 荷载: 从节点出发的箭头 (line + arrowhead polygon), 旁标数值。
- * direction x/y → 直线箭头; rz → 绕节点的小圆弧箭头。
+ * 荷载: 支持节点集中力/弯矩 + 杆件集中力/均布/线性分布/温度
+ * 返回描述对象数组, CanvasView 按 kind 渲染
  */
 export function computeLoads(model, view, selection) {
-  const byId = new Map((model.nodes || []).map((n) => [n.id, n]));
+  const nodeById = new Map((model.nodes || []).map((n) => [n.id, n]));
+  const elemById = new Map((model.elements || []).map((e) => [e.id, e]));
+
+  // 世界坐标 → 屏幕
+  const P = (x, y) => worldToScreen(x, y, view);
+
   return (model.loads || [])
     .map((ld) => {
-      const n = byId.get(ld.node);
-      if (!n) return null;
-      const p = worldToScreen(n.x, n.y, view);
+      const sel = selection && selection.type === "load" && selection.id === ld.id;
       const base = {
         id: ld.id,
         node: ld.node,
+        element: ld.element,
+        type: ld.type,
         direction: ld.direction,
         value: ld.value,
-        x: p.x,
-        y: p.y,
-        selected: selection && selection.type === "load" && selection.id === ld.id,
+        selected: sel,
       };
 
-      if (ld.direction === "rz") {
-        // 小圆弧箭头: 半径 16, 起于 0°, 按 value 符号决定扫掠方向
+      // —— 温度荷载: 杆上红色温度标注 ——
+      if (ld.type === "temperature") {
+        const e = elemById.get(ld.element);
+        if (!e) return null;
+        const a = nodeById.get(e.nodeI);
+        const b = nodeById.get(e.nodeJ);
+        if (!a || !b) return null;
+        const pa = P(a.x, a.y);
+        const pb = P(b.x, b.y);
+        const mx = (pa.x + pb.x) / 2;
+        const my = (pa.y + pb.y) / 2;
+        return {
+          ...base,
+          kind: "temp",
+          x: mx,
+          y: my - 12,
+          label: `ΔT ${ld.T0 ?? 0}~${ld.T1 ?? 0}℃`,
+        };
+      }
+
+      // —— 杆件单元荷载 ——
+      if (ld.type === "lateralForce" || ld.type === "lateralUniformPressure" ||
+          ld.type === "lateralLinearlyPressure" || ld.type === "axialForce" ||
+          ld.type === "axialPressure") {
+        const e = elemById.get(ld.element);
+        if (!e) return null;
+        const a = nodeById.get(e.nodeI);
+        const b = nodeById.get(e.nodeJ);
+        if (!a || !b) return null;
+        const pa = P(a.x, a.y);
+        const pb = P(b.x, b.y);
+        // 杆轴单位向量 (屏幕)
+        const len = Math.hypot(pb.x - pa.x, pb.y - pa.y) || 1;
+        const ux = (pb.x - pa.x) / len;
+        const uy = (pb.y - pa.y) / len;
+        // 垂直方向 (局部 y): 屏幕向下, 取 (uy, -ux)
+        const vx = uy;
+        const vy = -ux;
+
+        // 力的方向: 横向(direction=x/y) → 垂直杆轴; 轴向 → 沿杆轴
+        let fx, fy; // 力的单位方向(屏幕)
+        if (ld.type === "axialForce" || ld.type === "axialPressure") {
+          const s = ld.direction === "x" ? 1 : -1;
+          fx = ux * s * Math.sign(ld.value || 1);
+          fy = uy * s * Math.sign(ld.value || 1);
+        } else {
+          // 横向: 屏幕垂直方向, value 符号决定正负
+          const s = Math.sign(ld.value || 1);
+          fx = vx * s;
+          fy = vy * s;
+        }
+
+        // 分布荷载: 沿线画 n 个箭头
+        if (ld.type === "lateralUniformPressure" || ld.type === "axialPressure") {
+          const n = Math.max(3, Math.floor(len / 22));
+          const arrows = [];
+          for (let i = 1; i <= n; i++) {
+            const t = i / (n + 1);
+            const sx = pa.x + (pb.x - pa.x) * t;
+            const sy = pa.y + (pb.y - pa.y) * t;
+            arrows.push({ sx, sy, ...arrowGeom(sx, sy, fx, fy, 16) });
+          }
+          return {
+            ...base,
+            kind: "udl",
+            arrows,
+            label: `${fmtLoad(ld.value)} ${ld.type === "axialPressure" ? "轴压" : "均布"}`,
+            labelX: (pa.x + pb.x) / 2 + 6,
+            labelY: (pa.y + pb.y) / 2 - 14,
+          };
+        }
+        // 线性分布: 箭头长度从 0 → max
+        if (ld.type === "lateralLinearlyPressure") {
+          const n = Math.max(3, Math.floor(len / 22));
+          const arrows = [];
+          for (let i = 1; i <= n; i++) {
+            const t = i / (n + 1);
+            const sx = pa.x + (pb.x - pa.x) * t;
+            const sy = pa.y + (pb.y - pa.y) * t;
+            const mag = (t * 22).toFixed(1);
+            arrows.push({ sx, sy, ...arrowGeom(sx, sy, fx, fy, Number(mag)) });
+          }
+          return {
+            ...base,
+            kind: "udl",
+            arrows,
+            label: `线性 ${fmtLoad(ld.value)} N/m`,
+            labelX: (pa.x + pb.x) / 2 + 6,
+            labelY: (pa.y + pb.y) / 2 - 14,
+          };
+        }
+        // 杆上集中力
+        const pos = ld.position || 0;
+        const t = pos / (Math.hypot(b.x - a.x, b.y - a.y) || 1);
+        const tClamped = Math.max(0, Math.min(1, t));
+        const sx = pa.x + (pb.x - pa.x) * tClamped;
+        const sy = pa.y + (pb.y - pa.y) * tClamped;
+        const g = arrowGeom(sx, sy, fx, fy, 24);
+        return {
+          ...base,
+          kind: "elemArrow",
+          sx,
+          sy,
+          ...g,
+          labelX: sx + fx * 30 + 6,
+          labelY: sy + fy * 30 - 4,
+        };
+      }
+
+      // —— 节点荷载 ——
+      const n = nodeById.get(ld.node);
+      if (!n) return null;
+      const p = P(n.x, n.y);
+
+      if (ld.direction === "rz" || ld.type === "momentOnPoint") {
         const R = 16;
         const aEnd = ((ld.value >= 0 ? 235 : 125) * Math.PI) / 180;
         const sx0 = p.x + R;
@@ -72,7 +188,7 @@ export function computeLoads(model, view, selection) {
         const sweep = ld.value >= 0 ? 1 : 0;
         const d = `M ${sx0},${sy0} A ${R},${R} 0 0 ${sweep} ${ex},${ey}`;
         const ux = -Math.sin(aEnd);
-        const uy = -Math.cos(aEnd); // 弧端点切线方向
+        const uy = -Math.cos(aEnd);
         const nrm = Math.hypot(ux, uy) || 1;
         const px = -uy / nrm;
         const py = ux / nrm;
@@ -87,32 +203,47 @@ export function computeLoads(model, view, selection) {
         };
       }
 
-      // 直线箭头: 力的方向 = value 符号; y 方向在屏幕上需翻转
       let ux = 0;
       let uy = 0;
       if (ld.direction === "x") ux = Math.sign(ld.value);
       else if (ld.direction === "y") uy = -Math.sign(ld.value);
-      const L = 28;
-      const tx = p.x + ux * L;
-      const ty = p.y + uy * L;
-      const nrm = Math.hypot(ux, uy) || 1;
-      const dx = ux / nrm;
-      const dy = uy / nrm;
-      const px = -dy;
-      const py = dx;
-      const hx = tx - dx * 11;
-      const hy = ty - dy * 11;
+      const arrow = arrowGeom(p.x, p.y, ux, uy, 28);
       return {
         ...base,
         kind: "arrow",
-        tx,
-        ty,
-        arrowPoints: `${tx},${ty} ${hx - px * 5},${hy - py * 5} ${hx + px * 5},${hy + py * 5}`,
-        labelX: (p.x + tx) / 2 + 7,
-        labelY: (p.y + ty) / 2 - 5,
+        x: p.x,
+        y: p.y,
+        ...arrow,
+        labelX: p.x + ux * 36 + 6,
+        labelY: p.y + uy * 36 - 4,
       };
     })
     .filter(Boolean);
+}
+
+/** 生成箭头几何: 起点(sx,sy), 单位方向(fx,fy), 长度 L */
+function arrowGeom(sx, sy, fx, fy, L) {
+  const nrm = Math.hypot(fx, fy) || 1;
+  const dx = fx / nrm;
+  const dy = fy / nrm;
+  const tx = sx + dx * L;
+  const ty = sy + dy * L;
+  const px = -dy;
+  const py = dx;
+  const hx = tx - dx * 11;
+  const hy = ty - dy * 11;
+  return {
+    tx,
+    ty,
+    arrowPoints: `${tx},${ty} ${hx - px * 5},${hy - py * 5} ${hx + px * 5},${hy + py * 5}`,
+  };
+}
+
+function fmtLoad(v) {
+  if (typeof v !== "number" || Number.isNaN(v)) return String(v ?? 0);
+  if (Math.abs(v) >= 100000) return (v / 1000).toFixed(0) + "k";
+  if (Math.abs(v) >= 1000) return (v / 1000).toFixed(1) + "k";
+  return String(Math.round(v * 100) / 100);
 }
 
 /** 约束: 节点下方三角符号; ux+uy=固定(实心), 单平移=滚轴(空心+圆), rz=虚线圆弧 */

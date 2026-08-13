@@ -2,6 +2,18 @@
 // 字段名与 femcli 严格一致: nodes/constraints/elements/materials/sections/loads,
 // nodeI/nodeJ/dofs/nodalForce 等, 不得改动。
 
+// 荷载类型 (与 femcli.cpp LoadTypeFromStr 一致)
+export const LOAD_TYPES = {
+  nodalForce: "节点集中力",
+  lateralForce: "杆件横向集中力",
+  lateralUniformPressure: "横向均布荷载",
+  lateralLinearlyPressure: "横向线性分布荷载",
+  momentOnPoint: "节点弯矩",
+  axialForce: "杆件轴向集中力",
+  axialPressure: "杆件轴向均布荷载",
+  temperature: "温度荷载",
+};
+
 export function defaultModel() {
   return {
     schemaVersion: "1.0",

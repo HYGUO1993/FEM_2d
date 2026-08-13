@@ -216,11 +216,22 @@ export const useStore = create((set, get) => ({
     })),
 
   // —— 荷载 ——
-  addLoad: (node, direction, value) =>
+  addLoad: (params) =>
     set((s) => {
       const past = pushHistory(s);
+      // params: {type, direction, value, node?, element?, position?, T0?, T1?}
       const id = nextId(s.model.loads);
-      const loads = [...s.model.loads, { type: "nodalForce", direction, value, node }];
+      const ld = { id, ...params };
+      // 保证字段齐全
+      if (!ld.type) ld.type = "nodalForce";
+      if (ld.direction == null) ld.direction = "y";
+      if (ld.value == null) ld.value = 0;
+      if (ld.node == null) ld.node = -1;
+      if (ld.element == null) ld.element = -1;
+      if (ld.position == null) ld.position = 0;
+      if (ld.T0 == null) ld.T0 = 0;
+      if (ld.T1 == null) ld.T1 = 0;
+      const loads = [...s.model.loads, ld];
       return {
         past,
         future: [],

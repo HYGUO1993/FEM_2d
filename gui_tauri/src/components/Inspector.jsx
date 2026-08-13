@@ -1,5 +1,12 @@
 import { useStore } from "../store.js";
 
+function fmt(v) {
+  if (typeof v !== "number" || Number.isNaN(v)) return String(v);
+  const abs = Math.abs(v);
+  if (abs >= 1e6 || (abs > 0 && abs < 1e-4)) return v.toExponential(3);
+  return Number(v.toFixed(6)).toString();
+}
+
 export default function Inspector() {
   const selection = useStore((s) => s.selection);
   if (!selection) return <ModelPanel />;
@@ -118,28 +125,67 @@ function LoadPanel({ id }) {
   if (!ld) return null;
 
   const byId = new Map(model.nodes.map((n) => [n.id, n]));
+  const TYPE_NAMES = {
+    nodalForce: "节点集中力",
+    lateralForce: "杆件横向集中力",
+    lateralUniformPressure: "横向均布荷载",
+    lateralLinearlyPressure: "横向线性分布荷载",
+    momentOnPoint: "节点弯矩",
+    axialForce: "杆件轴向集中力",
+    axialPressure: "杆件轴向均布荷载",
+    temperature: "温度荷载",
+  };
 
   return (
     <div className="pane inspector">
       <h3>荷载 #{id}</h3>
       <div className="readonly-row">
-        <span>节点</span>
-        <code>
-          {ld.node} ({byId.get(ld.node)?.x}, {byId.get(ld.node)?.y})
-        </code>
-      </div>
-      <div className="readonly-row">
         <span>类型</span>
-        <code>nodalForce</code>
+        <code>{TYPE_NAMES[ld.type] || ld.type}</code>
       </div>
-      <div className="readonly-row">
-        <span>方向</span>
-        <code>{ld.direction}</code>
-      </div>
-      <div className="readonly-row">
-        <span>数值</span>
-        <code>{ld.value}</code>
-      </div>
+      {ld.node >= 0 && (
+        <div className="readonly-row">
+          <span>节点</span>
+          <code>
+            {ld.node} ({byId.get(ld.node)?.x}, {byId.get(ld.node)?.y})
+          </code>
+        </div>
+      )}
+      {ld.element >= 0 && (
+        <div className="readonly-row">
+          <span>单元</span>
+          <code>#{ld.element}</code>
+        </div>
+      )}
+      {ld.type === "temperature" ? (
+        <>
+          <div className="readonly-row">
+            <span>下表面 ΔT</span>
+            <code>{ld.T0 ?? 0} ℃</code>
+          </div>
+          <div className="readonly-row">
+            <span>上表面 ΔT</span>
+            <code>{ld.T1 ?? 0} ℃</code>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="readonly-row">
+            <span>方向</span>
+            <code>{ld.direction}</code>
+          </div>
+          <div className="readonly-row">
+            <span>数值</span>
+            <code>{fmt(ld.value)}</code>
+          </div>
+          {ld.position > 0 && (
+            <div className="readonly-row">
+              <span>位置/长度</span>
+              <code>{ld.position} m</code>
+            </div>
+          )}
+        </>
+      )}
       <button className="btn danger small" onClick={() => deleteLoad(id)}>
         删除荷载
       </button>

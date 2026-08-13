@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store.js";
 import { screenToWorld, pointSegDist, clamp } from "../canvas/transform.js";
+import { LOAD_TYPES } from "../model.js";
 import {
   computeNodes,
   computeElements,
@@ -169,6 +170,10 @@ export default function CanvasView() {
     if (curTool === "load") {
       const n = hitNode(sx, sy);
       if (n) st.setLoadDialog({ node: n.id });
+      else {
+        const el = hitElement(sx, sy);
+        if (el) st.setLoadDialog({ node: -1, element: el.id });
+      }
       return;
     }
 
@@ -284,15 +289,44 @@ export default function CanvasView() {
         {/* 荷载 */}
         {loads.map((l) => (
           <g key={`ld-${l.id}`} className={l.selected ? "selected" : ""}>
-            {l.kind === "rz" ? (
-              <path className="load-line" d={l.d} fill="none" />
-            ) : (
-              <line className="load-line" x1={l.x} y1={l.y} x2={l.tx} y2={l.ty} />
+            {l.kind === "rz" && (
+              <>
+                <path className="load-line" d={l.d} fill="none" />
+                <polygon className="load-head" points={l.arrowPoints} />
+              </>
             )}
-            <polygon className="load-head" points={l.arrowPoints} />
-            <text className="load-label" x={l.labelX ?? l.head.x + 8} y={l.labelY ?? l.head.y - 6}>
-              {l.value}
-            </text>
+            {l.kind === "arrow" && (
+              <>
+                <line className="load-line" x1={l.x} y1={l.y} x2={l.tx} y2={l.ty} />
+                <polygon className="load-head" points={l.arrowPoints} />
+              </>
+            )}
+            {l.kind === "elemArrow" && (
+              <>
+                <line className="load-line" x1={l.sx} y1={l.sy} x2={l.tx} y2={l.ty} />
+                <polygon className="load-head" points={l.arrowPoints} />
+              </>
+            )}
+            {l.kind === "udl" && (
+              <>
+                {l.arrows.map((a, i) => (
+                  <g key={i}>
+                    <line className="load-line" x1={a.sx} y1={a.sy} x2={a.tx} y2={a.ty} />
+                    <polygon className="load-head" points={a.arrowPoints} />
+                  </g>
+                ))}
+              </>
+            )}
+            {l.kind === "temp" && (
+              <text className="temp-label" x={l.x} y={l.y}>
+                {l.label}
+              </text>
+            )}
+            {l.labelX != null && (
+              <text className="load-label" x={l.labelX} y={l.labelY}>
+                {l.label ?? l.value}
+              </text>
+            )}
           </g>
         ))}
 
@@ -398,43 +432,124 @@ export default function CanvasView() {
   );
 }
 
-// —— 荷载内联对话框 ——
+// —— 荷载对话框(支持完整荷载类型) ——
 function LoadDialog() {
+  const [type, setType] = useState("nodalForce");
   const [direction, setDirection] = useState("y");
   const [value, setValue] = useState("-10000");
+  const [element, setElement] = useState("0");
+  const [position, setPosition] = useState("1");
+  const [T0, setT0] = useState("0");
+  const [T1, setT1] = useState("0");
   const dialog = useStore((s) => s.loadDialog);
+  const model = useStore((s) => s.model);
 
   if (!dialog) return null;
   const st = useStore.getState();
 
+  const isNodeLoad = type === "nodalForce" || type === "momentOnPoint";
+  const isElementLoad = !isNodeLoad; // 单元荷载(含温度)都需要选单元
+  const isTemp = type === "temperature";
+
+  function submit() {
+    const v = Number(value);
+    if (Number.isNaN(v)) return;
+    const params = { type, direction, value: v };
+    if (isNodeLoad) {
+      params.node = dialog.node;
+    } else if (isElementLoad) {
+      const eid = Number(element);
+      if (Number.isNaN(eid) || !model.elements.some((e) => e.id === eid)) {
+        st.setToast("请选择有效的单元", true);
+        return;
+      }
+      params.element = eid;
+      const pos = Number(position);
+      if (!Number.isNaN(pos)) params.position = pos;
+      // 节点荷载(横向集中力等)需要节点 = 单元起点
+      if (type === "lateralForce" || type === "axialForce") {
+        const el = model.elements.find((e) => e.id === eid);
+        params.node = el ? el.nodeI : -1;
+      }
+    } else if (isTemp) {
+      params.T0 = Number(T0) || 0;
+      params.T1 = Number(T1) || 0;
+      params.node = -1;
+      // 温度荷载必须指定单元 (后端按单元算固端力)
+      const eid = Number(element);
+      if (Number.isNaN(eid) || !model.elements.some((e) => e.id === eid)) {
+        st.setToast("温度荷载需要选择作用单元", true);
+        return;
+      }
+      params.element = eid;
+    }
+    st.addLoad(params);
+  }
+
   return (
     <div className="load-dialog">
-      <div className="load-dialog-title">集中力 @节点 {dialog.node}</div>
+      <div className="load-dialog-title">
+        添加荷载 {isNodeLoad ? `@节点 ${dialog.node}` : ""}
+      </div>
       <label className="field">
-        <span>方向</span>
-        <select value={direction} onChange={(e) => setDirection(e.target.value)}>
-          <option value="x">x (水平)</option>
-          <option value="y">y (竖向)</option>
-          <option value="rz">rz (弯矩)</option>
+        <span>类型</span>
+        <select value={type} onChange={(e) => setType(e.target.value)}>
+          {Object.entries(LOAD_TYPES).map(([k, label]) => (
+            <option key={k} value={k}>
+              {label}
+            </option>
+          ))}
         </select>
       </label>
-      <label className="field">
-        <span>数值</span>
-        <input
-          type="number"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-        />
-      </label>
+      {!isTemp && (
+        <label className="field">
+          <span>方向</span>
+          <select value={direction} onChange={(e) => setDirection(e.target.value)}>
+            <option value="x">x (水平)</option>
+            <option value="y">y (竖向)</option>
+            <option value="rz">rz (转动)</option>
+          </select>
+        </label>
+      )}
+      {isElementLoad && (
+        <label className="field">
+          <span>作用单元</span>
+          <select value={element} onChange={(e) => setElement(e.target.value)}>
+            {model.elements.map((e) => (
+              <option key={e.id} value={e.id}>
+                单元 #{e.id} (节点 {e.nodeI}–{e.nodeJ})
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      {isTemp ? (
+        <>
+          <label className="field">
+            <span>下表面温变 T0 (℃)</span>
+            <input type="number" value={T0} onChange={(e) => setT0(e.target.value)} />
+          </label>
+          <label className="field">
+            <span>上表面温变 T1 (℃)</span>
+            <input type="number" value={T1} onChange={(e) => setT1(e.target.value)} />
+          </label>
+        </>
+      ) : (
+        <>
+          <label className="field">
+            <span>数值 {isElementLoad ? "(N/m)" : "(N 或 N·m)"}</span>
+            <input type="number" value={value} onChange={(e) => setValue(e.target.value)} />
+          </label>
+          {isElementLoad && (
+            <label className="field">
+              <span>作用长度/位置 position (m, 从单元起点, 默认整跨)</span>
+              <input type="number" value={position} onChange={(e) => setPosition(e.target.value)} />
+            </label>
+          )}
+        </>
+      )}
       <div className="load-dialog-actions">
-        <button
-          className="btn primary small"
-          onClick={() => {
-            const v = Number(value);
-            if (Number.isNaN(v)) return;
-            st.addLoad(dialog.node, direction, v);
-          }}
-        >
+        <button className="btn primary small" onClick={submit}>
           确认
         </button>
         <button className="btn small" onClick={() => st.setLoadDialog(null)}>

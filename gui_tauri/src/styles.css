@@ -449,6 +449,17 @@ body {
   font-family: var(--mono);
 }
 
+/* 温度荷载标注 */
+.temp-label {
+  fill: #ff6b6b;
+  font-size: 11px;
+  font-family: var(--mono);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: rgba(15, 17, 21, 0.9);
+  stroke-width: 3px;
+}
+
 .loads g.selected .load-line,
 .loads g.selected .load-head {
   stroke: #fff;
