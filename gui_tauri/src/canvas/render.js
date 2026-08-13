@@ -274,9 +274,29 @@ export function computeConstraints(model, view, selection) {
       const n = byId.get(c.node);
       if (!n) return null;
       const p = worldToScreen(n.x, n.y, view);
+      const hasUx = c.dofs.includes("ux");
+      const hasUy = c.dofs.includes("uy");
+      const hasRz = c.dofs.includes("rz");
+
+      // 结构力学惯例分类
+      let kind;
+      if (hasUx && hasUy && hasRz) kind = "fixed";       // 固定端(固支)
+      else if (hasUx && hasUy) kind = "pinned";           // 固定铰支座
+      else if (hasUy && !hasUx) kind = "roller";          // 滚轴支座(活动铰)
+      else if (hasUx && !hasUy) kind = "rollerX";         // 水平滚轴
+      else if (hasRz && !hasUx && !hasUy) kind = "rzOnly"; // 仅转角约束
+      else kind = "partial";                              // 其它组合
+
       const h = 11;
       const half = 9;
       const y = p.y + 9;
+      const base = p.y + 22;
+
+      // 三角支座 (铰支/滚轴): 尖朝上, 底在 ground 线
+      const triPts = `${p.x},${y} ${p.x - half},${base} ${p.x + half},${base}`;
+      // 固定端: 底部斜线填充 (教材画法)
+      const hatchPts = `${p.x - half},${base} ${p.x + half},${base} ${p.x + half},${base + 8} ${p.x - half},${base + 8}`;
+
       return {
         node: c.node,
         dofs: c.dofs,
@@ -284,10 +304,19 @@ export function computeConstraints(model, view, selection) {
         y,
         h,
         half,
-        pts: `${p.x},${y} ${p.x - half},${y + h} ${p.x + half},${y + h}`,
-        fixed: c.dofs.includes("ux") && c.dofs.includes("uy"),
-        roller: c.dofs.length === 1,
-        hasRz: c.dofs.includes("rz"),
+        kind,
+        hasUx,
+        hasUy,
+        hasRz,
+        triPts,
+        hatchPts,
+        groundY: base,
+        // 滚轮 (活动铰): 两个小圆
+        rollerX1: p.x - 5,
+        rollerX2: p.x + 5,
+        rollerY: base + 5,
+        // rz 转角约束: 小圆弧
+        rzArc: hasRz ? `M ${p.x - 8},${p.y + 2} A 8,8 0 0 1 ${p.x + 8},${p.y + 2}` : null,
         selected: selection && selection.type === "constraint" && selection.id === c.node,
       };
     })

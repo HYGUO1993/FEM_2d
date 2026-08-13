@@ -398,15 +398,41 @@ export default function CanvasView() {
         {displayOptions.constraints &&
           constraints.map((c) => (
           <g key={`c-${c.node}`} className={c.selected ? "selected" : ""}>
-            {c.hasRz && (
-              <circle className="constraint-rz" cx={c.x} cy={c.y} r={7} fill="none" />
+            {/* 转角约束圆弧 */}
+            {c.rzArc && <path className="constraint-rz" d={c.rzArc} fill="none" />}
+
+            {c.kind === "fixed" && (
+              <>
+                {/* 固定端: 斜线填充方块 + 地面 */}
+                <polygon className="constraint-fixed-hatch" points={c.hatchPts} />
+                <line className="constraint-ground" x1={c.x - c.half} y1={c.groundY} x2={c.x + c.half} y2={c.groundY} />
+              </>
             )}
-            <polygon
-              className={`constraint ${c.fixed ? "fixed" : "roller"}`}
-              points={c.pts}
-            />
-            {c.roller && (
-              <circle className="constraint-roller-dot" cx={c.x} cy={c.y + c.h} r={3} />
+
+            {(c.kind === "pinned" || c.kind === "roller" || c.kind === "rollerX" || c.kind === "partial") && (
+              <>
+                {/* 铰支/滚轴: 三角 */}
+                <polygon
+                  className={`constraint ${c.kind === "pinned" ? "pinned" : "roller"}`}
+                  points={c.triPts}
+                />
+                {/* 地面线 */}
+                <line className="constraint-ground" x1={c.x - c.half - 4} y1={c.groundY} x2={c.x + c.half + 4} y2={c.groundY} />
+                {/* 滚轮 (活动铰): 两个小圆 */}
+                {c.kind === "roller" && (
+                  <>
+                    <circle className="constraint-roller-dot" cx={c.rollerX1} cy={c.rollerY} r={3} />
+                    <circle className="constraint-roller-dot" cx={c.rollerX2} cy={c.rollerY} r={3} />
+                  </>
+                )}
+              </>
+            )}
+
+            {c.kind === "rzOnly" && (
+              <>
+                <line className="constraint-ground" x1={c.x - 12} y1={c.groundY} x2={c.x + 12} y2={c.groundY} />
+                <circle className="constraint-roller-dot" cx={c.x} cy={c.groundY} r={3} />
+              </>
             )}
           </g>
         ))}
