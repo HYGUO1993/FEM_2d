@@ -146,6 +146,40 @@ fn llm_chat(config: LlmConfig, messages: Vec<ChatMessage>) -> Result<String, Str
         .ok_or_else(|| "LLM 响应缺少 choices[0].message.content".to_string())
 }
 
+/// LLM Agent 对话: 支持 tools(函数调用), 返回完整 choices[0].message(含 tool_calls)
+#[tauri::command]
+fn llm_chat_tools(
+    config: LlmConfig,
+    messages: Vec<ChatMessage>,
+    tools: Vec<serde_json::Value>,
+) -> Result<serde_json::Value, String> {
+    let url = format!("{}/chat/completions", config.base_url.trim_end_matches('/'));
+    let mut body = serde_json::json!({
+        "model": config.model,
+        "messages": messages,
+        "temperature": 0.2,
+        "stream": false,
+    });
+    if !tools.is_empty() {
+        body["tools"] = serde_json::Value::Array(tools);
+    }
+
+    let response = ureq::post(&url)
+        .set("Authorization", &format!("Bearer {}", config.api_key))
+        .set("Content-Type", "application/json")
+        .send_json(&body)
+        .map_err(|e| format!("LLM 请求失败: {e}"))?;
+
+    let value: serde_json::Value = response
+        .into_json()
+        .map_err(|e| format!("LLM 响应解析失败: {e}"))?;
+
+    value
+        .pointer("/choices/0/message")
+        .cloned()
+        .ok_or_else(|| "LLM 响应缺少 choices[0].message".to_string())
+}
+
 /// 保存项目: 写 <app_data_dir>/projects/<name>.json
 #[tauri::command]
 fn save_project(app: tauri::AppHandle, name: String, model_json: String) -> Result<(), String> {
@@ -256,7 +290,8 @@ pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             solve_model, ping,
-            llm_chat, save_project, list_projects, load_project, delete_project,
+            llm_chat, llm_chat_tools,
+            save_project, list_projects, load_project, delete_project,
             get_llm_config, set_llm_config,
             export_model_file, import_model_file
         ])

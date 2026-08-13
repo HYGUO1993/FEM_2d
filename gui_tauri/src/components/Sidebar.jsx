@@ -16,10 +16,10 @@ export default function Sidebar() {
     const name = st.currentProject || "model";
     try {
       const savedPath = await ipc.exportModelFile(name, JSON.stringify(st.model, null, 2));
-      st.setToast("已导出: " + savedPath);
+      st.setToast(t("toast.exported", { path: savedPath }));
     } catch (e) {
       const msg = (e && e.message) || (typeof e === "string" ? e : JSON.stringify(e));
-      if (msg !== "用户取消了保存") st.setToast("导出失败: " + msg, true);
+      if (msg !== t("toast.canceledSave")) st.setToast(t("toast.exportFailed", { msg }), true);
     }
   }
 
@@ -30,27 +30,27 @@ export default function Sidebar() {
       const content = await ipc.importModelFile();
       const parsed = JSON.parse(content);
       if (!parsed || typeof parsed !== "object") {
-        st.setToast("文件内容不是有效的模型 JSON", true);
+        st.setToast(t("toast.invalidJson"), true);
         return;
       }
       // 兼容字段名差异: 后端 schema 用 model_json 传参, 但文件本身应直接是模型对象
       const model = parsed;
       if (!Array.isArray(model.nodes)) {
-        st.setToast("模型缺少 nodes 数组", true);
+        st.setToast(t("toast.missingNodes"), true);
         return;
       }
       st.setModel(model);
-      st.setCurrentProject(model.title || "导入模型");
+      st.setCurrentProject(model.title || t("importedModel"));
       st.resetView();
-      st.setToast("已导入: " + (model.title || "未命名模型"));
+      st.setToast(t("toast.imported", { name: model.title || t("unnamed") }));
     } catch (e) {
       const msg = (e && e.message) || (typeof e === "string" ? e : JSON.stringify(e));
-      if (msg !== "用户取消了选择") st.setToast("导入失败: " + msg, true);
+      if (msg !== t("toast.canceledPick")) st.setToast(t("toast.importFailed", { msg }), true);
     }
   }
 
   async function handleNew() {
-    const name = (newName || `项目 ${projects.length + 1}`).trim();
+    const name = (newName || t("projectDefault", { n: projects.length + 1 })).trim();
     if (!name) return;
     const st = useStore.getState();
     if (!projects.includes(name)) st.setProjects([...st.projects, name]);
@@ -63,7 +63,7 @@ export default function Sidebar() {
     } catch (e) {
       console.error("新建项目保存失败", e);
     }
-    st.setToast("已创建项目: " + name);
+    st.setToast(t("toast.created", { name }));
     setShowNew(false);
     setNewName("");
   }
@@ -78,7 +78,7 @@ export default function Sidebar() {
       st.setCurrentProject(name);
       st.resetView();
     } catch (e) {
-      st.setToast("切换项目失败: " + e.message, true);
+      st.setToast(t("toast.switchFailed", { msg: e.message }), true);
     }
   }
 
@@ -100,9 +100,9 @@ export default function Sidebar() {
           st.setCurrentProject("");
         }
       }
-      st.setToast("已删除项目: " + name);
+      st.setToast(t("toast.deleted", { name }));
     } catch (e) {
-      st.setToast("删除失败: " + e.message, true);
+      st.setToast(t("toast.deleteFailed", { msg: e.message }), true);
     }
   }
 
@@ -111,17 +111,17 @@ export default function Sidebar() {
     const st = useStore.getState();
     try {
       const json = await ipc.loadProject(name);
-      let newName = name + " (副本)";
+      let newName = name + t("dupeSuffix");
       let i = 1;
       while (st.projects.includes(newName)) {
-        newName = `${name} (副本${i})`;
+        newName = `${name}${t("dupeSuffixN", { n: i })}`;
         i++;
       }
       await ipc.saveProject(newName, json);
       st.setProjects([...st.projects, newName]);
-      st.setToast("已复制: " + newName);
+      st.setToast(t("toast.duplicated", { name: newName }));
     } catch (e) {
-      st.setToast("复制失败: " + e.message, true);
+      st.setToast(t("toast.duplicateFailed", { msg: e.message }), true);
     }
   }
 
@@ -135,7 +135,7 @@ export default function Sidebar() {
       return;
     }
     if (projects.includes(newName)) {
-      st.setToast("同名项目已存在", true);
+      st.setToast(t("toast.renameExists"), true);
       return;
     }
     const st = useStore.getState();
@@ -146,9 +146,9 @@ export default function Sidebar() {
       const list = st.projects.map((p) => (p === oldName ? newName : p));
       st.setProjects(list);
       if (st.currentProject === oldName) st.setCurrentProject(newName);
-      st.setToast("已改名: " + newName);
+      st.setToast(t("toast.renamed", { name: newName }));
     } catch (e) {
-      st.setToast("改名失败: " + e.message, true);
+      st.setToast(t("toast.renameFailed", { msg: e.message }), true);
     }
     setRenaming(null);
   }
@@ -181,10 +181,10 @@ export default function Sidebar() {
           </div>
         )}
         <div className="file-actions">
-          <button className="btn block" onClick={handleExport} title="将当前模型保存为本地 JSON 文件">
+          <button className="btn block" onClick={handleExport} title={t("saveLocalTip")}>
             {t("saveLocal")}
           </button>
-          <button className="btn block" onClick={handleImport} title="从本地 JSON 文件导入模型">
+          <button className="btn block" onClick={handleImport} title={t("importLocalTip")}>
             {t("importLocal")}
           </button>
         </div>

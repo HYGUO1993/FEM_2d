@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { defaultModel, newEmptyModel, nextId, validateModel } from "./model.js";
 import { estimateDeformScale } from "./canvas/render.js";
 import * as ipc from "./ipc.js";
-import { setLang as applyI18nLang } from "./i18n.js";
+import { setLang as applyI18nLang, t } from "./i18n.js";
 
 let toastTimer = null;
 
@@ -80,7 +80,7 @@ export const useStore = create((set, get) => ({
     const s = get();
     const prev = s.past[s.past.length - 1];
     if (prev == null) {
-      set({ toast: { msg: "没有可撤销的操作", isError: false } });
+      set({ toast: { msg: t("toast.noUndo"), isError: false } });
       return;
     }
     set({
@@ -96,7 +96,7 @@ export const useStore = create((set, get) => ({
     const s = get();
     const next = s.future[s.future.length - 1];
     if (next == null) {
-      set({ toast: { msg: "没有可重做的操作", isError: false } });
+      set({ toast: { msg: t("toast.noRedo"), isError: false } });
       return;
     }
     set({
@@ -448,14 +448,14 @@ export const useStore = create((set, get) => ({
       get().setResults(result, secs);
       set({
         toast: {
-          msg: result.status === "ok" ? "求解完成" : "求解失败: " + (result.message || ""),
+          msg: result.status === "ok" ? t("toast.solved") : t("toast.solveFailed", { msg: result.message || "" }),
           isError: result.status !== "ok",
         },
       });
       return result;
     } catch (e) {
       const msg = (e && e.message) || (typeof e === "string" ? e : JSON.stringify(e));
-      set({ toast: { msg: "调用后端失败: " + msg, isError: true } });
+      set({ toast: { msg: t("toast.backendFailed", { msg }), isError: true } });
       return null;
     } finally {
       set({ solving: false });

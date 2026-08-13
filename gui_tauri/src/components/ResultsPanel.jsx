@@ -25,15 +25,15 @@ export default function ResultsPanel() {
         {solveTime && <span className="muted">{solveTime}s</span>}
       </div>
       <button className="btn primary block" onClick={() => solve()} disabled={solving}>
-        {solving ? "求解中…" : "求解"}
+        {solving ? t("results.solving") : t("results.solveBtn")}
       </button>
 
-      {!results && <p className="placeholder">点击「求解」开始。示例: 2m 简支梁跨中 10kN。</p>}
+      {!results && <p className="placeholder">{t("results.placeholder")}</p>}
 
       {results && results.status === "error" && (
         <div className="error-box">
-          <h4>求解失败</h4>
-          <p>{results.message || "未知错误"}</p>
+          <h4>{t("results.failed")}</h4>
+          <p>{results.message || t("results.unknownErr")}</p>
         </div>
       )}
 
@@ -42,12 +42,12 @@ export default function ResultsPanel() {
           {/* stats 卡片 */}
           <div className="stats-row">
             {[
-              ["节点", results.stats?.nodeCount],
-              ["单元", results.stats?.elementCount],
-              ["自由DOF", results.stats?.freeDOF != null ? `${results.stats.freeDOF}/${results.stats.totalDOF}` : "-"],
+              ["results.statNodes", results.stats?.nodeCount],
+              ["results.statElems", results.stats?.elementCount],
+              ["results.statDof", results.stats?.freeDOF != null ? `${results.stats.freeDOF}/${results.stats.totalDOF}` : "-"],
             ].map(([label, val]) => (
               <div className="stat-card" key={label}>
-                <div className="label">{label}</div>
+                <div className="label">{t(label)}</div>
                 <div className="value">{val ?? "-"}</div>
               </div>
             ))}
@@ -61,7 +61,7 @@ export default function ResultsPanel() {
           {/* 变形图倍率 */}
           {solved && (
             <div className="deform-row">
-              <span>变形倍率</span>
+              <span>{t("results.deformScale")}</span>
               <input
                 type="range"
                 min="0"
@@ -75,11 +75,11 @@ export default function ResultsPanel() {
           )}
 
           {/* 位移 */}
-          <h4 className="sub-heading">位移 (m / rad)</h4>
+          <h4 className="sub-heading">{t("results.displacements")}</h4>
           <table className="res-table">
             <thead>
               <tr>
-                <th>节点</th>
+                <th>{t("results.thNode")}</th>
                 <th>ux</th>
                 <th>uy</th>
                 <th>rz</th>
@@ -98,12 +98,12 @@ export default function ResultsPanel() {
           </table>
 
           {/* 端力 */}
-          <h4 className="sub-heading">杆端力 (局部: N 轴力, V 剪力, M 弯矩)</h4>
-          <p className="hint">弯矩正负: M_i 逆时针为正; 画图时正弯矩在杆件上侧(受拉侧)。M 图跨节点连续。</p>
+          <h4 className="sub-heading">{t("results.endForces")}</h4>
+          <p className="hint">{t("results.momentNote")}</p>
           <table className="res-table">
             <thead>
               <tr>
-                <th>单元</th>
+                <th>{t("results.thElement")}</th>
                 <th>N_i</th>
                 <th>V_i</th>
                 <th>M_i</th>
@@ -128,11 +128,11 @@ export default function ResultsPanel() {
           </table>
 
           {/* 反力 */}
-          <h4 className="sub-heading">支座反力 (N / N·m)</h4>
+          <h4 className="sub-heading">{t("results.reactions")}</h4>
           <table className="res-table">
             <thead>
               <tr>
-                <th>节点</th>
+                <th>{t("results.thNode")}</th>
                 <th>Rx</th>
                 <th>Ry</th>
                 <th>Rz</th>
@@ -181,7 +181,7 @@ function ExtremeCard({ results }) {
     <div className="extreme-row">
       {stats.map((s) => (
         <div className="stat-card" key={s.k}>
-          <div className="label">max|{s.k}| (单元{s.elem})</div>
+          <div className="label">{t("results.maxLabel", { k: s.k, e: s.elem })}</div>
           <div className={`value ${s.maxAbsVal < 0 ? "neg" : ""}`}>{fmt(s.maxAbsVal)}</div>
         </div>
       ))}

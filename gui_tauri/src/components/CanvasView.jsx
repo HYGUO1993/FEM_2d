@@ -84,12 +84,12 @@ export default function CanvasView() {
         a.download = `femlab_${Date.now()}.png`;
         a.href = canvas.toDataURL("image/png");
         a.click();
-        useStore.getState().setToast("已导出 PNG 图片");
+        useStore.getState().setToast(t("canvas.toast.exported"));
       };
-      img.onerror = () => useStore.getState().setToast("导出失败: 图片渲染错误", true);
+      img.onerror = () => useStore.getState().setToast(t("canvas.toast.exportFailed"), true);
       img.src = url;
     } catch (e) {
-      useStore.getState().setToast("导出失败: " + e.message, true);
+      useStore.getState().setToast(t("canvas.toast.exportErr", { msg: e.message }), true);
     }
   }
 
@@ -287,9 +287,9 @@ export default function CanvasView() {
   const pendingNode = pendingNodeA != null ? nodes.find((n) => n.id === pendingNodeA) : null;
 
   const DIAGRAM_META = {
-    N: { label: "轴力图 N", color: "#4da3ff", unit: "N" },
-    V: { label: "剪力图 V", color: "#fb923c", unit: "N" },
-    M: { label: "弯矩图 M", color: "#f87171", unit: "N·m" },
+    N: { color: "#4da3ff" },
+    V: { color: "#fb923c" },
+    M: { color: "#f87171" },
   };
 
   return (
@@ -403,11 +403,11 @@ export default function CanvasView() {
 
             {c.kind === "fixed" && (
               <>
-                {/* 固定端: 横线 + 三条斜线 (教材标准) */}
+                {/* 固定端: 横线 + 45° 同方向平行斜线 (教材标准) */}
                 <line className="constraint-bar" x1={c.barX1} y1={c.barY} x2={c.barX2} y2={c.barY} />
-                <line className="constraint-slant" x1={c.barX1} y1={c.barY} x2={c.pinX1} y2={c.barY + c.slantH} />
-                <line className="constraint-slant" x1={c.x} y1={c.barY} x2={c.x} y2={c.barY + c.slantH} />
-                <line className="constraint-slant" x1={c.barX2} y1={c.barY} x2={c.pinX2} y2={c.barY + c.slantH} />
+                {c.slantLines.map(([x1, y1, x2, y2], i) => (
+                  <line key={i} className="constraint-slant" x1={x1} y1={y1} x2={x2} y2={y2} />
+                ))}
               </>
             )}
 
@@ -493,9 +493,9 @@ export default function CanvasView() {
       <button
         className="btn small export-btn"
         onClick={exportPng}
-        title="导出画布为 PNG 图片"
+        title={t("canvas.exportPngTip")}
       >
-        📷 导出图片
+        {t("canvas.exportPng")}
       </button>
 
       <div className="canvas-hint">{t(TOOL_HINTS[tool])}</div>
@@ -505,30 +505,30 @@ export default function CanvasView() {
           <button
             className={`btn small ${diagramMode === null ? "active" : ""}`}
             onClick={() => setDiagramMode(null)}
-            title="隐藏内力图"
+            title={t("canvas.originalTip")}
           >
-            原图
+            {t("canvas.original")}
           </button>
           <button
             className={`btn small ${diagramMode === "N" ? "active" : ""}`}
             onClick={() => setDiagramMode(diagramMode === "N" ? null : "N")}
-            title="轴力图 N"
+            title={t("canvas.nDiagramTip")}
           >
-            轴力 N
+            {t("canvas.nDiagram")}
           </button>
           <button
             className={`btn small ${diagramMode === "V" ? "active" : ""}`}
             onClick={() => setDiagramMode(diagramMode === "V" ? null : "V")}
-            title="剪力图 V"
+            title={t("canvas.vDiagramTip")}
           >
-            剪力 V
+            {t("canvas.vDiagram")}
           </button>
           <button
             className={`btn small ${diagramMode === "M" ? "active" : ""}`}
             onClick={() => setDiagramMode(diagramMode === "M" ? null : "M")}
-            title="弯矩图 M"
+            title={t("canvas.mDiagramTip")}
           >
-            弯矩 M
+            {t("canvas.mDiagram")}
           </button>
         </div>
       )}
@@ -563,12 +563,12 @@ function LoadDialog() {
     if (Number.isNaN(v)) return;
     // 节点荷载但当前没有有效节点(从杆件打开) → 提示切换
     if (isNodeLoad && dialog.node < 0) {
-      st.setToast("节点荷载需要先点击节点添加；当前是杆件，请选择单元荷载类型", true);
+      st.setToast(t("toast.needNodeLoad"), true);
       return;
     }
     // 单元荷载但当前没有有效单元(从节点打开) → 提示切换
     if (isElementLoad && dialog.element < 0) {
-      st.setToast("单元荷载需要先点击杆件添加；当前是节点，请选择节点荷载类型", true);
+      st.setToast(t("toast.needElemLoad"), true);
       return;
     }
     const params = { type, direction, value: v };
@@ -577,7 +577,7 @@ function LoadDialog() {
     } else if (isElementLoad) {
       const eid = Number(element);
       if (Number.isNaN(eid) || !model.elements.some((e) => e.id === eid)) {
-        st.setToast("请选择有效的单元", true);
+        st.setToast(t("toast.invalidElem"), true);
         return;
       }
       params.element = eid;
@@ -595,7 +595,7 @@ function LoadDialog() {
       // 温度荷载必须指定单元 (后端按单元算固端力)
       const eid = Number(element);
       if (Number.isNaN(eid) || !model.elements.some((e) => e.id === eid)) {
-        st.setToast("温度荷载需要选择作用单元", true);
+        st.setToast(t("toast.tempNeedsElem"), true);
         return;
       }
       params.element = eid;
@@ -606,35 +606,35 @@ function LoadDialog() {
   return (
     <div className="load-dialog">
       <div className="load-dialog-title">
-        添加荷载 {isNodeLoad ? `@节点 ${dialog.node}` : ""}
+        {t("loadDialog.title")} {isNodeLoad ? t("loadDialog.atNode", { n: dialog.node }) : ""}
       </div>
       <label className="field">
-        <span>类型</span>
+        <span>{t("loadDialog.type")}</span>
         <select value={type} onChange={(e) => setType(e.target.value)}>
-          {Object.entries(LOAD_TYPES).map(([k, label]) => (
+          {Object.entries(LOAD_TYPES).map(([k]) => (
             <option key={k} value={k}>
-              {label}
+              {t("loadType." + k)}
             </option>
           ))}
         </select>
       </label>
       {!isTemp && (
         <label className="field">
-          <span>方向</span>
+          <span>{t("loadDialog.direction")}</span>
           <select value={direction} onChange={(e) => setDirection(e.target.value)}>
-            <option value="x">x (水平)</option>
-            <option value="y">y (竖向)</option>
-            <option value="rz">rz (转动)</option>
+            <option value="x">{t("loadDialog.dirX")}</option>
+            <option value="y">{t("loadDialog.dirY")}</option>
+            <option value="rz">{t("loadDialog.dirR")}</option>
           </select>
         </label>
       )}
       {isElementLoad && (
         <label className="field">
-          <span>作用单元</span>
+          <span>{t("loadDialog.element")}</span>
           <select value={element} onChange={(e) => setElement(e.target.value)}>
             {model.elements.map((e) => (
               <option key={e.id} value={e.id}>
-                单元 #{e.id} (节点 {e.nodeI}–{e.nodeJ})
+                {t("loadDialog.elemOption", { id: e.id, a: e.nodeI, b: e.nodeJ })}
               </option>
             ))}
           </select>
@@ -643,11 +643,11 @@ function LoadDialog() {
       {isTemp ? (
         <>
           <label className="field">
-            <span>下表面温变 T0 (℃)</span>
+            <span>{t("loadDialog.t0")}</span>
             <input type="number" value={T0} onChange={(e) => setT0(e.target.value)} />
           </label>
           <label className="field">
-            <span>上表面温变 T1 (℃)</span>
+            <span>{t("loadDialog.t1")}</span>
             <input type="number" value={T1} onChange={(e) => setT1(e.target.value)} />
           </label>
         </>
@@ -656,14 +656,14 @@ function LoadDialog() {
           <label className="field">
             <span>
               {type === "supportMove"
-                ? "位移值 (m)"
-                : `数值 ${isElementLoad ? "(N/m)" : "(N 或 N·m)"}`}
+                ? t("loadDialog.valueDisp")
+                : t("loadDialog.value") + " " + (isElementLoad ? t("loadDialog.valuePerM") : t("loadDialog.valueUnit"))}
             </span>
             <input type="number" value={value} onChange={(e) => setValue(e.target.value)} />
           </label>
           {isElementLoad && (
             <label className="field">
-              <span>作用长度/位置 position (m, 从单元起点, 默认整跨)</span>
+              <span>{t("loadDialog.position")}</span>
               <input type="number" value={position} onChange={(e) => setPosition(e.target.value)} />
             </label>
           )}
@@ -671,10 +671,10 @@ function LoadDialog() {
       )}
       <div className="load-dialog-actions">
         <button className="btn primary small" onClick={submit}>
-          确认
+          {t("loadDialog.confirm")}
         </button>
         <button className="btn small" onClick={() => st.setLoadDialog(null)}>
-          取消
+          {t("loadDialog.cancel")}
         </button>
       </div>
     </div>

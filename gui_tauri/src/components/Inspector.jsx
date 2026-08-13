@@ -1,4 +1,5 @@
 import { useStore } from "../store.js";
+import { t } from "../i18n.js";
 
 function fmt(v) {
   if (typeof v !== "number" || Number.isNaN(v)) return String(v);
@@ -26,9 +27,9 @@ function NodePanel({ id }) {
 
   return (
     <div className="pane inspector">
-      <h3>节点 #{id}</h3>
+      <h3>{t("inspector.nodeTitle", { id })}</h3>
       <label className="field">
-        <span>x (m)</span>
+        <span>{t("inspector.x")}</span>
         <input
           type="number"
           step="0.1"
@@ -40,7 +41,7 @@ function NodePanel({ id }) {
         />
       </label>
       <label className="field">
-        <span>y (m)</span>
+        <span>{t("inspector.y")}</span>
         <input
           type="number"
           step="0.1"
@@ -52,10 +53,10 @@ function NodePanel({ id }) {
         />
       </label>
       <label className="field">
-        <span>类型</span>
+        <span>{t("inspector.type")}</span>
         <select value={node.type} onChange={(e) => updateNode(id, { type: e.target.value })}>
-          <option value="frame">frame (刚架)</option>
-          <option value="truss">truss (桁架)</option>
+          <option value="frame">{t("inspector.typeFrame")}</option>
+          <option value="truss">{t("inspector.typeTruss")}</option>
         </select>
       </label>
     </div>
@@ -71,7 +72,7 @@ function ElementPanel({ id }) {
 
   return (
     <div className="pane inspector">
-      <h3>杆件 #{id}</h3>
+      <h3>{t("inspector.elemTitle", { id })}</h3>
       <div className="readonly-row">
         <span>nodeI</span>
         <code>{el.nodeI}</code>
@@ -81,14 +82,14 @@ function ElementPanel({ id }) {
         <code>{el.nodeJ}</code>
       </div>
       <label className="field">
-        <span>类型</span>
+        <span>{t("inspector.type")}</span>
         <select value={el.type} onChange={(e) => updateElement(id, { type: e.target.value })}>
-          <option value="frame">frame (刚架)</option>
-          <option value="truss">truss (桁架)</option>
+          <option value="frame">{t("inspector.typeFrame")}</option>
+          <option value="truss">{t("inspector.typeTruss")}</option>
         </select>
       </label>
       <label className="field">
-        <span>截面</span>
+        <span>{t("inspector.section")}</span>
         <select
           value={el.section}
           onChange={(e) => updateElement(id, { section: Number(e.target.value) })}
@@ -101,7 +102,7 @@ function ElementPanel({ id }) {
         </select>
       </label>
       <label className="field">
-        <span>材料</span>
+        <span>{t("inspector.material")}</span>
         <select
           value={el.material}
           onChange={(e) => updateElement(id, { material: Number(e.target.value) })}
@@ -125,28 +126,17 @@ function LoadPanel({ id }) {
   if (!ld) return null;
 
   const byId = new Map(model.nodes.map((n) => [n.id, n]));
-  const TYPE_NAMES = {
-    nodalForce: "节点集中力",
-    lateralForce: "杆件横向集中力",
-    lateralUniformPressure: "横向均布荷载",
-    lateralLinearlyPressure: "横向线性分布荷载",
-    momentOnPoint: "节点弯矩",
-    axialForce: "杆件轴向集中力",
-    axialPressure: "杆件轴向均布荷载",
-    temperature: "温度荷载",
-    supportMove: "支座位移",
-  };
 
   return (
     <div className="pane inspector">
-      <h3>荷载 #{id}</h3>
+      <h3>{t("inspector.loadTitle", { id })}</h3>
       <div className="readonly-row">
-        <span>类型</span>
-        <code>{TYPE_NAMES[ld.type] || ld.type}</code>
+        <span>{t("inspector.type")}</span>
+        <code>{t("loadType." + ld.type) !== "loadType." + ld.type ? t("loadType." + ld.type) : ld.type}</code>
       </div>
       {ld.node >= 0 && (
         <div className="readonly-row">
-          <span>节点</span>
+          <span>{t("inspector.node")}</span>
           <code>
             {ld.node} ({byId.get(ld.node)?.x}, {byId.get(ld.node)?.y})
           </code>
@@ -154,41 +144,41 @@ function LoadPanel({ id }) {
       )}
       {ld.element >= 0 && (
         <div className="readonly-row">
-          <span>单元</span>
+          <span>{t("inspector.element")}</span>
           <code>#{ld.element}</code>
         </div>
       )}
       {ld.type === "temperature" ? (
         <>
           <div className="readonly-row">
-            <span>下表面 ΔT</span>
+            <span>{t("inspector.t0")}</span>
             <code>{ld.T0 ?? 0} ℃</code>
           </div>
           <div className="readonly-row">
-            <span>上表面 ΔT</span>
+            <span>{t("inspector.t1")}</span>
             <code>{ld.T1 ?? 0} ℃</code>
           </div>
         </>
       ) : (
         <>
           <div className="readonly-row">
-            <span>方向</span>
+            <span>{t("inspector.direction")}</span>
             <code>{ld.direction}</code>
           </div>
           <div className="readonly-row">
-            <span>{ld.type === "supportMove" ? "位移值" : "数值"}</span>
+            <span>{ld.type === "supportMove" ? t("inspector.dispValue") : t("inspector.value")}</span>
             <code>{fmt(ld.value)} {ld.type === "supportMove" ? "m" : ""}</code>
           </div>
           {ld.position > 0 && (
             <div className="readonly-row">
-              <span>位置/长度</span>
+              <span>{t("inspector.position")}</span>
               <code>{ld.position} m</code>
             </div>
           )}
         </>
       )}
       <button className="btn danger small" onClick={() => deleteLoad(id)}>
-        删除荷载
+        {t("inspector.deleteLoad")}
       </button>
     </div>
   );
@@ -202,14 +192,14 @@ function ConstraintPanel({ node }) {
   const dofs = constraint ? constraint.dofs : [];
 
   const opts = [
-    { id: "ux", label: "ux (水平)" },
-    { id: "uy", label: "uy (竖向)" },
-    { id: "rz", label: "rz (转动)" },
+    { id: "ux", label: t("inspector.ux") },
+    { id: "uy", label: t("inspector.uy") },
+    { id: "rz", label: t("inspector.rz") },
   ];
 
   return (
     <div className="pane inspector">
-      <h3>约束 @节点 {node}</h3>
+      <h3>{t("inspector.constraintTitle", { n: node })}</h3>
       {opts.map((o) => (
         <label key={o.id} className="check-row">
           <input
@@ -220,7 +210,7 @@ function ConstraintPanel({ node }) {
           <span>{o.label}</span>
         </label>
       ))}
-      <p className="hint">勾选 = 该自由度被约束 (位移 0)</p>
+      <p className="hint">{t("inspector.constraintHint")}</p>
     </div>
   );
 }
@@ -233,24 +223,24 @@ function ModelPanel() {
 
   return (
     <div className="pane inspector">
-      <h3>模型</h3>
+      <h3>{t("inspector.modelTitle")}</h3>
       <div className="readonly-row">
-        <span>标题</span>
+        <span>{t("inspector.title")}</span>
         <code>{model.title}</code>
       </div>
       <div className="readonly-row">
-        <span>节点 / 单元</span>
+        <span>{t("inspector.nodesElems")}</span>
         <code>
           {model.nodes.length} / {model.elements.length}
         </code>
       </div>
 
-      <h4 className="sub-heading">材料</h4>
+      <h4 className="sub-heading">{t("inspector.material")}</h4>
       {model.materials.map((mt) => (
         <div key={mt.id} className="mat-row">
           <span className="mat-id">#{mt.id}</span>
           <label className="field">
-            <span>E (Pa)</span>
+            <span>{t("inspector.E")}</span>
             <input
               type="number"
               value={mt.E}
@@ -262,7 +252,7 @@ function ModelPanel() {
           </label>
           <div className="mat-inline">
             <label className="field">
-              <span>μ</span>
+              <span>{t("inspector.mu")}</span>
               <input
                 type="number"
                 value={mt.mu}
@@ -273,7 +263,7 @@ function ModelPanel() {
               />
             </label>
             <label className="field">
-              <span>α</span>
+              <span>{t("inspector.alpha")}</span>
               <input
                 type="number"
                 value={mt.alpha}
@@ -287,12 +277,12 @@ function ModelPanel() {
         </div>
       ))}
 
-      <h4 className="sub-heading">截面</h4>
+      <h4 className="sub-heading">{t("inspector.section")}</h4>
       {model.sections.map((sc) => (
         <div key={sc.id} className="mat-row">
           <span className="mat-id">#{sc.id}</span>
           <label className="field">
-            <span>A (m²)</span>
+            <span>{t("inspector.A")}</span>
             <input
               type="number"
               value={sc.A}
@@ -304,7 +294,7 @@ function ModelPanel() {
           </label>
           <div className="mat-inline">
             <label className="field">
-              <span>Iz (m⁴)</span>
+              <span>{t("inspector.Iz")}</span>
               <input
                 type="number"
                 value={sc.Iz}
@@ -315,7 +305,7 @@ function ModelPanel() {
               />
             </label>
             <label className="field">
-              <span>h (m)</span>
+              <span>{t("inspector.h")}</span>
               <input
                 type="number"
                 value={sc.height}

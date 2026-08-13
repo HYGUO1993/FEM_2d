@@ -2,6 +2,7 @@
 // 返回描述对象数组, 由 CanvasView 渲染成 JSX/SVG 元素。
 
 import { worldToScreen } from "./transform.js";
+import { t } from "../i18n.js";
 
 /** 节点: circle + 编号 text 的屏幕坐标 */
 export function computeNodes(model, view, selection) {
@@ -80,7 +81,7 @@ export function computeLoads(model, view, selection) {
           kind: "temp",
           x: mx,
           y: my - 12,
-          label: `ΔT ${ld.T0 ?? 0}~${ld.T1 ?? 0}℃`,
+          label: t("canvas.tempLabel", { a: ld.T0 ?? 0, b: ld.T1 ?? 0 }),
         };
       }
 
@@ -130,7 +131,9 @@ export function computeLoads(model, view, selection) {
             ...base,
             kind: "udl",
             arrows,
-            label: `${fmtLoad(ld.value)} ${ld.type === "axialPressure" ? "轴压" : "均布"}`,
+            label: ld.type === "axialPressure"
+              ? t("canvas.axialLabel", { v: fmtLoad(ld.value) })
+              : t("canvas.udlLabel", { v: fmtLoad(ld.value) }),
             labelX: (pa.x + pb.x) / 2 + 6,
             labelY: (pa.y + pb.y) / 2 - 14,
           };
@@ -150,7 +153,7 @@ export function computeLoads(model, view, selection) {
             ...base,
             kind: "udl",
             arrows,
-            label: `线性 ${fmtLoad(ld.value)} N/m`,
+            label: t("canvas.linearLabel", { v: fmtLoad(ld.value) }),
             labelX: (pa.x + pb.x) / 2 + 6,
             labelY: (pa.y + pb.y) / 2 - 14,
           };
@@ -291,16 +294,18 @@ export function computeConstraints(model, view, selection) {
       const half = 9;    // 半宽
       const y = p.y + 9; // 支座顶部(紧贴节点下方)
 
-      // —— 固定端(固支): 垂直杆件一条横线, 横线下三条斜线 ——
+      // —— 固定端(固支): 垂直杆件一条横线, 横线下 45° 同方向平行斜线 ——
       const barY = y;                    // 横线(与杆件连接处)
       const barX1 = p.x - half;
       const barX2 = p.x + half;
-      // 三条斜线: 从横线向下斜向展开
-      const slantH = 10;
-      const slantW = 7;
-      const slantPts1 = `${barX1},${barY} ${p.x - slantW},${barY + slantH}`;
-      const slantPts2 = `${p.x},${barY} ${p.x},${barY + slantH}`;
-      const slantPts3 = `${barX2},${barY} ${p.x + slantW},${barY + slantH}`;
+      // 斜线: 45° 向右下, 均匀分布, 同方向平行
+      const slantH = 8;                  // 斜线垂直高度(=水平跨度, 45°)
+      const slantN = 4;                  // 斜线数量
+      const slantLines = [];
+      for (let i = 0; i < slantN; i++) {
+        const sx = barX1 + (i * (barX2 - barX1 - slantH)) / (slantN - 1);
+        slantLines.push([sx, barY, sx + slantH, barY + slantH]);
+      }
 
       // —— 铰链符号: 两边圆圈中间细线相连 ——
       const pinY = y + 6;                // 铰链中心
@@ -321,8 +326,7 @@ export function computeConstraints(model, view, selection) {
         hasRz,
         // 固定端几何
         barY, barX1, barX2,
-        slantH, slantW,
-        slantPts1, slantPts2, slantPts3,
+        slantH, slantLines,
         // 铰链几何
         pinY, pinR, pinX1, pinX2, linkY,
         // 地面线 (铰支/滚轴下方)
@@ -434,17 +438,20 @@ export function computeForceDiagram(model, results, kind, view) {
     const ni = f.nodeI || {};
     const nj = f.nodeJ || {};
 
-    // 节点连续值: M 用 (M_i, -M_j); N/V 用原值
+    // 节点连续值:
+    //  M 图: (M_i, -M_j) — 统一 i 端视角, 跨节点连续
+    //  V 图: (V_i, V_i) — 局部 V_j = -V_i(杆端方向相反), 杆内剪力恒定取 V_i
+    //  N 图: (N_i, N_i) — 杆内轴力恒定取 N_i
     let fI, fJ;
     if (kind === "M") {
       fI = ni.M || 0;
       fJ = -(nj.M || 0);
     } else if (kind === "V") {
       fI = ni.V || 0;
-      fJ = nj.V || 0;
+      fJ = ni.V || 0;
     } else {
       fI = ni.N || 0;
-      fJ = nj.N || 0;
+      fJ = ni.N || 0;
     }
 
     const oI = fI * k;

@@ -1,6 +1,7 @@
 // FEM 模型 schema（见 GUI_REDESIGN_PLAN §2）与工厂函数
 // 字段名与 femcli 严格一致: nodes/constraints/elements/materials/sections/loads,
 // nodeI/nodeJ/dofs/nodalForce 等, 不得改动。
+import { t } from "./i18n.js";
 
 // 荷载类型 (与 femcli.cpp LoadTypeFromStr 一致)
 export const LOAD_TYPES = {
@@ -50,7 +51,7 @@ export function defaultSection(id = 0) {
 export function newEmptyModel(title) {
   return {
     schemaVersion: "1.0",
-    title: title || "未命名项目",
+    title: title || t("unnamed"),
     solver: "builtin",
     nodes: [],
     constraints: [],
@@ -73,19 +74,19 @@ export function nodeDofCount(node) {
 
 /** 前端校验: 通过返回 null, 否则返回错误字符串 */
 export function validateModel(m) {
-  if (!m) return "模型为空";
-  if (!Array.isArray(m.nodes) || m.nodes.length < 2) return "至少需要 2 个节点";
-  if (!Array.isArray(m.elements) || m.elements.length < 1) return "至少需要 1 个单元";
-  if (!Array.isArray(m.constraints) || m.constraints.length < 1) return "至少需要 1 个约束";
+  if (!m) return t("validate.empty");
+  if (!Array.isArray(m.nodes) || m.nodes.length < 2) return t("validate.minNodes");
+  if (!Array.isArray(m.elements) || m.elements.length < 1) return t("validate.minElems");
+  if (!Array.isArray(m.constraints) || m.constraints.length < 1) return t("validate.minCons");
   const ids = new Set(m.nodes.map((n) => n.id));
   for (const e of m.elements) {
-    if (!ids.has(e.nodeI) || !ids.has(e.nodeJ)) return `单元 ${e.id} 引用了不存在的节点`;
+    if (!ids.has(e.nodeI) || !ids.has(e.nodeJ)) return t("validate.badElem", { id: e.id });
   }
   for (const l of m.loads || []) {
-    if (!ids.has(l.node)) return "荷载引用了不存在的节点";
+    if (!ids.has(l.node)) return t("validate.badLoad");
   }
   for (const c of m.constraints) {
-    if (!ids.has(c.node)) return "约束引用了不存在的节点";
+    if (!ids.has(c.node)) return t("validate.badCons");
   }
   return null;
 }
@@ -102,7 +103,7 @@ export function modelSummary(m) {
 export function normalizeModel(m) {
   const out = {
     schemaVersion: "1.0",
-    title: m.title || "LLM 生成模型",
+    title: m.title || t("validate.llmDefault"),
     solver: "builtin",
     nodes: Array.isArray(m.nodes) ? m.nodes : [],
     constraints: Array.isArray(m.constraints) ? m.constraints : [],

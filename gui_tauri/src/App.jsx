@@ -99,13 +99,13 @@ export default function App() {
           st.setCurrentProject(first);
         } else {
           st.setModel(defaultModel());
-          st.setCurrentProject("未命名项目");
+          st.setCurrentProject(t("unnamed"));
         }
         st.resetView();
       } catch (e) {
         console.error("初始化失败", e);
         const msg = (e && e.message) || (typeof e === "string" ? e : JSON.stringify(e));
-        useStore.setState({ toast: { msg: "初始化失败: " + msg, isError: true } });
+        useStore.setState({ toast: { msg: t("initFailed", { msg }), isError: true } });
       }
     })();
   }, []);
@@ -175,7 +175,7 @@ export default function App() {
           <span className="logo">FemLab</span>
           <div>
             <h1>FemLab Studio</h1>
-            <p className="subtitle">二维杆系有限元 · 画布建模 · LLM 辅助</p>
+            <p className="subtitle">{t("app.subtitle")}</p>
           </div>
         </div>
         <div className="header-actions">
@@ -189,35 +189,35 @@ export default function App() {
           <button
             className="btn ghost"
             onClick={() => setLlmPosition(llmPosition === "right" ? "bottom" : "right")}
-            title="切换 LLM 对话位置"
+            title={t("llmPosTip")}
           >
-            {llmPosition === "right" ? "LLM 移到底部" : "LLM 移到右侧"}
+            {llmPosition === "right" ? t("llm.toBottom") : t("llm.toRight")}
           </button>
           <button
             className="btn ghost"
             onClick={() => useStore.getState().undo()}
             disabled={!canUndo}
-            title="撤销 (Ctrl+Z)"
+            title={t("undoTip")}
           >
-            ↩ 撤销
+            ↩ {t("undo")}
           </button>
           <button
             className="btn ghost"
             onClick={() => useStore.getState().redo()}
             disabled={!canRedo}
-            title="重做 (Ctrl+Y)"
+            title={t("redoTip")}
           >
-            ↪ 重做
+            ↪ {t("redo")}
           </button>
           <button className="btn ghost" onClick={() => useStore.getState().resetView()}>
-            重置视图
+            {t("resetView")}
           </button>
           <button
             className="btn primary"
             onClick={() => solve()}
             disabled={solving || !currentProject}
           >
-            {solving ? "求解中…" : "求解"} <span className="shortcut">Ctrl+Enter</span>
+            {solving ? t("solving") : t("solve")} <span className="shortcut">Ctrl+Enter</span>
           </button>
         </div>
       </header>
@@ -255,12 +255,12 @@ export default function App() {
       )}
 
       <footer className="status-bar">
-        <span className="status-project">{currentProject || "未命名项目"}</span>
+        <span className="status-project">{currentProject || t("unnamed")}</span>
         <span>
-          {summary.nodes} 节点 · {summary.elements} 单元 · {summary.dofs} DOF
+          {t("status.nodes", { n: summary.nodes })} · {t("status.elements", { n: summary.elements })} · {t("status.dofs", { n: summary.dofs })}
         </span>
-        {solveTime && <span>求解耗时 {solveTime}s</span>}
-        <span className={err ? "badge err" : "badge ok"}>{err ? "✘ " + err : "✔ 模型有效"}</span>
+        {solveTime && <span>{t("status.solveTime", { t: solveTime })}</span>}
+        <span className={err ? "badge err" : "badge ok"}>{err ? "✘ " + err : t("status.modelOk")}</span>
       </footer>
 
       {toast && <div className={`toast ${toast.isError ? "error" : ""}`}>{toast.msg}</div>}
