@@ -80,11 +80,16 @@ export default function CanvasView() {
         ctx.scale(2, 2);
         ctx.drawImage(img, 0, 0, w, h);
         URL.revokeObjectURL(url);
-        const a = document.createElement("a");
-        a.download = `femlab_${Date.now()}.png`;
-        a.href = canvas.toDataURL("image/png");
-        a.click();
-        useStore.getState().setToast(t("canvas.toast.exported"));
+        // 弹原生保存对话框, 由后端写入文件 (a.click 在 WebView2 不可靠)
+        const b64 = canvas.toDataURL("image/png");
+        ipc.exportPngFile(`femlab_${Date.now()}`, b64)
+          .then((path) => useStore.getState().setToast(t("canvas.toast.exported") + " → " + path))
+          .catch((e) => {
+            const msg = (e && e.message) || (typeof e === "string" ? e : JSON.stringify(e));
+            if (msg !== "用户取消了保存") {
+              useStore.getState().setToast(t("canvas.toast.exportErr", { msg }), true);
+            }
+          });
       };
       img.onerror = () => useStore.getState().setToast(t("canvas.toast.exportFailed"), true);
       img.src = url;

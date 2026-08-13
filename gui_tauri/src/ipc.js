@@ -33,3 +33,5 @@ export const setLlmConfig = (config) => invoke("set_llm_config", { config });
 export const exportModelFile = (defaultName, modelJson) =>
   invoke("export_model_file", { defaultName, modelJson });
 export const importModelFile = () => invoke("import_model_file");
+export const exportPngFile = (defaultName, pngB64) =>
+  invoke("export_png_file", { defaultName, pngB64 });

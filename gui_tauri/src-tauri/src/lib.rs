@@ -285,6 +285,33 @@ fn import_model_file() -> Result<String, String> {
     std::fs::read_to_string(&path).map_err(|e| format!("读取文件失败: {e}"))
 }
 
+/// 导出图片(PNG): 弹保存对话框, 写入 base64 图片数据, 返回保存路径
+#[tauri::command]
+fn export_png_file(default_name: String, png_b64: String) -> Result<String, String> {
+    use std::io::Write;
+    let mut default_name = default_name.trim().to_string();
+    if default_name.is_empty() {
+        default_name = "femlab.png".to_string();
+    }
+    if !default_name.to_lowercase().ends_with(".png") {
+        default_name.push_str(".png");
+    }
+    let path = rfd::FileDialog::new()
+        .set_file_name(&default_name)
+        .add_filter("PNG 图片", &["png"])
+        .save_file()
+        .ok_or_else(|| "用户取消了保存".to_string())?;
+    // 兼容 dataURL 前缀 (data:image/png;base64,...) 与纯 base64
+    let b64 = png_b64.rsplit(',').next().unwrap_or(&png_b64).trim();
+    use base64::Engine;
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(b64)
+        .map_err(|e| format!("PNG 数据解码失败: {e}"))?;
+    let mut f = std::fs::File::create(&path).map_err(|e| format!("创建文件失败: {e}"))?;
+    f.write_all(&bytes).map_err(|e| format!("写入文件失败: {e}"))?;
+    Ok(path.display().to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -293,7 +320,8 @@ pub fn run() {
             llm_chat, llm_chat_tools,
             save_project, list_projects, load_project, delete_project,
             get_llm_config, set_llm_config,
-            export_model_file, import_model_file
+            export_model_file, import_model_file,
+            export_png_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
