@@ -86,7 +86,7 @@ export default function ResultsPanel() {
               </tr>
             </thead>
             <tbody>
-              {(results.displacements || []).map((d) => (
+              {(results.displacements || []).slice(0, 500).map((d) => (
                 <tr key={d.node}>
                   <td>{d.node}</td>
                   <td className={`num ${d.ux === 0 ? "zero" : ""}`}>{fmt(d.ux)}</td>
@@ -113,7 +113,7 @@ export default function ResultsPanel() {
               </tr>
             </thead>
             <tbody>
-              {(results.endForces || []).map((e) => (
+              {(results.endForces || []).slice(0, 500).map((e) => (
                 <tr key={e.element}>
                   <td>{e.element}</td>
                   <td className="num">{fmt(e.nodeI.N)}</td>
@@ -139,7 +139,7 @@ export default function ResultsPanel() {
               </tr>
             </thead>
             <tbody>
-              {(results.reactions || []).map((r) => (
+              {(results.reactions || []).slice(0, 500).map((r) => (
                 <tr key={r.node}>
                   <td>{r.node}</td>
                   <td className={`num ${r.ux === 0 ? "zero" : ""}`}>{fmt(r.ux)}</td>

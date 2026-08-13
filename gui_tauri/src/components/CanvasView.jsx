@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "../store.js";
 import { screenToWorld, pointSegDist, clamp } from "../canvas/transform.js";
 import { LOAD_TYPES } from "../model.js";
@@ -24,6 +24,12 @@ const TOOL_HINTS = {
   load: "hint.load",
   constraint: "hint.constraint",
   erase: "hint.erase",
+};
+
+const DIAGRAM_META = {
+  N: { color: "#4da3ff" },
+  V: { color: "#fb923c" },
+  M: { color: "#f87171" },
 };
 
 function svgPointOf(svg, e) {
@@ -276,27 +282,26 @@ export default function CanvasView() {
     drag.current = { mode: "none" };
   }
 
-  const nodes = computeNodes(model, view, selection);
-  const elements = computeElements(model, view, selection);
-  const loads = computeLoads(model, view, selection);
-  const constraints = computeConstraints(model, view, selection);
-  const deformed =
-    solved && results ? computeDeformed(model, results, deformScale, view) : [];
-  const forceDiagrams =
-    solved && results && diagramMode ? computeForceDiagram(model, results, diagramMode, view) : [];
+  const nodes = useMemo(() => computeNodes(model, view, selection), [model, view, selection]);
+  const elements = useMemo(() => computeElements(model, view, selection), [model, view, selection]);
+  const loads = useMemo(() => computeLoads(model, view, selection), [model, view, selection]);
+  const constraints = useMemo(() => computeConstraints(model, view, selection), [model, view, selection]);
+  const deformed = useMemo(
+    () => (solved && results ? computeDeformed(model, results, deformScale, view) : []),
+    [solved, results, model, deformScale, view]
+  );
+  const forceDiagrams = useMemo(
+    () => (solved && results && diagramMode ? computeForceDiagram(model, results, diagramMode, view) : []),
+    [solved, results, model, diagramMode, view]
+  );
 
   // 节点位移标注: 求解后显示 ux/uy (mm 或 m), 若变形图可见
-  const displacementMap = new Map(
-    (results?.displacements || []).map((d) => [d.node, d])
+  const displacementMap = useMemo(
+    () => new Map((results?.displacements || []).map((d) => [d.node, d])),
+    [results]
   );
 
   const pendingNode = pendingNodeA != null ? nodes.find((n) => n.id === pendingNodeA) : null;
-
-  const DIAGRAM_META = {
-    N: { color: "#4da3ff" },
-    V: { color: "#fb923c" },
-    M: { color: "#f87171" },
-  };
 
   return (
     <div className="canvas-wrap" ref={wrapRef}>
