@@ -59,3 +59,5 @@ build/obj/
 .playwright-mcp/
 启动GUI_venv.bat
 gui_tauri/target*/
+# 本地归档(不随 GitHub 同步)
+_archive_local/
