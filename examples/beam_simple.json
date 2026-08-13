@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "title": "简支梁 - 均布节点荷载(与 test_beam.txt 等价)",
+  "solver": "builtin",
+  "nodes": [
+    { "id": 0, "type": "frame", "x": 0.0, "y": 0.0 },
+    { "id": 1, "type": "frame", "x": 0.5, "y": 0.0 },
+    { "id": 2, "type": "frame", "x": 1.0, "y": 0.0 },
+    { "id": 3, "type": "frame", "x": 1.5, "y": 0.0 },
+    { "id": 4, "type": "frame", "x": 2.0, "y": 0.0 }
+  ],
+  "constraints": [
+    { "node": 0, "dofs": ["ux", "uy"] },
+    { "node": 4, "dofs": ["ux", "uy"] }
+  ],
+  "elements": [
+    { "id": 0, "type": "frame", "nodeI": 0, "nodeJ": 1, "section": 0, "material": 0 },
+    { "id": 1, "type": "frame", "nodeI": 1, "nodeJ": 2, "section": 0, "material": 0 },
+    { "id": 2, "type": "frame", "nodeI": 2, "nodeJ": 3, "section": 0, "material": 0 },
+    { "id": 3, "type": "frame", "nodeI": 3, "nodeJ": 4, "section": 0, "material": 0 }
+  ],
+  "materials": [
+    { "id": 0, "E": 210000000000.0, "mu": 0.3, "alpha": 0.0 }
+  ],
+  "sections": [
+    { "id": 0, "A": 0.01, "Iz": 1.0e-5, "height": 0.2 }
+  ],
+  "loads": [
+    { "type": "nodalForce", "direction": "y", "value": -1000.0, "node": 1 },
+    { "type": "nodalForce", "direction": "y", "value": -1000.0, "node": 2 },
+    { "type": "nodalForce", "direction": "y", "value": -1000.0, "node": 3 }
+  ]
+}

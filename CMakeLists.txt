@@ -3,11 +3,26 @@ project(FEM_2d CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# Build standalone executable
+# femcore 静态库:求解内核,不含 main(fem_run/femcli/unit_tests 共用)
+add_library(femcore STATIC barsystem.cpp)
+target_include_directories(femcore PUBLIC ${CMAKE_SOURCE_DIR})
+if (MSVC)
+  target_compile_options(femcore PRIVATE /utf-8)
+endif()
+
+# Build standalone executable (txt 模式, 向后兼容)
 add_executable(fem_run barsystem.cpp)
 target_include_directories(fem_run PRIVATE ${CMAKE_SOURCE_DIR})
 if (MSVC)
   target_compile_options(fem_run PRIVATE /utf-8)
+endif()
+
+# femcli: JSON 模式命令行工具
+add_executable(femcli femcli.cpp)
+target_link_libraries(femcli PRIVATE femcore)
+target_include_directories(femcli PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third_party)
+if (MSVC)
+  target_compile_options(femcli PRIVATE /utf-8)
 endif()
 
 # Unit tests build with UNIT_TEST defined (excludes main)

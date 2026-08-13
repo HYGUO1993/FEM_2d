@@ -40,7 +40,7 @@ python python/fem_gui.py         # 直接调用
 
 ## 下载预编译程序
 
-从 [Releases 页面](https://github.com/HYGUO1993/FEM_2d/releases) 下载对应平台的压缩包：
+从 [Releases 页面](https://github.com/HYGUO1993/femlab-studio/releases) 下载对应平台的压缩包：
 
 | 平台 | 文件 |
 |------|------|
@@ -63,6 +63,11 @@ python python/fem_gui.py         # 直接调用
 - 命令行运行示例：
   - 框架悬臂示例（梁）： & .\\build\\bin\\Release\\fem_run.exe --no-stiff --input test05.txt --output build\\Results_frame.dat
   - 简支梁三点载荷： & .\\build\\bin\\Release\\fem_run.exe --no-stiff --input test_beam.txt --output build\\Results_beam.dat
+- **femcli — JSON 统一模型命令行(推荐新用法)**：
+  - 求解 JSON 模型： `build\\bin\\femcli.exe solve examples\\beam_simple.json -o result.json`
+  - 兼容旧 txt： `build\\bin\\femcli.exe solve -i test_beam.txt -o result.json --legacy-txt`
+  - 校验模型： `build\\bin\\femcli.exe validate examples\\beam_simple.json`
+  - 模型格式见 `docs/FEM_MODEL_SCHEMA.md`,LLM 接入见 `docs/LLM_INTEGRATION.md`
 - 命令行可视化：
   - python scripts\\visualize_results.py --results build\\Results_frame.dat --scale 1000 --out build\\plot_frame.png
   - python scripts\\visualize_results.py --results build\\Results_beam.dat --scale 2000 --out build\\plot_beam.png

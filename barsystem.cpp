@@ -9,7 +9,64 @@
 
 using namespace std;
 
-#ifndef UNIT_TEST
+// ---------------------------------------------------------------------------
+// FemSolveModel: 纯求解接口(不依赖 main / 命令行 / 输出文件)
+// 供 femcli(JSON)、txt 兼容模式、以及后续 DLL 绑定复用。
+// ---------------------------------------------------------------------------
+bool FemSolveModel(int nTotalNode, int nConstrtainedNode, int nTotalElem,
+                   int nMaterialType, int nSectionType, int nLoad,
+                   Node* pNode, ConstrainedNode* pConsNode, Element* pElem,
+                   Material* pMate, Section* pSect, Load* pLoad,
+                   double* pDisp,            // [out] nTotalDOF, 前 nFreeDOF 为位移
+                   double* pLoadVect,        // [out] nTotalDOF, 最终为荷载向量(含反力信息)
+                   const char* stiffPath,    // 刚度文件路径, 空串则不写
+                   bool writeStiff,
+                   bool quiet,
+                   std::string& errMsg)      // [out] 错误信息(非空表示失败)
+{
+	int nTotalDOF;
+	int nFreeDOF;
+	int iBuf;
+
+	LengthSinCosCalcu(nTotalElem, pElem, pNode);
+	nTotalDOF = DOFIndexCalcu(nFreeDOF, nTotalNode, nConstrtainedNode, pConsNode, pNode);
+	int** pElemDOF = TwoArrayIntAlloc(nTotalElem, 6);
+	ElementDOFCalcu(nTotalElem, pNode, pElem, pElemDOF);
+
+	int* pDiag = new int[nTotalDOF];
+	BandAndDiagCalcu(nTotalElem, nTotalDOF, pElem, pElemDOF, pDiag);
+	TwoArrayFree(nTotalElem, pElemDOF);
+	iBuf = pDiag[nTotalDOF - 1] + 1;
+	double* pGK = new double[iBuf];
+	VectorZeroize(iBuf, pGK);
+	VectorZeroize(nTotalDOF, pLoadVect);
+	VectorZeroize(nTotalDOF, pDisp);
+	ElementEndForceInit(nTotalElem, pElem);
+
+	GKAssembly(nTotalDOF, nTotalElem, pElem, pNode, pMate, pSect, pDiag, pGK,
+	           (writeStiff && stiffPath && stiffPath[0] != '\0') ? stiffPath : "");
+	LoadVectorAssembly(nLoad, nTotalDOF, nFreeDOF, pDiag, pGK, pElem, pMate, pSect,
+	                   pLoad, pNode, pLoadVect, pDisp);
+
+	bool ok = LDLTSolve(nFreeDOF, pDiag, pGK, pLoadVect);
+	if (!ok) {
+		errMsg = "刚度矩阵奇异或病态 (自由DOF数=" + std::to_string(nFreeDOF) +
+		         ")。请检查约束是否充分(机构/约束不足),或模型中是否存在数值退化。";
+		delete[] pDiag;
+		delete[] pGK;
+		return false;
+	}
+
+	for (int i = 0; i < nFreeDOF; ++i) pDisp[i] = pLoadVect[i];
+	InternalForceCalcu(nTotalElem, pElem, pNode, pMate, pSect, pDisp);
+	SupportReactionCalcu(nTotalDOF, nFreeDOF, pDiag, pGK, pDisp, pLoadVect);
+
+	delete[] pDiag;
+	delete[] pGK;
+	return true;
+}
+
+#if !defined(UNIT_TEST) && !defined(FEM_NO_MAIN)
 int main(int argc, char * argv[])
 {
 	string inputPath = "test05.txt";
@@ -86,7 +143,6 @@ int main(int argc, char * argv[])
 	Material* pMate = new Material[nMaterialType];
 	Section* pSect = new Section[nSectionType];
 	Load* pLoad = new Load[nLoad];
-	int** pElemDOF = TwoArrayIntAlloc(nTotalElem, 6);
 
 	//.............读入结构描述数据.......................
 	for (i = 0; i < nTotalNode; i++)													//读入节点数据
@@ -297,29 +353,22 @@ int main(int argc, char * argv[])
 	//fout0 << "=====================================================================" << endl;
 
 	//-------------------------------------------------------
-	LengthSinCosCalcu(nTotalElem, pElem, pNode);
-	//计算总自由度 节点自由度和单元定位向量
-	nTotalDOF = DOFIndexCalcu(nFreeDOF, nTotalNode, nConstrtainedNode, pConsNode, pNode);
-	ElementDOFCalcu(nTotalElem, pNode, pElem, pElemDOF);
-	//----------------------------------------------------------
-	int* pDiag = new int[nTotalDOF];//存放主元地址
-	BandAndDiagCalcu(nTotalElem, nTotalDOF, pElem, pElemDOF, pDiag);    //计算半带宽和主元地址
-	TwoArrayFree(nTotalElem, pElemDOF);									//释放单元定位向量数组的内存
-	iBuf = pDiag[nTotalDOF - 1] + 1;									//计算带内元数总数
-	double* pGK = new double[iBuf];										//一维带宽存放总刚度矩阵的下三角部分
+	nTotalDOF = DOFIndexCalcu(nFreeDOF, nTotalNode, nConstrtainedNode,
+	                          pConsNode, pNode);
+	int* pDiag = new int[nTotalDOF];									//存放主元地址
 	double* pLoadVect = new double[nTotalDOF];							//存放载荷向量
 	double* pDisp = new double[nTotalDOF];								//存放位移向量
-
-	VectorZeroize(iBuf, pGK);											//总刚置零
 	VectorZeroize(nTotalDOF, pLoadVect);								//总载荷向量置零
 	VectorZeroize(nTotalDOF, pDisp);									//总位移向量置零
-	ElementEndForceInit(nTotalElem, pElem);								//初始化单元杆端力向量
-	//装配总刚度矩阵和总载荷向量-----------------------------------------------------------------------------
 
-	GKAssembly(nTotalDOF, nTotalElem, pElem, pNode, pMate, pSect, pDiag, pGK, writeStiff ? stiffPath.c_str() : "");//组装总刚
-	LoadVectorAssembly(nLoad, nTotalDOF, nFreeDOF, pDiag, pGK, pElem, pMate, pSect, pLoad, pNode, pLoadVect, pDisp);//组装总荷载向量
-	if (!LDLTSolve(nFreeDOF, pDiag, pGK, pLoadVect)) {
-		if (!quiet) cout << "Solver failed" << endl;
+	std::string errMsg;
+	bool ok = FemSolveModel(nTotalNode, nConstrtainedNode, nTotalElem,
+	                        nMaterialType, nSectionType, nLoad,
+	                        pNode, pConsNode, pElem, pMate, pSect, pLoad,
+	                        pDisp, pLoadVect, stiffPath.c_str(), writeStiff,
+	                        quiet, errMsg);
+	if (!ok) {
+		if (!quiet) std::cerr << "ERROR: " << errMsg << std::endl;
 		delete[]pNode;
 		delete[]pConsNode;
 		delete[]pElem;
@@ -327,16 +376,12 @@ int main(int argc, char * argv[])
 		delete[]pSect;
 		delete[]pLoad;
 		delete[]pDiag;
-		delete[]pGK;
 		delete[]pLoadVect;
 		delete[]pDisp;
 		fin0.close();
 		fout0.close();
 		return -2;
 	}
-	for (int i = 0; i < nFreeDOF; ++i) pDisp[i] = pLoadVect[i];
-	InternalForceCalcu(nTotalElem, pElem, pNode, pMate, pSect, pDisp);						
-	SupportReactionCalcu(nTotalDOF, nFreeDOF, pDiag, pGK, pDisp, pLoadVect);	//计算支座反力
 	NodeDisplOutput(fout0, nTotalNode, pNode, pDisp);						//输出节点位移
 	EndInternalForceOutput(fout0, nTotalElem, pElem);						//输出杆件内力
 	SupportReactionOutput(fout0, nConstrtainedNode, pConsNode, pNode, pLoadVect, nFreeDOF);//输出支座反力
@@ -349,7 +394,6 @@ int main(int argc, char * argv[])
 	delete[]pSect;
 	delete[]pLoad;
 	delete[]pDiag;
-	delete[]pGK;
 	delete[]pLoadVect;
 	delete[]pDisp;
 	//关闭文件;
@@ -664,17 +708,34 @@ bool LDLTSolve(int nRow, int* pDiag, double* pGK, double* pB)
 	for (int i = 0; i < nRow; ++i) {
 		for (int j = 0; j < nRow; ++j) L[i][j] = 0.0;
 	}
+	// Singular/ill-conditioned detection (IMPROVEMENT_REPORT §1.1):
+	// instead of silently flooring pivots to 1e-12, flag the system when a
+	// pivot is (relatively) too small. This catches mechanisms and
+	// insufficiently constrained models.
+	const double kPivotTol = 1e-10;
 	for (int i = 0; i < nRow; ++i) {
 		for (int j = 0; j < i; ++j) {
 			double sum = A[i][j];
 			for (int k = 0; k < j; ++k) sum -= L[i][k] * D[k] * L[j][k];
-			if (D[j] == 0.0) { D[j] = 1e-12; }
+			if (D[j] == 0.0) {
+				TwoArrayFree(nRow, A);
+				TwoArrayFree(nRow, L);
+				delete[] D;
+				return false;   // singular column
+			}
 			L[i][j] = sum / D[j];
 		}
 		double sumd = A[i][i];
 		for (int k = 0; k < i; ++k) sumd -= L[i][k] * D[k] * L[i][k];
+		double diag0 = (A[i][i] < 0.0) ? -A[i][i] : A[i][i];
+		if (diag0 <= 1e-300 || (sumd <= 1e-30 && diag0 > 0.0) ||
+		    (diag0 > 0.0 && (sumd < 0.0 ? -sumd : sumd) <= kPivotTol * diag0)) {
+			TwoArrayFree(nRow, A);
+			TwoArrayFree(nRow, L);
+			delete[] D;
+			return false;       // singular or ill-conditioned
+		}
 		D[i] = sumd;
-		if (D[i] == 0.0) { D[i] = 1e-12; }
 		L[i][i] = 1.0;
 	}
 	double* y = new double[nRow];
@@ -685,12 +746,11 @@ bool LDLTSolve(int nRow, int* pDiag, double* pGK, double* pB)
 	}
 	double* z = new double[nRow];
 	for (int i = 0; i < nRow; ++i) {
-		if (D[i] == 0.0) { D[i] = 1e-12; }
 		z[i] = y[i] / D[i];
 	}
 	for (int i = nRow - 1; i >= 0; --i) {
 		double s = z[i];
-		for (int j = i + 1; j < nRow; ++j) s -= L[j][i] * pB[j];
+		for (int j = i + 1; j < nRow; ++j) s -= L[j][i] * z[j];   // CORRECT: use z[j], not pB[j]
 		pB[i] = s;
 	}
 	TwoArrayFree(nRow, A);
@@ -703,77 +763,101 @@ bool LDLTSolve(int nRow, int* pDiag, double* pGK, double* pB)
 
 
 /**
- * \brief 计算单元固端力
- * \param pElem 
- * \param pMate 
- * \param pSect 
- * \param pLoad 
- * \param pFixedEndF 
- * \param i 
+ * \brief 计算单元固端力（固定端反力，局部坐标）
+ *
+ * 对作用在单元上的分布/集中荷载，计算在两端完全固定时产生的
+ * 杆端力（N V M）。返回的 pFixedEndF[6] 布局与杆端力一致：
+ *   { N_i, V_i, M_i, N_j, V_j, M_j }
+ * 求解时把 -FixedEndForce 作为等效节点荷载装到单元两端节点自由度，
+ * 求出位移后真实杆端力 = k·u + FixedEndForce。
+ *
+ * 支持：LATERAL_FORCE(2, 横向集中力, a=距i端距离, 垂直于杆)
+ *       LATERAL_UNIFORM_PRESSURE(3, 满跨均布, a=总分布长度/位置)
+ *       MOMENT_ON_A_POINT(4, 集中力矩)
+ *       LATERAL_LINEARLY_PRESSURE(5, 线性分布, a=荷载作用长度)
+ *       TEMPERATURE(9, 温度: dT0=上表面温变, dT1=下表面温变)
+ * 注意：iDirect 为 0(X)/1(Y)/2(R)，对横向荷载用 1(Y 向局部)。
  */
-void FixedEndForceCalcu(Element * pElem, Material * pMate, Section * pSect, Load * pLoad, double * pFixedEndF, int i)
+void FixedEndForceCalcu(Element* pElem, Material* pMate, Section* pSect, Load* pLoad, double* pFixedEndF, int i)
 {
-	int iMateType, iSectType, iLoadType, iLoadedElem;
-	double dE, dAlpha;
-	double dA, dIz, dH;
-	double dt0, dt1, dBuf;
-	double da, dQ, dc, dg, dl, db, ds;
+	int iMateType = pElem[i].iMaterial;
+	int iSectType = pElem[i].iSection;
+	int iLoadType = pLoad->iType;
+	double dE = pMate[iMateType].dE;
+	double dA = pSect[iSectType].dA;
+	double dIz = pSect[iSectType].dIz;
+	double dH = pSect[iSectType].dH;
+	double dAlpha = pMate[iMateType].dAlpha;
+	double da = pLoad->dPosition;
+	double dl = pElem[i].dLength;
+	double dQ = pLoad->dValue;
+	double dc = (dl > 0.0) ? da / dl : 0.0;   // 荷载位置无量纲 0..1
+	double dg = dc * dc;
+	double db = dl - da;                       // 荷载到 j 端距离
+	double ds;
 
-	double** pT = TwoArrayDoubAlloc(6, 6);
-	double** pTT = TwoArrayDoubAlloc(6, 6);
-	double* pTemp = new double[6];
+	// 初始化（含轴向力槽位，分布横向荷载不产生 N）
+	for (int k = 0; k < 6; ++k) pFixedEndF[k] = 0.0;
 
-	double dXi = 0;
-	double dXj = 0;
-	double dYi = 0;
-	double dYj = 0;
-	double dMi = 0;
-	double dMj = 0;
-
-	iLoadedElem = pLoad->iLoadedElem;
-	iLoadType = pLoad->iType;
-
-	da = pLoad->dPosition;
-	dl = (pElem + iLoadedElem)->dLength;
-	dQ = pLoad->dValue;
-	dc = da / dl;
-	dg = dc * dc;
-	db = dl - da;
-	switch(iLoadType)
+	switch (iLoadType)
 	{
-	case LATERAL_FORCE:
+	case LATERAL_FORCE:        // 横向集中力 P（垂直于杆），距 i 端 a
+		ds = db / dl;          // b/L
+		pFixedEndF[1] = -dQ * ds * ds * (1.0 + 2.0 * dc);          // V_i
+		pFixedEndF[4] = -dQ * dg * (1.0 + 2.0 * ds);               // V_j
+		pFixedEndF[2] = -dQ * ds * ds * da;                        // M_i
+		pFixedEndF[5] = dQ * db * dg;                              // M_j
+		break;
+	case LATERAL_UNIFORM_PRESSURE:  // 满跨均布 q（a 视为分布长度，通常 a=dl）
+		// 标准固端力: V_i=V_j=qL/2 ; M_i=-qL^2/12 ; M_j=+qL^2/12
+		if (da <= 0.0 || da >= dl) {          // 满跨
+			pFixedEndF[1] = -dQ * dl * 0.5;
+			pFixedEndF[4] = -dQ * dl * 0.5;
+			pFixedEndF[2] = -dQ * dl * dl / 12.0;
+			pFixedEndF[5] = dQ * dl * dl / 12.0;
+		} else {                              // 部分均布（a 为作用长度, 从 i 端起）
+			double qa = dQ * da;
+			ds = db / dl;
+			pFixedEndF[1] = -qa * (2.0 - 2.0 * dg + dc * dg);
+			pFixedEndF[4] = -qa * dg * (2.0 - dc);
+			ds = qa * da / 6.0;
+			pFixedEndF[2] = -ds * (6.0 - 8.0 * dc + 3.0 * dg);
+			pFixedEndF[5] = ds * dc * (4.0 - 3.0 * dc);
+		}
+		break;
+	case MOMENT_ON_A_POINT:    // 集中力矩 M（垂直于平面），距 i 端 a
 		ds = db / dl;
-		dYi = -dQ * ds*ds*(1.0 + 2.0*dc);
-		dYj = -dQ * dg*(1.0 + 2.0 + ds);
-		dMi = -dQ * ds*ds*da;
-		dMj = dQ * db*dg;
+		pFixedEndF[1] = -6.0 * dQ * dc * ds / dl;
+		pFixedEndF[4] = -pFixedEndF[1];
+		pFixedEndF[2] = dQ * ds * (2.0 - 3.0 * ds);
+		pFixedEndF[5] = dQ * dc * (2.0 - 3.0 * dc);
 		break;
-	case LATERAL_UNIFORM_PRESSURE:
-		ds = dQ * da*0.5;
-		dYi = -ds * (2.0 - 2.0*dg + dc * dg);
-		dYj = -ds * dg*(2.0 - dc);
-		ds = ds * da / 6.0;
-		dMi = -ds * (6.0 - 8.0*dc + 3.0*dg);
-		dMj = ds * dc*(4.0 - 3.0*dc);
-		break;
-	case MOMENT_ON_A_POINT:
-		ds = db / dl;
-		dYi = -6.0 * dQ*dc*ds / dl;
-		dYj = -dYi;
-		dMi = dQ * ds*(2.0 - 3.0*ds);
-		dMj = dQ * dc*(2.0 - 3.0*dc);
-		break;
-	case LATERAL_LINEARLY_PRESSURE:
-		ds = dQ * da*0.25;
-		dYi = -ds * (2.0 - 3.0*dg + 1.6*dc * dg);
-		dYj = -ds * dg*(3.0 -1.6* dc);
+	case LATERAL_LINEARLY_PRESSURE:  // 线性分布（三角形，a 端 0 → j 端 q）
+		ds = dQ * da * 0.25;
+		pFixedEndF[1] = -ds * (2.0 - 3.0 * dg + 1.6 * dc * dg);
+		pFixedEndF[4] = -ds * dg * (3.0 - 1.6 * dc);
 		ds *= da;
-		dMi = ds * (2.0 - 3.0*dc + 1.2*dg)/1.5;
-		dMj = -ds * dc*(1.0 - 0.5*dc);
+		pFixedEndF[2] = ds * (2.0 - 3.0 * dc + 1.2 * dg) / 1.5;
+		pFixedEndF[5] = -ds * dc * (1.0 - 0.5 * dc);
 		break;
-
+	case TEMPERATURE:          // 温度梯度：上/下表面温变 dT0, dT1（轴向+弯曲）
+		{
+			double dTm = 0.5 * (pLoad->dT0 + pLoad->dT1);   // 平均温变
+			double dTd = (pLoad->dT1 - pLoad->dT0);         // 梯度
+			if (dH > 0.0) {
+				// 轴向：N = E·α·A·Tm
+				pFixedEndF[0] = -dE * dAlpha * dA * dTm;    // i 端压力
+				pFixedEndF[3] =  dE * dAlpha * dA * dTm;
+				// 弯曲：M = E·α·Iz·dTd/h（上表面温升 → 下弯）
+				double M = dE * dAlpha * dIz * dTd / dH;
+				pFixedEndF[2] = -M;
+				pFixedEndF[5] =  M;
+			}
+		}
+		break;
+	default:
+		break;   // 其它类型暂不产生固端力
 	}
-
 }
 
 /**
@@ -997,6 +1081,7 @@ void ElementEndForceInit(int nTotalElem, Element * pElem)
 	for (int i = 0; i < nTotalElem; ++i) {
 		for (int k = 0; k < 6; ++k) {
 			pElem[i].daEndInterForce[k] = 0.0;
+			pElem[i].daFixedEndForce[k] = 0.0;
 		}
 	}
 }
@@ -1019,9 +1104,9 @@ void NodeDisplOutput(std::ofstream& fout, int nTotalNode, Node* pNode, double* p
 
 void EndInternalForceOutput(std::ofstream& fout0, int nTotalElem, Element* pElem)
 {
-	fout0 << "Element End Forces:" << std::endl;
-	fout0 << setw(8) << "Elem" << setw(12) << "Fx_i" << setw(12) << "Fy_i" << setw(12) << "Mz_i"
-	      << setw(12) << "Fx_j" << setw(12) << "Fy_j" << setw(12) << "Mz_j" << std::endl;
+	fout0 << "Element End Forces (LOCAL coordinates: N=axial, V=shear, M=moment):" << std::endl;
+	fout0 << setw(8) << "Elem" << setw(12) << "N_i" << setw(12) << "V_i" << setw(12) << "M_i"
+	      << setw(12) << "N_j" << setw(12) << "V_j" << setw(12) << "M_j" << std::endl;
 	for (int i = 0; i < nTotalElem; ++i) {
 		fout0 << setw(8) << i;
 		for (int k = 0; k < 6; ++k) {
@@ -1062,6 +1147,39 @@ void LoadVectorAssembly(int nLoad, int nTotalDOF, int nFreeDOF, int* pDiag, doub
 					pLoadVect[dof] += pLoad[i].dValue;
 				}
 			}
+		} else if (type == LATERAL_FORCE || type == LATERAL_UNIFORM_PRESSURE ||
+		           type == MOMENT_ON_A_POINT || type == LATERAL_LINEARLY_PRESSURE ||
+		           type == TEMPERATURE) {
+			// 单元荷载：固端力法。计算固定端反力 FEF（局部坐标），
+			// 等效节点荷载 = -FEF，转整体坐标后叠加到两端节点自由度。
+			int eid = pLoad[i].iLoadedElem;
+			double FEF[6] = {0,0,0,0,0,0};
+			FixedEndForceCalcu(pElem, pMate, pSect, &pLoad[i], FEF, eid);
+			// 保存到单元（供 InternalForceCalcu 叠加）
+			for (int k = 0; k < 6; ++k) pElem[eid].daFixedEndForce[k] = FEF[k];
+
+			int n0 = pElem[eid].iaNode[0], n1 = pElem[eid].iaNode[1];
+			double c = pElem[eid].dCos, s = pElem[eid].dSin;
+			// 局部 → 整体：F_global = T^T * F_local（与刚度旋转一致）
+			//   [Fx; Fy] = [c  -s; s  c] * [N; V]
+			// 等效节点荷载 = -FEF
+			double fe[6];
+			fe[0] = -( c * FEF[0] - s * FEF[1]);   // Fx_i
+			fe[1] = -( s * FEF[0] + c * FEF[1]);   // Fy_i
+			fe[2] = -FEF[2];                        // Mz_i
+			fe[3] = -( c * FEF[3] - s * FEF[4]);   // Fx_j
+			fe[4] = -( s * FEF[3] + c * FEF[4]);   // Fy_j
+			fe[5] = -FEF[5];                        // Mz_j
+
+			// 节点自由度（局部荷载的轴向对应 Ux，横向对应 Uy，转动对应 Rz）
+			int dof_map[6] = {
+				pNode[n0].iaDOFIndex[0], pNode[n0].iaDOFIndex[1], pNode[n0].iaDOFIndex[2],
+				pNode[n1].iaDOFIndex[0], pNode[n1].iaDOFIndex[1], pNode[n1].iaDOFIndex[2],
+			};
+			for (int k = 0; k < 6; ++k) {
+				int d = dof_map[k];
+				if (d >= 0 && d < nTotalDOF) pLoadVect[d] += fe[k];
+			}
 		}
 	}
 }
@@ -1086,12 +1204,17 @@ void InternalForceCalcu(int nTotalElem, Element* pElem, Node* pNode, Material* p
 			if (iy1 >= 0) u[3] = pDisp[iy1];
 			double f[4] = {0,0,0,0};
 			MatrixVectorMultiply(4, 4, pKe0, u, f);
-			pElem[i].daEndInterForce[0] = f[0];
-			pElem[i].daEndInterForce[1] = f[1];
-			pElem[i].daEndInterForce[2] = 0.0;
-			pElem[i].daEndInterForce[3] = f[2];
-			pElem[i].daEndInterForce[4] = f[3];
-			pElem[i].daEndInterForce[5] = 0.0;
+			// Convert global end forces to LOCAL coordinates (x' along the bar):
+			//   N =  c*Fx + s*Fy   (axial, tension +)
+			//   V = -s*Fx + c*Fy   (shear)
+			// daEndInterForce layout: N_i V_i Mz_i N_j V_j Mz_j  (IMPROVEMENT_REPORT §1.2)
+			double c = pElem[i].dCos, s = pElem[i].dSin;
+			pElem[i].daEndInterForce[0] =  c * f[0] + s * f[1];   // N_i
+			pElem[i].daEndInterForce[1] = -s * f[0] + c * f[1];   // V_i
+			pElem[i].daEndInterForce[2] = 0.0;                    // Mz_i (truss)
+			pElem[i].daEndInterForce[3] =  c * f[2] + s * f[3];   // N_j
+			pElem[i].daEndInterForce[4] = -s * f[2] + c * f[3];   // V_j
+			pElem[i].daEndInterForce[5] = 0.0;                    // Mz_j (truss)
 		} else {
 			FrameElemStiffCalcu(fout, pElem + i, pMate, pSect, pKe1);
 			double u[6] = {0,0,0,0,0,0};
@@ -1110,8 +1233,24 @@ void InternalForceCalcu(int nTotalElem, Element* pElem, Node* pNode, Material* p
 			if (ir1 >= 0) u[5] = pDisp[ir1];
 			double f[6] = {0,0,0,0,0,0};
 			MatrixVectorMultiply(6, 6, pKe1, u, f);
-			for (int k = 0; k < 6; ++k) pElem[i].daEndInterForce[k] = f[k];
+			// Convert global end forces to LOCAL coordinates (x' along the bar).
+			// Rotation affects the two translational components only; Mz is
+			// invariant under in-plane rotation (IMPROVEMENT_REPORT §1.2):
+			//   N =  c*Fx + s*Fy ;  V = -s*Fx + c*Fy
+			double c = pElem[i].dCos, s = pElem[i].dSin;
+			double Ni =  c * f[0] + s * f[1], Vi = -s * f[0] + c * f[1];
+			double Nj =  c * f[3] + s * f[4], Vj = -s * f[3] + c * f[4];
+			pElem[i].daEndInterForce[0] = Ni;
+			pElem[i].daEndInterForce[1] = Vi;
+			pElem[i].daEndInterForce[2] = f[2];   // Mz_i
+			pElem[i].daEndInterForce[3] = Nj;
+			pElem[i].daEndInterForce[4] = Vj;
+			pElem[i].daEndInterForce[5] = f[5];   // Mz_j
 		}
+		// 叠加固端力（若有单元荷载）：真实杆端力 = k·u + FixedEndForce
+		// （IMPROVEMENT_REPORT §1.3）
+		for (int k = 0; k < 6; ++k)
+			pElem[i].daEndInterForce[k] += pElem[i].daFixedEndForce[k];
 	}
 	TwoArrayFree(4, pKe0);
 	TwoArrayFree(6, pKe1);

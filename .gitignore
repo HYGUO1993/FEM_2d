@@ -39,3 +39,23 @@ ElemStiff.dat
 
 # Conda env
 .env
+
+# ===== FemLab Studio Tauri 前端 (gui_tauri) =====
+# Rust 构建产物 — 内含运行时配置(可能含 API key 的 debug exe), 严禁上传
+gui_tauri/src-tauri/target/
+# 前端依赖与构建
+gui_tauri/node_modules/
+gui_tauri/dist/
+# 临时扫描/调试脚本(本地上传前检查用)
+scan_secrets.py
+# 所有 Rust 构建目录变体 (target, target_dbg, target_dbg2, ...)
+gui_tauri/src-tauri/target*/
+# 构建日志与中间产物
+build/*.log
+build/*.txt
+build/obj/
+# 工具运行时数据
+.omo/
+.playwright-mcp/
+启动GUI_venv.bat
+gui_tauri/target*/

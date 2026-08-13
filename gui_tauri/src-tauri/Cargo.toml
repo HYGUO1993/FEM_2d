@@ -1,0 +1,26 @@
+[package]
+name = "femlab-studio"
+version = "0.1.0"
+description = "FemLab Studio - 二维杆系有限元分析桌面端"
+authors = ["FemLab"]
+edition = "2021"
+
+[lib]
+name = "femlab_studio_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ureq = { version = "2", features = ["json"] }
+rfd = "0.15"
+
+[features]
+# 默认打开 custom-protocol: 让 cargo build 出的 debug exe 也能直接加载嵌入前端资源(无需 dev server)
+# tauri dev 会用 --no-default-features 关闭它, 改用 dev server
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

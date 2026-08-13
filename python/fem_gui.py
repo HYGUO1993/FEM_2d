@@ -18,6 +18,8 @@ Installation:
 import sys
 import os
 import traceback
+# Add this script's own directory to path so `import gui` works regardless of cwd
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Add parent directory to path to import fem2d
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 

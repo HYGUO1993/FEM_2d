@@ -50,7 +50,8 @@ struct Element {
 	double dLength;				//单元长度
 	double dSin, dCos;			//单元局部坐标x轴与整体坐标x轴的夹角正余弦
 
-	double daEndInterForce[6];	//单元杆端力向量
+	double daEndInterForce[6];	//单元杆端力向量（局部坐标: N V M）
+	double daFixedEndForce[6];	//单元固端力向量（局部坐标, 等效节点荷载用）
 
 };
 
@@ -76,6 +77,16 @@ void ElementDOFCalcu(int nTotalElem, Node* pNode, Element *pElem, int** pElemDOF
 void BandAndDiagCalcu(int nTotalElem, int nTotalDOF, Element *pElem, int** pElemDOF, int* pDiag);
 double ** TwoArrayDoubAlloc(int nRow, int nCol);
 int** TwoArrayIntAlloc(int nRow, int nCol);
+
+// 纯求解接口:不依赖 main / 命令行 / 输出文件。供 femcli(JSON)、txt 兼容、后续 DLL 复用。
+// 成功返回 true;失败返回 false 并置 errMsg。
+bool FemSolveModel(int nTotalNode, int nConstrtainedNode, int nTotalElem,
+                   int nMaterialType, int nSectionType, int nLoad,
+                   Node* pNode, ConstrainedNode* pConsNode, Element* pElem,
+                   Material* pMate, Section* pSect, Load* pLoad,
+                   double* pDisp, double* pLoadVect,
+                   const char* stiffPath, bool writeStiff, bool quiet,
+                   std::string& errMsg);
 template <class T>
 void TwoArrayFree(int nRow, T** pdi);
 template <class T>
