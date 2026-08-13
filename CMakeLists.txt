@@ -6,6 +6,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # femcore 静态库:求解内核,不含 main(fem_run/femcli/unit_tests 共用)
 add_library(femcore STATIC barsystem.cpp)
 target_include_directories(femcore PUBLIC ${CMAKE_SOURCE_DIR})
+# 排除 barsystem.cpp 中的 main, 避免与 femcli/fem_run 的 main 冲突
+target_compile_definitions(femcore PRIVATE FEM_NO_MAIN)
 if (MSVC)
   target_compile_options(femcore PRIVATE /utf-8)
 endif()
