@@ -79,11 +79,18 @@ export function validateModel(m) {
   if (!Array.isArray(m.elements) || m.elements.length < 1) return t("validate.minElems");
   if (!Array.isArray(m.constraints) || m.constraints.length < 1) return t("validate.minCons");
   const ids = new Set(m.nodes.map((n) => n.id));
+  const elemIds = new Set(m.elements.map((e) => e.id));
   for (const e of m.elements) {
     if (!ids.has(e.nodeI) || !ids.has(e.nodeJ)) return t("validate.badElem", { id: e.id });
   }
+  // 节点型荷载检查 node 引用; 单元型荷载检查 element 引用
+  const NODE_LOADS = new Set(["nodalForce", "momentOnPoint", "supportMove"]);
   for (const l of m.loads || []) {
-    if (!ids.has(l.node)) return t("validate.badLoad");
+    if (NODE_LOADS.has(l.type)) {
+      if (!ids.has(l.node)) return t("validate.badLoad");
+    } else {
+      if (!elemIds.has(l.element)) return t("validate.badElem", { id: l.element });
+    }
   }
   for (const c of m.constraints) {
     if (!ids.has(c.node)) return t("validate.badCons");
