@@ -144,6 +144,14 @@ export default function App() {
         else if (sel.type === "load") st.deleteLoad(sel.id);
         else if (sel.type === "constraint") st.removeConstraint(sel.id);
       }
+      // 数字键 1-6 切换工具 (select/node/element/load/constraint/erase)
+      const toolMap = {
+        "1": "select", "2": "node", "3": "element",
+        "4": "load", "5": "constraint", "6": "erase",
+      };
+      if (toolMap[e.key]) {
+        st.setTool(toolMap[e.key]);
+      }
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);

@@ -317,25 +317,45 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
-.project-del {
+.project-ops {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
   visibility: hidden;
+}
+
+.project-item:hover .project-ops {
+  visibility: visible;
+}
+
+.project-op {
   background: none;
   border: none;
   color: var(--muted);
   cursor: pointer;
   font-size: 11px;
-  padding: 0 2px;
-  flex-shrink: 0;
+  padding: 0 3px;
+  border-radius: 3px;
+  line-height: 1.4;
 }
 
-.project-item:hover .project-del {
-  visibility: visible;
+.project-op:hover {
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.project-del:hover {
+.project-op.del:hover {
   color: var(--error);
+}
+
+.rename-input {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 6px;
+  font-size: 12px;
 }
 
 /* —— 中央画布 —— */

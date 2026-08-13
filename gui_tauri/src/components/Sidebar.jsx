@@ -105,6 +105,53 @@ export default function Sidebar() {
     }
   }
 
+  // 复制项目: 读取原模型 → 以新名字保存
+  async function handleDuplicate(name) {
+    const st = useStore.getState();
+    try {
+      const json = await ipc.loadProject(name);
+      let newName = name + " (副本)";
+      let i = 1;
+      while (st.projects.includes(newName)) {
+        newName = `${name} (副本${i})`;
+        i++;
+      }
+      await ipc.saveProject(newName, json);
+      st.setProjects([...st.projects, newName]);
+      st.setToast("已复制: " + newName);
+    } catch (e) {
+      st.setToast("复制失败: " + e.message, true);
+    }
+  }
+
+  // 改名: 保存新名 + 删除旧名 (后端无 rename, 用 save+delete 实现)
+  const [renaming, setRenaming] = useState(null);
+  const [renameVal, setRenameVal] = useState("");
+  async function handleRename(oldName) {
+    const newName = renameVal.trim();
+    if (!newName || newName === oldName) {
+      setRenaming(null);
+      return;
+    }
+    if (projects.includes(newName)) {
+      st.setToast("同名项目已存在", true);
+      return;
+    }
+    const st = useStore.getState();
+    try {
+      const json = await ipc.loadProject(oldName);
+      await ipc.saveProject(newName, json);
+      await ipc.deleteProject(oldName);
+      const list = st.projects.map((p) => (p === oldName ? newName : p));
+      st.setProjects(list);
+      if (st.currentProject === oldName) st.setCurrentProject(newName);
+      st.setToast("已改名: " + newName);
+    } catch (e) {
+      st.setToast("改名失败: " + e.message, true);
+    }
+    setRenaming(null);
+  }
+
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -150,17 +197,50 @@ export default function Sidebar() {
             onClick={() => handleSwitch(name)}
             title={name}
           >
-            <span className="project-name">{name}</span>
-            <button
-              className="project-del"
-              title="删除项目"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete(name);
-              }}
-            >
-              ✕
-            </button>
+            {renaming === name ? (
+              <input
+                className="text-input rename-input"
+                value={renameVal}
+                autoFocus
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => setRenameVal(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleRename(name);
+                  if (e.key === "Escape") setRenaming(null);
+                }}
+                onBlur={() => handleRename(name)}
+              />
+            ) : (
+              <>
+                <span className="project-name">{name}</span>
+                <span className="project-ops" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    className="project-op"
+                    title="改名"
+                    onClick={() => {
+                      setRenaming(name);
+                      setRenameVal(name);
+                    }}
+                  >
+                    ✎
+                  </button>
+                  <button
+                    className="project-op"
+                    title="复制"
+                    onClick={() => handleDuplicate(name)}
+                  >
+                    ⧉
+                  </button>
+                  <button
+                    className="project-op del"
+                    title="删除项目"
+                    onClick={() => handleDelete(name)}
+                  >
+                    ✕
+                  </button>
+                </span>
+              </>
+            )}
           </div>
         ))}
       </div>
