@@ -383,12 +383,12 @@ export default function CanvasView() {
             )}
             {l.kind === "temp" && (
               <text className="temp-label" x={l.x} y={l.y}>
-                {l.label}
+                {l.labelKey ? t(l.labelKey, l.labelArgs) : l.label}
               </text>
             )}
             {l.labelX != null && (
               <text className="load-label" x={l.labelX} y={l.labelY}>
-                {l.label ?? l.value}
+                {l.labelKey ? t(l.labelKey, l.labelArgs) : (l.label ?? l.value)}
               </text>
             )}
           </g>

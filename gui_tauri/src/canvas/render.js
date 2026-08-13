@@ -1,8 +1,8 @@
 // 模型 → SVG 元素几何计算（GUI_REDESIGN_PLAN §4.6）
 // 返回描述对象数组, 由 CanvasView 渲染成 JSX/SVG 元素。
+// 注意: 本模块不依赖 i18n —— label 字段返回语义键(labelKey), 由 CanvasView 用 t() 翻译。
 
 import { worldToScreen } from "./transform.js";
-import { t } from "../i18n.js";
 
 /** 节点: circle + 编号 text 的屏幕坐标 */
 export function computeNodes(model, view, selection) {
@@ -81,7 +81,8 @@ export function computeLoads(model, view, selection) {
           kind: "temp",
           x: mx,
           y: my - 12,
-          label: t("canvas.tempLabel", { a: ld.T0 ?? 0, b: ld.T1 ?? 0 }),
+          labelKey: "canvas.tempLabel",
+          labelArgs: { a: ld.T0 ?? 0, b: ld.T1 ?? 0 },
         };
       }
 
@@ -131,9 +132,8 @@ export function computeLoads(model, view, selection) {
             ...base,
             kind: "udl",
             arrows,
-            label: ld.type === "axialPressure"
-              ? t("canvas.axialLabel", { v: fmtLoad(ld.value) })
-              : t("canvas.udlLabel", { v: fmtLoad(ld.value) }),
+            labelKey: ld.type === "axialPressure" ? "canvas.axialLabel" : "canvas.udlLabel",
+            labelArgs: { v: fmtLoad(ld.value) },
             labelX: (pa.x + pb.x) / 2 + 6,
             labelY: (pa.y + pb.y) / 2 - 14,
           };
@@ -153,7 +153,8 @@ export function computeLoads(model, view, selection) {
             ...base,
             kind: "udl",
             arrows,
-            label: t("canvas.linearLabel", { v: fmtLoad(ld.value) }),
+            labelKey: "canvas.linearLabel",
+            labelArgs: { v: fmtLoad(ld.value) },
             labelX: (pa.x + pb.x) / 2 + 6,
             labelY: (pa.y + pb.y) / 2 - 14,
           };
