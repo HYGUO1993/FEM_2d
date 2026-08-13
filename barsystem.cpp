@@ -548,8 +548,8 @@ void FrameElemStiffCalcu(std::ofstream & fout1, Element * pElem, Material * pMat
 
 	dBuf = dLength * dLength;
 	dBuf = 6.0*dE*dIz / dBuf;
-	pKe[1][2] = pKe[2][1] = pKe[1][5] = pKe[5][1] = dBuf;
-	pKe[2][4] = pKe[4][2] = pKe[4][5] = pKe[5][4] = -dBuf;
+	pKe[1][2] = pKe[2][1] = pKe[1][5] = pKe[5][1] = dBuf;    // v_i-θ_i, v_i-θ_j: +6EI/L²
+	pKe[2][4] = pKe[4][2] = pKe[4][5] = pKe[5][4] = -dBuf;   // θ_i-v_j, v_j-θ_j: -6EI/L²
 	
 	dBuf = 4.0*dE*dIz / dLength;
 	pKe[2][2] = pKe[5][5] = dBuf;
@@ -752,7 +752,7 @@ bool LDLTSolve(int nRow, int* pDiag, double* pGK, double* pB)
 	}
 	for (int i = nRow - 1; i >= 0; --i) {
 		double s = z[i];
-		for (int j = i + 1; j < nRow; ++j) s -= L[j][i] * z[j];   // CORRECT: use z[j], not pB[j]
+		for (int j = i + 1; j < nRow; ++j) s -= L[j][i] * pB[j];   // 回代必须用已解出的 pB[j](=u[j])
 		pB[i] = s;
 	}
 	TwoArrayFree(nRow, A);
@@ -1037,7 +1037,7 @@ double** TwoArrayDoubAlloc(int nRow, int nCol)
 	if (!pd)
 	{
 		cout << "内存分配失败！" << endl;
-		exit(-1);
+		::exit(-1);
 	}
 	for (int i = 0; i < nRow; i++)
 	{
@@ -1045,7 +1045,7 @@ double** TwoArrayDoubAlloc(int nRow, int nCol)
 		if (!pd[i])
 		{
 			cout << "内存分配失败！" << endl;
-			exit(-1);
+			::exit(-1);
 		}
 	}
 	return pd;
@@ -1063,7 +1063,7 @@ int** TwoArrayIntAlloc(int nRow, int nCol)
 	if (!pd)
 	{
 		cout << "内存分配失败！" << endl;
-		exit(-1);
+		::exit(-1);
 	}
 	for (int i = 0; i < nRow; i++)
 	{
@@ -1071,7 +1071,7 @@ int** TwoArrayIntAlloc(int nRow, int nCol)
 		if (!pd[i])
 		{
 			cout << "内存分配失败！" << endl;
-			exit(-1);
+			::exit(-1);
 		}
 	}
 	return pd;
