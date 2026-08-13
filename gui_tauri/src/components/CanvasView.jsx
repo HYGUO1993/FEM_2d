@@ -169,7 +169,7 @@ export default function CanvasView() {
 
     if (curTool === "load") {
       const n = hitNode(sx, sy);
-      if (n) st.setLoadDialog({ node: n.id });
+      if (n) st.setLoadDialog({ node: n.id, element: -1 });
       else {
         const el = hitElement(sx, sy);
         if (el) st.setLoadDialog({ node: -1, element: el.id });
@@ -392,7 +392,7 @@ export default function CanvasView() {
         )}
       </svg>
 
-      {loadDialog && <LoadDialog />}
+      {loadDialog && <LoadDialog key={`${loadDialog.node}-${loadDialog.element}`} />}
 
       <div className="canvas-hint">{TOOL_HINTS[tool]}</div>
 
@@ -434,15 +434,18 @@ export default function CanvasView() {
 
 // —— 荷载对话框(支持完整荷载类型) ——
 function LoadDialog() {
-  const [type, setType] = useState("nodalForce");
+  const dialog = useStore((s) => s.loadDialog);
+  const model = useStore((s) => s.model);
+  // 从杆件打开 → 默认单元荷载; 从节点打开 → 默认节点集中力
+  const [type, setType] = useState(
+    dialog && dialog.element >= 0 ? "lateralUniformPressure" : "nodalForce"
+  );
   const [direction, setDirection] = useState("y");
   const [value, setValue] = useState("-10000");
-  const [element, setElement] = useState("0");
+  const [element, setElement] = useState(dialog && dialog.element >= 0 ? String(dialog.element) : "0");
   const [position, setPosition] = useState("1");
   const [T0, setT0] = useState("0");
   const [T1, setT1] = useState("0");
-  const dialog = useStore((s) => s.loadDialog);
-  const model = useStore((s) => s.model);
 
   if (!dialog) return null;
   const st = useStore.getState();
@@ -454,6 +457,16 @@ function LoadDialog() {
   function submit() {
     const v = Number(value);
     if (Number.isNaN(v)) return;
+    // 节点荷载但当前没有有效节点(从杆件打开) → 提示切换
+    if (isNodeLoad && dialog.node < 0) {
+      st.setToast("节点荷载需要先点击节点添加；当前是杆件，请选择单元荷载类型", true);
+      return;
+    }
+    // 单元荷载但当前没有有效单元(从节点打开) → 提示切换
+    if (isElementLoad && dialog.element < 0) {
+      st.setToast("单元荷载需要先点击杆件添加；当前是节点，请选择节点荷载类型", true);
+      return;
+    }
     const params = { type, direction, value: v };
     if (isNodeLoad) {
       params.node = dialog.node;
@@ -466,7 +479,7 @@ function LoadDialog() {
       params.element = eid;
       const pos = Number(position);
       if (!Number.isNaN(pos)) params.position = pos;
-      // 节点荷载(横向集中力等)需要节点 = 单元起点
+      // 杆上集中力需要节点 = 单元起点 (后端按 iLoadedNode 定位)
       if (type === "lateralForce" || type === "axialForce") {
         const el = model.elements.find((e) => e.id === eid);
         params.node = el ? el.nodeI : -1;

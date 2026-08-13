@@ -36,8 +36,8 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist/fem_2d_linux_x64
-          cp build/bin/fem_run dist/fem_2d_linux_x64/
-          cp test05.txt test_beam.txt dist/fem_2d_linux_x64/
+          cp build/bin/fem_run build/bin/femcli dist/fem_2d_linux_x64/
+          cp -r examples dist/fem_2d_linux_x64/
           cp -r scripts dist/fem_2d_linux_x64/
           cp README.md RELEASE_NOTES.md dist/fem_2d_linux_x64/
           cd dist
@@ -68,8 +68,8 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist/fem_2d_windows_x64
-          Copy-Item build/bin/Release/fem_run.exe dist/fem_2d_windows_x64/
-          Copy-Item test05.txt, test_beam.txt dist/fem_2d_windows_x64/
+          Copy-Item build/bin/Release/fem_run.exe, build/bin/Release/femcli.exe dist/fem_2d_windows_x64/
+          Copy-Item -Recurse examples dist/fem_2d_windows_x64/
           Copy-Item -Recurse scripts dist/fem_2d_windows_x64/
           Copy-Item README.md, RELEASE_NOTES.md dist/fem_2d_windows_x64/
           Compress-Archive -Path dist/fem_2d_windows_x64 -DestinationPath dist/fem_2d_windows_x64.zip
@@ -98,8 +98,8 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist/fem_2d_macos_x64
-          cp build/bin/fem_run dist/fem_2d_macos_x64/
-          cp test05.txt test_beam.txt dist/fem_2d_macos_x64/
+          cp build/bin/fem_run build/bin/femcli dist/fem_2d_macos_x64/
+          cp -r examples dist/fem_2d_macos_x64/
           cp -r scripts dist/fem_2d_macos_x64/
           cp README.md RELEASE_NOTES.md dist/fem_2d_macos_x64/
           cd dist
