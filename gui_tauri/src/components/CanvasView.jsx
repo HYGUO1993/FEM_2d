@@ -49,6 +49,50 @@ export default function CanvasView() {
   const svgRef = useRef(null);
   const drag = useRef({ mode: "none" });
 
+  // 导出画布为 PNG (SVG → canvas → 下载)
+  function exportPng() {
+    const svg = svgRef.current;
+    if (!svg) return;
+    try {
+      const rect = svg.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      // 克隆 SVG, 内联样式与背景
+      const clone = svg.cloneNode(true);
+      clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      clone.setAttribute("width", w);
+      clone.setAttribute("height", h);
+      // 计算样式背景色 (读 CSS 变量)
+      const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#0f1115";
+      const svgStr =
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">` +
+        `<rect width="${w}" height="${h}" fill="${bg}"/>` +
+        clone.outerHTML +
+        `</svg>`;
+      const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = w * 2; // 2x 高清
+        canvas.height = h * 2;
+        const ctx = canvas.getContext("2d");
+        ctx.scale(2, 2);
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        const a = document.createElement("a");
+        a.download = `femlab_${Date.now()}.png`;
+        a.href = canvas.toDataURL("image/png");
+        a.click();
+        useStore.getState().setToast("已导出 PNG 图片");
+      };
+      img.onerror = () => useStore.getState().setToast("导出失败: 图片渲染错误", true);
+      img.src = url;
+    } catch (e) {
+      useStore.getState().setToast("导出失败: " + e.message, true);
+    }
+  }
+
   // 首屏自适应 + 尺寸观察
   useEffect(() => {
     const el = wrapRef.current;
@@ -416,6 +460,15 @@ export default function CanvasView() {
       </svg>
 
       {loadDialog && <LoadDialog key={`${loadDialog.node}-${loadDialog.element}`} />}
+
+      {/* 导出图片按钮 */}
+      <button
+        className="btn small export-btn"
+        onClick={exportPng}
+        title="导出画布为 PNG 图片"
+      >
+        📷 导出图片
+      </button>
 
       <div className="canvas-hint">{t(TOOL_HINTS[tool])}</div>
 
