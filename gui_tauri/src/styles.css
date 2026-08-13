@@ -1,5 +1,6 @@
-/* FemLab Studio — 深色工程主题（GUI_REDESIGN_PLAN §4.10） */
-:root {
+/* FemLab Studio — 多主题（GUI_REDESIGN_PLAN §4.10） */
+:root,
+[data-theme="dark"] {
   --bg: #0f1115;
   --panel: #16181d;
   --panel-2: #1d2129;
@@ -11,6 +12,32 @@
   --success: #34d399;
   --orange: #fb923c;
   --mono: "Cascadia Code", Consolas, "Courier New", monospace;
+}
+
+[data-theme="light"] {
+  --bg: #f2f4f8;
+  --panel: #ffffff;
+  --panel-2: #eef1f6;
+  --border: #d8dde6;
+  --text: #1c2333;
+  --muted: #6b7486;
+  --accent: #2f7de1;
+  --error: #d64545;
+  --success: #1d9e6f;
+  --orange: #e07b2f;
+}
+
+[data-theme="ocean"] {
+  --bg: #08141f;
+  --panel: #0d1f2e;
+  --panel-2: #122b3f;
+  --border: #1e3a52;
+  --text: #d8ecf7;
+  --muted: #7fa3b8;
+  --accent: #3ec6ff;
+  --error: #ff7b72;
+  --success: #4ee0a8;
+  --orange: #ffb454;
 }
 
 * {
@@ -463,6 +490,18 @@ body {
   stroke-width: 1;
 }
 
+/* 支座位移箭头 (蓝绿色) */
+.support-move-line {
+  stroke: #34d399;
+  stroke-width: 2;
+}
+
+.support-move-head {
+  fill: #34d399;
+  stroke: #34d399;
+  stroke-width: 1;
+}
+
 .load-label {
   fill: var(--orange);
   font-size: 11px;
@@ -544,6 +583,18 @@ g.selected .constraint {
   font-size: 11px;
   font-family: var(--mono);
   pointer-events: none;
+}
+
+/* 杆件编号 */
+.elem-label {
+  fill: #7c86a0;
+  font-size: 10px;
+  font-family: var(--mono);
+  text-anchor: middle;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(15, 17, 21, 0.9);
+  stroke-width: 3px;
 }
 
 /* 节点位移标注 */
@@ -993,6 +1044,55 @@ g.selected .constraint {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 设置面板 (主题/语言/显示) */
+.settings-panel {
+  position: fixed;
+  top: 52px;
+  right: 14px;
+  z-index: 90;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.45);
+  padding: 12px 14px;
+  width: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.settings-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.settings-options .btn.active {
+  background: rgba(77, 163, 255, 0.25);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.header-actions .btn.active {
+  background: rgba(77, 163, 255, 0.18);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .toast.error {

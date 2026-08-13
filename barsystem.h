@@ -104,6 +104,8 @@ void GKAssembly(int nTotalDOF, int nTotalElem, Element* pElem, Node* pNode, Mate
 bool LDLTSolve(int nRow, int* pDiag, double* pGK, double* pB);
 void FixedEndForceCalcu(Element* pElem, Material* pMate, Section* pSect, Load* pLoad, double* pFixedEndF, int i);
 void LoadVectorAssembly(int nLoad, int nTotalDOF, int nFreeDOF, int* pDiag, double* pGK, Element* pElem, Material* pMate, Section* pSect, Load* pLoad, Node* pNode, double* pLoadVect, double* pDisp);
+void SupportMoveAssembly(int nLoad, int nTotalDOF, int nFreeDOF, int* pDiag, double* pGK,
+                         Load* pLoad, Node* pNode, double* pLoadVect, double* pDisp);
 void ElementEndForceInit(int nTotalElem, Element* pElem);
 double GetElementInGK(int nRow, int iRow, int iCol, int* pDiag, double* pGK);
 void LoadVectorModify(int nTotalDOF, int nFreeDOF, int* pDiag, double* pGK, double*pDisp, double* pLoadVect);

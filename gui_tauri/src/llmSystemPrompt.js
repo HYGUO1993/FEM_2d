@@ -17,6 +17,7 @@ export function buildSystemPrompt(currentModel) {
     { "type": "lateralLinearlyPressure", "direction": "y", "value": -5000.0, "element": 0 },
     { "type": "lateralForce", "direction": "y", "value": -10000.0, "element": 0, "position": 1.0 },
     { "type": "momentOnPoint", "direction": "rz", "value": 5000.0, "node": 1 },
+    { "type": "supportMove", "direction": "y", "value": 0.01, "node": 0 },
     { "type": "temperature", "T0": 20.0, "T1": 20.0 }
   ]
 }`;
@@ -27,7 +28,7 @@ export function buildSystemPrompt(currentModel) {
     + `2. 不要用 markdown 代码块包裹 JSON，直接输出纯 JSON。\n`
     + `3. 字段名必须精确使用 schema 中的名字，不要发明新字段。\n`
     + `4. "constraints" 里 dofs 数组中出现的分量表示该自由度被约束（位移=0）。固定支座写 ["ux","uy","rz"]，铰支写 ["ux","uy"]，竖向滚轴写 ["uy"]。\n`
-    + `5. "loads" 支持多种类型：nodalForce(节点集中力,用 node)、lateralUniformPressure(横向均布,用 element+position=分布长度)、lateralLinearlyPressure(横向线性分布,用 element)、lateralForce(杆上横向集中力,用 element+position)、momentOnPoint(节点弯矩,用 node)、temperature(温度,用 T0/T1 上下表面温变℃)。direction 为 "x"|"y"|"rz"，value 带符号（竖向向下为负, 水平向右为正 x, 向上为正 y）。\n`
+    + `5. "loads" 支持多种类型：nodalForce(节点集中力,用 node)、lateralUniformPressure(横向均布,用 element+position=分布长度)、lateralLinearlyPressure(横向线性分布,用 element)、lateralForce(杆上横向集中力,用 element+position)、momentOnPoint(节点弯矩,用 node)、supportMove(支座位移,用 node+direction+value 米, 仅能加在受约束节点)、temperature(温度,用 T0/T1 上下表面温变℃)。direction 为 "x"|"y"|"rz"，value 带符号（竖向向下为负, 水平向右为正 x, 向上为正 y）。\n`
     + `6. 材料 E 用 Pa 单位（钢约 2.1e11），mu=0.3，alpha=0.0；截面 A 单位 m²，Iz 单位 m⁴。\n`
     + `7. 节点/单元 id 从 0 开始连续编号；单元 section/material 引用对应数组的 id。\n`
     + `8. 【最重要】用户描述的是一个【新结构】时，必须完全按照用户要求的尺寸、跨度、层数、节点数来生成，禁止原样返回"当前画布模型"，禁止漏掉用户提到的构件。\n`

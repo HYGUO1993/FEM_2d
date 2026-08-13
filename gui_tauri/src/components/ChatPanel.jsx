@@ -3,6 +3,7 @@ import { useStore } from "../store.js";
 import * as ipc from "../ipc.js";
 import { buildSystemPrompt } from "../llmSystemPrompt.js";
 import { normalizeModel } from "../model.js";
+import { t } from "../i18n.js";
 
 /** 从 LLM 回复提取 JSON 模型: 取第一个 { 到最后一个 }, 校验是合法模型对象 */
 function extractModelJson(text) {
@@ -116,7 +117,7 @@ export default function ChatPanel() {
   return (
     <div className="pane chat-pane">
       <div className="pane-head">
-        <h3>LLM 建模助手</h3>
+        <h3>{t("llmAssistant")}</h3>
         <button className="btn ghost small" onClick={() => setShowConfig((v) => !v)}>
           设置
         </button>

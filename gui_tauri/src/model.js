@@ -12,6 +12,7 @@ export const LOAD_TYPES = {
   axialForce: "杆件轴向集中力",
   axialPressure: "杆件轴向均布荷载",
   temperature: "温度荷载",
+  supportMove: "支座位移",
 };
 
 export function defaultModel() {

@@ -178,6 +178,26 @@ export function computeLoads(model, view, selection) {
       if (!n) return null;
       const p = P(n.x, n.y);
 
+      // 支座位移: 蓝绿色位移箭头
+      if (ld.type === "supportMove") {
+        let ux = 0;
+        let uy = 0;
+        if (ld.direction === "x") ux = Math.sign(ld.value);
+        else if (ld.direction === "y") uy = -Math.sign(ld.value);
+        else if (ld.direction === "rz") { /* 转动位移: 圆弧 */ }
+        const g = arrowGeom(p.x, p.y - 20, ux, uy, 20);
+        return {
+          ...base,
+          kind: "supportMove",
+          x: p.x,
+          y: p.y - 20,
+          ...g,
+          label: `${ld.value} m`,
+          labelX: p.x + ux * 26 + 6,
+          labelY: p.y - 20 + uy * 26 - 4,
+        };
+      }
+
       if (ld.direction === "rz" || ld.type === "momentOnPoint") {
         const R = 16;
         const aEnd = ((ld.value >= 0 ? 235 : 125) * Math.PI) / 180;

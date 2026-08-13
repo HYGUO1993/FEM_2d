@@ -1,4 +1,5 @@
 import { useStore } from "../store.js";
+import { t } from "../i18n.js";
 
 function fmt(v) {
   if (typeof v !== "number" || Number.isNaN(v)) return String(v);
@@ -20,7 +21,7 @@ export default function ResultsPanel() {
   return (
     <div className="pane results-panel">
       <div className="pane-head">
-        <h3>求解结果</h3>
+        <h3>{t("solveResults")}</h3>
         {solveTime && <span className="muted">{solveTime}s</span>}
       </div>
       <button className="btn primary block" onClick={() => solve()} disabled={solving}>

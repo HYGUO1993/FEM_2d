@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store.js";
 import { screenToWorld, pointSegDist, clamp } from "../canvas/transform.js";
 import { LOAD_TYPES } from "../model.js";
+import { t } from "../i18n.js";
 import {
   computeNodes,
   computeElements,
@@ -16,12 +17,12 @@ const ELEM_HIT = 8;
 const LOAD_HIT = 14;
 
 const TOOL_HINTS = {
-  select: "选择: 点击节点/杆件选中, 拖拽节点移动, 空白拖拽平移",
-  node: "节点: 点击空白处添加节点 (吸附 0.1m)",
-  element: "杆件: 依次点击两个节点创建单元, 点空白取消",
-  load: "荷载: 点击节点设置集中力",
-  constraint: "约束: 点击节点, 在右侧勾选 ux/uy/rz",
-  erase: "删除: 点击荷载/约束/节点/杆件删除",
+  select: "hint.select",
+  node: "hint.node",
+  element: "hint.element",
+  load: "hint.load",
+  constraint: "hint.constraint",
+  erase: "hint.erase",
 };
 
 function svgPointOf(svg, e) {
@@ -41,6 +42,8 @@ export default function CanvasView() {
   const loadDialog = useStore((s) => s.loadDialog);
   // 内力图显示模式: null | "N" | "V" | "M"
   const [diagramMode, setDiagramMode] = useState(null);
+  // 显示选项
+  const displayOptions = useStore((s) => s.displayOptions);
 
   const wrapRef = useRef(null);
   const svgRef = useRef(null);
@@ -274,20 +277,31 @@ export default function CanvasView() {
 
         {/* 杆件 */}
         {elements.map((e) => (
-          <line
-            key={`el-${e.id}`}
-            className={`element ${e.type === "truss" ? "truss" : "frame"} ${
-              e.selected ? "selected" : ""
-            }`}
-            x1={e.x1}
-            y1={e.y1}
-            x2={e.x2}
-            y2={e.y2}
-          />
+          <g key={`el-${e.id}`}>
+            <line
+              className={`element ${e.type === "truss" ? "truss" : "frame"} ${
+                e.selected ? "selected" : ""
+              }`}
+              x1={e.x1}
+              y1={e.y1}
+              x2={e.x2}
+              y2={e.y2}
+            />
+            {displayOptions.elementLabels && (
+              <text
+                className="elem-label"
+                x={(e.x1 + e.x2) / 2}
+                y={(e.y1 + e.y2) / 2 - 6}
+              >
+                {e.id}
+              </text>
+            )}
+          </g>
         ))}
 
         {/* 荷载 */}
-        {loads.map((l) => (
+        {displayOptions.loads &&
+          loads.map((l) => (
           <g key={`ld-${l.id}`} className={l.selected ? "selected" : ""}>
             {l.kind === "rz" && (
               <>
@@ -299,6 +313,12 @@ export default function CanvasView() {
               <>
                 <line className="load-line" x1={l.x} y1={l.y} x2={l.tx} y2={l.ty} />
                 <polygon className="load-head" points={l.arrowPoints} />
+              </>
+            )}
+            {l.kind === "supportMove" && (
+              <>
+                <line className="support-move-line" x1={l.x} y1={l.y} x2={l.tx} y2={l.ty} />
+                <polygon className="support-move-head" points={l.arrowPoints} />
               </>
             )}
             {l.kind === "elemArrow" && (
@@ -331,7 +351,8 @@ export default function CanvasView() {
         ))}
 
         {/* 约束 */}
-        {constraints.map((c) => (
+        {displayOptions.constraints &&
+          constraints.map((c) => (
           <g key={`c-${c.node}`} className={c.selected ? "selected" : ""}>
             {c.hasRz && (
               <circle className="constraint-rz" cx={c.x} cy={c.y} r={7} fill="none" />
@@ -357,9 +378,11 @@ export default function CanvasView() {
               cy={n.cy}
               r={5}
             />
-            <text className="node-label" x={n.cx + 7} y={n.cy - 7}>
-              {n.id}
-            </text>
+            {displayOptions.nodeLabels && (
+              <text className="node-label" x={n.cx + 7} y={n.cy - 7}>
+                {n.id}
+              </text>
+            )}
           </g>
         ))}
 
@@ -394,7 +417,7 @@ export default function CanvasView() {
 
       {loadDialog && <LoadDialog key={`${loadDialog.node}-${loadDialog.element}`} />}
 
-      <div className="canvas-hint">{TOOL_HINTS[tool]}</div>
+      <div className="canvas-hint">{t(TOOL_HINTS[tool])}</div>
 
       {solved && results && (
         <div className="diagram-bar">
@@ -450,7 +473,7 @@ function LoadDialog() {
   if (!dialog) return null;
   const st = useStore.getState();
 
-  const isNodeLoad = type === "nodalForce" || type === "momentOnPoint";
+  const isNodeLoad = type === "nodalForce" || type === "momentOnPoint" || type === "supportMove";
   const isElementLoad = !isNodeLoad; // 单元荷载(含温度)都需要选单元
   const isTemp = type === "temperature";
 
@@ -550,7 +573,11 @@ function LoadDialog() {
       ) : (
         <>
           <label className="field">
-            <span>数值 {isElementLoad ? "(N/m)" : "(N 或 N·m)"}</span>
+            <span>
+              {type === "supportMove"
+                ? "位移值 (m)"
+                : `数值 ${isElementLoad ? "(N/m)" : "(N 或 N·m)"}`}
+            </span>
             <input type="number" value={value} onChange={(e) => setValue(e.target.value)} />
           </label>
           {isElementLoad && (

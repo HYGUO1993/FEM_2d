@@ -134,6 +134,7 @@ function LoadPanel({ id }) {
     axialForce: "杆件轴向集中力",
     axialPressure: "杆件轴向均布荷载",
     temperature: "温度荷载",
+    supportMove: "支座位移",
   };
 
   return (
@@ -175,8 +176,8 @@ function LoadPanel({ id }) {
             <code>{ld.direction}</code>
           </div>
           <div className="readonly-row">
-            <span>数值</span>
-            <code>{fmt(ld.value)}</code>
+            <span>{ld.type === "supportMove" ? "位移值" : "数值"}</span>
+            <code>{fmt(ld.value)} {ld.type === "supportMove" ? "m" : ""}</code>
           </div>
           {ld.position > 0 && (
             <div className="readonly-row">

@@ -47,6 +47,8 @@ bool FemSolveModel(int nTotalNode, int nConstrtainedNode, int nTotalElem,
 	           (writeStiff && stiffPath && stiffPath[0] != '\0') ? stiffPath : "");
 	LoadVectorAssembly(nLoad, nTotalDOF, nFreeDOF, pDiag, pGK, pElem, pMate, pSect,
 	                   pLoad, pNode, pLoadVect, pDisp);
+	// 支座位移(强制位移): 把已知位移 DOF 的等效荷载叠加到自由 DOF, 并记录位移值
+	SupportMoveAssembly(nLoad, nTotalDOF, nFreeDOF, pDiag, pGK, pLoad, pNode, pLoadVect, pDisp);
 
 	bool ok = LDLTSolve(nFreeDOF, pDiag, pGK, pLoadVect);
 	if (!ok) {
@@ -1180,6 +1182,34 @@ void LoadVectorAssembly(int nLoad, int nTotalDOF, int nFreeDOF, int* pDiag, doub
 				int d = dof_map[k];
 				if (d >= 0 && d < nTotalDOF) pLoadVect[d] += fe[k];
 			}
+		}
+	}
+}
+
+/**
+ * 支座位移(强制位移)装配: SUPPORT_MOVE 荷载
+ * 原理: 已知位移 DOF (编号 >= nFreeDOF, 受约束自由度) 施加已知位移 u_c,
+ *       对自由 DOF 的等效荷载: F_i -= K[i][c] * u_c (i 为自由 DOF, c 为约束 DOF)
+ *       求解后 pDisp[c] = u_c (写回已知位移)
+ * 注意: 需在 LDLTSolve 之前调用; pDisp 中约束 DOF 位置预先写入位移值
+ */
+void SupportMoveAssembly(int nLoad, int nTotalDOF, int nFreeDOF, int* pDiag, double* pGK,
+                         Load* pLoad, Node* pNode, double* pLoadVect, double* pDisp)
+{
+	for (int i = 0; i < nLoad; ++i) {
+		if (pLoad[i].iType != SUPPORT_MOVE) continue;
+		int nodeId = pLoad[i].iLoadedNode;
+		int dir = pLoad[i].iDirect;
+		if (nodeId < 0 || dir < 0 || dir >= 3) continue;
+		int c = pNode[nodeId].iaDOFIndex[dir];   // 约束 DOF 编号
+		if (c < nFreeDOF || c >= nTotalDOF) continue; // 必须是约束 DOF
+		double uc = pLoad[i].dValue;             // 已知位移值
+		pDisp[c] = uc;                            // 记录已知位移
+
+		// 对每个自由 DOF f: F[f] -= K[f][c] * uc
+		for (int f = 0; f < nFreeDOF; ++f) {
+			double kfc = GetElementInGK(nTotalDOF, f, c, pDiag, pGK);
+			if (kfc != 0.0) pLoadVect[f] -= kfc * uc;
 		}
 	}
 }

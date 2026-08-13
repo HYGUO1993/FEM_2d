@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useStore } from "../store.js";
 import * as ipc from "../ipc.js";
 import { defaultModel, newEmptyModel } from "../model.js";
+import { t } from "../i18n.js";
 
 export default function Sidebar() {
   const projects = useStore((s) => s.projects);
@@ -159,13 +160,13 @@ export default function Sidebar() {
           className="btn primary block"
           onClick={() => setShowNew((v) => !v)}
         >
-          + 新建项目
+          {t("newProject")}
         </button>
         {showNew && (
           <div className="new-project-row">
             <input
               className="text-input"
-              placeholder="项目名称"
+              placeholder={t("projectName")}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => {
@@ -175,21 +176,21 @@ export default function Sidebar() {
               autoFocus
             />
             <button className="btn small" onClick={handleNew}>
-              创建
+              {t("create")}
             </button>
           </div>
         )}
         <div className="file-actions">
           <button className="btn block" onClick={handleExport} title="将当前模型保存为本地 JSON 文件">
-            保存到本地文件
+            {t("saveLocal")}
           </button>
           <button className="btn block" onClick={handleImport} title="从本地 JSON 文件导入模型">
-            导入本地文件
+            {t("importLocal")}
           </button>
         </div>
       </div>
       <div className="sidebar-list">
-        {projects.length === 0 && <div className="sidebar-empty">暂无项目</div>}
+        {projects.length === 0 && <div className="sidebar-empty">{t("noProjects")}</div>}
         {projects.map((name) => (
           <div
             key={name}
@@ -216,7 +217,7 @@ export default function Sidebar() {
                 <span className="project-ops" onClick={(e) => e.stopPropagation()}>
                   <button
                     className="project-op"
-                    title="改名"
+                    title={t("rename")}
                     onClick={() => {
                       setRenaming(name);
                       setRenameVal(name);
@@ -226,14 +227,14 @@ export default function Sidebar() {
                   </button>
                   <button
                     className="project-op"
-                    title="复制"
+                    title={t("duplicate")}
                     onClick={() => handleDuplicate(name)}
                   >
                     ⧉
                   </button>
                   <button
                     className="project-op del"
-                    title="删除项目"
+                    title={t("delete")}
                     onClick={() => handleDelete(name)}
                   >
                     ✕

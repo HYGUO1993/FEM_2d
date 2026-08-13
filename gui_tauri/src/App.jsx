@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Sidebar from "./components/Sidebar.jsx";
 import CanvasView from "./components/CanvasView.jsx";
 import Toolbar from "./components/Toolbar.jsx";
@@ -8,6 +8,7 @@ import ChatPanel from "./components/ChatPanel.jsx";
 import { useStore } from "./store.js";
 import * as ipc from "./ipc.js";
 import { defaultModel, validateModel, modelSummary } from "./model.js";
+import { t } from "./i18n.js";
 
 // 拖拽分隔条: 通过 onDelta(dx) 回调上报鼠标横向位移
 function SplitHandle({ onDelta }) {
@@ -62,6 +63,13 @@ export default function App() {
   const setLlmPosition = useStore((s) => s.setLlmPosition);
   const canUndo = useStore((s) => s.past.length > 0);
   const canRedo = useStore((s) => s.future.length > 0);
+  const theme = useStore((s) => s.theme);
+  const lang = useStore((s) => s.lang);
+  const displayOptions = useStore((s) => s.displayOptions);
+  const setTheme = useStore((s) => s.setTheme);
+  const setLang = useStore((s) => s.setLang);
+  const setDisplayOption = useStore((s) => s.setDisplayOption);
+  const [showSettings, setShowSettings] = useState(false);
 
   // 启动初始化: 拉项目列表 + LLM 配置 + 加载最近项目
   useEffect(() => {
@@ -172,6 +180,13 @@ export default function App() {
         </div>
         <div className="header-actions">
           <button
+            className={`btn ghost ${showSettings ? "active" : ""}`}
+            onClick={() => setShowSettings((v) => !v)}
+            title={t("display")}
+          >
+            ⚙ {t("display")}
+          </button>
+          <button
             className="btn ghost"
             onClick={() => setLlmPosition(llmPosition === "right" ? "bottom" : "right")}
             title="切换 LLM 对话位置"
@@ -249,6 +264,64 @@ export default function App() {
       </footer>
 
       {toast && <div className={`toast ${toast.isError ? "error" : ""}`}>{toast.msg}</div>}
+
+      {showSettings && (
+        <div className="settings-panel">
+          <div className="settings-group">
+            <div className="settings-label">{t("theme")}</div>
+            <div className="settings-options">
+              {[
+                ["dark", t("theme.dark")],
+                ["light", t("theme.light")],
+                ["ocean", t("theme.ocean")],
+              ].map(([id, label]) => (
+                <button
+                  key={id}
+                  className={`btn small ${theme === id ? "active" : ""}`}
+                  onClick={() => setTheme(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="settings-group">
+            <div className="settings-label">{t("language")}</div>
+            <div className="settings-options">
+              {[
+                ["zh", "中文"],
+                ["en", "English"],
+              ].map(([id, label]) => (
+                <button
+                  key={id}
+                  className={`btn small ${lang === id ? "active" : ""}`}
+                  onClick={() => setLang(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="settings-group">
+            <div className="settings-label">{t("display")}</div>
+            {[
+              ["nodeLabels", t("display.nodeLabels"), true],
+              ["elementLabels", t("display.elementLabels"), false],
+              ["loads", t("display.loads"), true],
+              ["constraints", t("display.constraints"), true],
+            ].map(([key, label]) => (
+              <label key={key} className="check-row">
+                <input
+                  type="checkbox"
+                  checked={displayOptions[key]}
+                  onChange={(e) => setDisplayOption(key, e.target.checked)}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

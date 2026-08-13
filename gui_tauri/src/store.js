@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { defaultModel, newEmptyModel, nextId, validateModel } from "./model.js";
 import { estimateDeformScale } from "./canvas/render.js";
 import * as ipc from "./ipc.js";
+import { setLang as applyI18nLang } from "./i18n.js";
 
 let toastTimer = null;
 
@@ -40,6 +41,15 @@ const initialState = {
   sidebarWidth: savedUi?.sidebarWidth ?? 240, // 左栏宽 px
   rightWidth: savedUi?.rightWidth ?? 320,     // 右栏宽 px
   llmPosition: savedUi?.llmPosition ?? "right", // "right" | "bottom"
+  // —— 主题 / 语言 / 显示选项 ——
+  theme: savedUi?.theme ?? "dark", // dark | light | ocean
+  lang: savedUi?.lang ?? "zh",     // zh | en
+  displayOptions: {
+    nodeLabels: savedUi?.displayOptions?.nodeLabels ?? true,
+    elementLabels: savedUi?.displayOptions?.elementLabels ?? false,
+    loads: savedUi?.displayOptions?.loads ?? true,
+    constraints: savedUi?.displayOptions?.constraints ?? true,
+  },
 };
 
 const HISTORY_LIMIT = 50;
@@ -344,6 +354,40 @@ export const useStore = create((set, get) => ({
       localStorage.setItem(
         "femlab_ui",
         JSON.stringify({ sidebarWidth: get().sidebarWidth, rightWidth: get().rightWidth, llmPosition: pos })
+      );
+    } catch {}
+  },
+
+  // —— 主题 / 语言 / 显示 ——
+  setTheme: (theme) => {
+    set({ theme });
+    document.documentElement.setAttribute("data-theme", theme);
+    try {
+      const s = get();
+      localStorage.setItem(
+        "femlab_ui",
+        JSON.stringify({ ...savedUi, sidebarWidth: s.sidebarWidth, rightWidth: s.rightWidth, llmPosition: s.llmPosition, theme, lang: s.lang, displayOptions: s.displayOptions })
+      );
+    } catch {}
+  },
+  setLang: (lang) => {
+    set({ lang });
+    applyI18nLang(lang);
+    try {
+      const s = get();
+      localStorage.setItem(
+        "femlab_ui",
+        JSON.stringify({ ...savedUi, sidebarWidth: s.sidebarWidth, rightWidth: s.rightWidth, llmPosition: s.llmPosition, theme: s.theme, lang, displayOptions: s.displayOptions })
+      );
+    } catch {}
+  },
+  setDisplayOption: (key, val) => {
+    set((s) => ({ displayOptions: { ...s.displayOptions, [key]: val } }));
+    try {
+      const s = get();
+      localStorage.setItem(
+        "femlab_ui",
+        JSON.stringify({ ...savedUi, sidebarWidth: s.sidebarWidth, rightWidth: s.rightWidth, llmPosition: s.llmPosition, theme: s.theme, lang: s.lang, displayOptions: s.displayOptions })
       );
     } catch {}
   },

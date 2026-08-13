@@ -1,0 +1,52 @@
+name: Tauri Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'app-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Tauri App (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: gui_tauri/package-lock.json
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: gui_tauri/src-tauri
+
+      - name: Install frontend deps
+        run: npm ci
+        working-directory: gui_tauri
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: gui_tauri
+
+      - name: Build Tauri app (MSI + NSIS)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: gui_tauri
+          tagName: ${{ github.ref_name }}
+          releaseName: "FemLab Studio ${{ github.ref_name }}"
+          releaseBody: "FemLab Studio 桌面应用自动构建版。详见 RELEASE_NOTES.md。"
+          releaseDraft: true
+          prerelease: false
