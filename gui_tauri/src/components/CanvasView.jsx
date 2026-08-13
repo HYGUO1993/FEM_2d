@@ -3,6 +3,7 @@ import { useStore } from "../store.js";
 import { screenToWorld, pointSegDist, clamp } from "../canvas/transform.js";
 import { LOAD_TYPES } from "../model.js";
 import { t } from "../i18n.js";
+import * as ipc from "../ipc.js";
 import {
   computeNodes,
   computeElements,
