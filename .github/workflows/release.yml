@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'fem-v*'
 
 permissions:
   contents: write
