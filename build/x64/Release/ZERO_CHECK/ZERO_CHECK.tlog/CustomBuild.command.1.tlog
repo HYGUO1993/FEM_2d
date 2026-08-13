@@ -1,0 +1,10 @@
+^C:\USERS\GUOHO\WORKBUDDY\2026-08-12-18-25-32\FEM_2D\BUILD\CMAKEFILES\C86C67541FCF6A2594E4FD8A930C88F4\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/guoho/WorkBuddy/2026-08-12-18-25-32/FEM_2d -BC:/Users/guoho/WorkBuddy/2026-08-12-18-25-32/FEM_2d/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/guoho/WorkBuddy/2026-08-12-18-25-32/FEM_2d/build/FEM_2d.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -99,6 +99,7 @@ export default function ResultsPanel() {
 
           {/* 端力 */}
           <h4 className="sub-heading">杆端力 (局部: N 轴力, V 剪力, M 弯矩)</h4>
+          <p className="hint">弯矩正负: M_i 逆时针为正; 画图时正弯矩在杆件上侧(受拉侧)。M 图跨节点连续。</p>
           <table className="res-table">
             <thead>
               <tr>

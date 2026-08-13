@@ -403,26 +403,28 @@ export default function CanvasView() {
 
             {c.kind === "fixed" && (
               <>
-                {/* 固定端: 斜线填充方块 + 地面 */}
-                <polygon className="constraint-fixed-hatch" points={c.hatchPts} />
-                <line className="constraint-ground" x1={c.x - c.half} y1={c.groundY} x2={c.x + c.half} y2={c.groundY} />
+                {/* 固定端: 横线 + 三条斜线 (教材标准) */}
+                <line className="constraint-bar" x1={c.barX1} y1={c.barY} x2={c.barX2} y2={c.barY} />
+                <line className="constraint-slant" x1={c.barX1} y1={c.barY} x2={c.pinX1} y2={c.barY + c.slantH} />
+                <line className="constraint-slant" x1={c.x} y1={c.barY} x2={c.x} y2={c.barY + c.slantH} />
+                <line className="constraint-slant" x1={c.barX2} y1={c.barY} x2={c.pinX2} y2={c.barY + c.slantH} />
               </>
             )}
 
             {(c.kind === "pinned" || c.kind === "roller" || c.kind === "rollerX" || c.kind === "partial") && (
               <>
-                {/* 铰支/滚轴: 三角 */}
-                <polygon
-                  className={`constraint ${c.kind === "pinned" ? "pinned" : "roller"}`}
-                  points={c.triPts}
-                />
+                {/* 铰链: 上部连接线 + 两圆 + 中间细线 */}
+                <line className="constraint-bar" x1={c.pinX1} y1={c.linkY} x2={c.pinX2} y2={c.linkY} />
+                <circle className="constraint-pin" cx={c.pinX1} cy={c.pinY} r={c.pinR} fill="none" />
+                <circle className="constraint-pin" cx={c.pinX2} cy={c.pinY} r={c.pinR} fill="none" />
+                <line className="constraint-bar" x1={c.pinX1} y1={c.pinY} x2={c.pinX2} y2={c.pinY} />
                 {/* 地面线 */}
-                <line className="constraint-ground" x1={c.x - c.half - 4} y1={c.groundY} x2={c.x + c.half + 4} y2={c.groundY} />
-                {/* 滚轮 (活动铰): 两个小圆 */}
+                <line className="constraint-ground" x1={c.pinX1 - c.pinR - 4} y1={c.groundY} x2={c.pinX2 + c.pinR + 4} y2={c.groundY} />
+                {/* 滚轮 (活动铰): 两圆下方再画滚轮圆 */}
                 {c.kind === "roller" && (
                   <>
-                    <circle className="constraint-roller-dot" cx={c.rollerX1} cy={c.rollerY} r={3} />
-                    <circle className="constraint-roller-dot" cx={c.rollerX2} cy={c.rollerY} r={3} />
+                    <circle className="constraint-roller-dot" cx={c.pinX1} cy={c.rollerY} r={3} />
+                    <circle className="constraint-roller-dot" cx={c.pinX2} cy={c.rollerY} r={3} />
                   </>
                 )}
               </>

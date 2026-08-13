@@ -287,35 +287,49 @@ export function computeConstraints(model, view, selection) {
       else if (hasRz && !hasUx && !hasUy) kind = "rzOnly"; // 仅转角约束
       else kind = "partial";                              // 其它组合
 
-      const h = 11;
-      const half = 9;
-      const y = p.y + 9;
-      const base = p.y + 22;
+      const h = 11;      // 支座高度
+      const half = 9;    // 半宽
+      const y = p.y + 9; // 支座顶部(紧贴节点下方)
 
-      // 三角支座 (铰支/滚轴): 尖朝上, 底在 ground 线
-      const triPts = `${p.x},${y} ${p.x - half},${base} ${p.x + half},${base}`;
-      // 固定端: 底部斜线填充 (教材画法)
-      const hatchPts = `${p.x - half},${base} ${p.x + half},${base} ${p.x + half},${base + 8} ${p.x - half},${base + 8}`;
+      // —— 固定端(固支): 垂直杆件一条横线, 横线下三条斜线 ——
+      const barY = y;                    // 横线(与杆件连接处)
+      const barX1 = p.x - half;
+      const barX2 = p.x + half;
+      // 三条斜线: 从横线向下斜向展开
+      const slantH = 10;
+      const slantW = 7;
+      const slantPts1 = `${barX1},${barY} ${p.x - slantW},${barY + slantH}`;
+      const slantPts2 = `${p.x},${barY} ${p.x},${barY + slantH}`;
+      const slantPts3 = `${barX2},${barY} ${p.x + slantW},${barY + slantH}`;
+
+      // —— 铰链符号: 两边圆圈中间细线相连 ——
+      const pinY = y + 6;                // 铰链中心
+      const pinR = 5;                    // 圆半径
+      const pinGap = 8;                  // 两圆间距
+      const pinX1 = p.x - pinGap;
+      const pinX2 = p.x + pinGap;
+      const linkY = y + 2;               // 上部连接线(与杆件)
 
       return {
         node: c.node,
         dofs: c.dofs,
         x: p.x,
         y,
-        h,
-        half,
         kind,
         hasUx,
         hasUy,
         hasRz,
-        triPts,
-        hatchPts,
-        groundY: base,
-        // 滚轮 (活动铰): 两个小圆
-        rollerX1: p.x - 5,
-        rollerX2: p.x + 5,
-        rollerY: base + 5,
-        // rz 转角约束: 小圆弧
+        // 固定端几何
+        barY, barX1, barX2,
+        slantH, slantW,
+        slantPts1, slantPts2, slantPts3,
+        // 铰链几何
+        pinY, pinR, pinX1, pinX2, linkY,
+        // 地面线 (铰支/滚轴下方)
+        groundY: pinY + pinR + 4,
+        // 滚轮 (滚轴支座): 两个小圆
+        rollerY: pinY + pinR + 4,
+        // rz 转角约束圆弧
         rzArc: hasRz ? `M ${p.x - 8},${p.y + 2} A 8,8 0 0 1 ${p.x + 8},${p.y + 2}` : null,
         selected: selection && selection.type === "constraint" && selection.id === c.node,
       };
@@ -367,22 +381,30 @@ export function estimateDeformScale(model, results) {
 /**
  * 内力图: 在杆件上叠加 N/V/M 图 (局部坐标端力 → 屏幕偏移折线)
  * kind: "N" | "V" | "M"
- * 每根杆: 局部端值 fI, fJ → 垂直杆轴偏移(米) → 屏幕折线
- * N 图沿杆轴方向偏移(画在杆两侧), V/M 垂直杆轴偏移(画在杆一侧, 正负分侧)
+ *
+ * 符号约定（结构力学惯例）:
+ *  - 弯矩 M: 取「节点弯矩」连续值 —— i 端用 M_i, j 端用 -M_j
+ *    (局部端力 M_i/M_j 符号相反, 直接画会在节点处断裂;
+ *     统一为 i 端视角后, 共享节点处相邻单元连续)
+ *    正弯矩画在杆轴上方(受拉侧), 负弯矩画在下方
+ *  - 剪力 V: 两端同号(局部 V_i ≈ V_j 恒定), 直接画, 正负分侧
+ *  - 轴力 N: 两端同号, 直接画, 正负分侧
+ *
+ * 偏移方向: 屏幕垂直向量取 (-uy, ux) → 世界坐标 y 向上翻转后,
+ *           正偏移在屏幕上表现为向杆轴一侧平移, 符号由 M 约定统一。
  */
 export function computeForceDiagram(model, results, kind, view) {
   if (!results || !Array.isArray(results.endForces)) return [];
   const byId = new Map((model.nodes || []).map((n) => [n.id, n]));
   const forceById = new Map(results.endForces.map((f) => [f.element, f]));
-  const pickSide = (f) => (kind === "N" ? "N" : kind === "V" ? "V" : "M");
 
   // 全局最大 |值| 用于归一化
   let maxVal = 1e-9;
-  const side = pickSide(null);
   for (const f of results.endForces) {
     const ni = f.nodeI || {};
     const nj = f.nodeJ || {};
-    maxVal = Math.max(maxVal, Math.abs(ni[side] || 0), Math.abs(nj[side] || 0));
+    maxVal = Math.max(maxVal, Math.abs(ni.N || 0), Math.abs(ni.V || 0), Math.abs(ni.M || 0),
+                               Math.abs(nj.N || 0), Math.abs(nj.V || 0), Math.abs(nj.M || 0));
   }
 
   const out = [];
@@ -398,17 +420,33 @@ export function computeForceDiagram(model, results, kind, view) {
     const len = Math.hypot(dx, dy) || 1e-9;
     const ux = dx / len;
     const uy = dy / len;
-    // 垂直方向: 屏幕 y 向下, 世界 y 向上 → 取 (uy, -ux), 使正 V/M 画在视觉上方
-    const nx = uy;
-    const ny = -ux;
+
+    // 垂直方向 (世界坐标, 单位向量):
+    // 取 (-uy, ux) —— 对水平杆(uy=0)为 (0,1), 即世界 y 正方向(屏幕上方)
+    // worldToScreen 翻转 y: 世界 +y → 屏幕上方 ✓
+    const nx = -uy;
+    const ny = ux;
 
     // 偏移量(世界单位, 米): 最大偏移 = 0.25 * 杆长
     const amp = 0.25 * len;
     const k = amp / maxVal;
+
     const ni = f.nodeI || {};
     const nj = f.nodeJ || {};
-    const fI = ni[side] || 0;
-    const fJ = nj[side] || 0;
+
+    // 节点连续值: M 用 (M_i, -M_j); N/V 用原值
+    let fI, fJ;
+    if (kind === "M") {
+      fI = ni.M || 0;
+      fJ = -(nj.M || 0);
+    } else if (kind === "V") {
+      fI = ni.V || 0;
+      fJ = nj.V || 0;
+    } else {
+      fI = ni.N || 0;
+      fJ = nj.N || 0;
+    }
+
     const oI = fI * k;
     const oJ = fJ * k;
 

@@ -544,25 +544,22 @@ g.selected .load-head {
 }
 
 /* 约束 */
-.constraint {
-  fill: #3b82f6;
-  stroke: #3b82f6;
-  stroke-width: 1;
-}
-
-.constraint.pinned {
-  fill: #3b82f6;
+.constraint-bar {
   stroke: #3b82f6;
   stroke-width: 1.5;
 }
 
-.constraint.roller {
-  fill: rgba(59, 130, 246, 0.25);
+.constraint-slant {
   stroke: #3b82f6;
   stroke-width: 1.5;
 }
 
-/* 固定端斜线填充 */
+.constraint-pin {
+  stroke: #3b82f6;
+  stroke-width: 1.5;
+}
+
+/* 固定端斜线填充 (备用) */
 .constraint-fixed-hatch {
   fill: none;
   stroke: #3b82f6;

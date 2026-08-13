@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\guoho\WorkBuddy\2026-08-12-18-25-32\FEM_2d\build\CMakeFiles\c86c67541fcf6a2594e4fd8a930c88f4\RUN_TESTS_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{31B23A07-7143-3E6C-B65C-E11E6DE0F68E}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
