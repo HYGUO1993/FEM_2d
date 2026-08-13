@@ -203,9 +203,12 @@ const dict = {
   "results.maxLabel": { zh: "max|{k}| (单元{e})", en: "max|{k}| (elem {e})" },
 
   // ChatPanel / LLM
-  "chat.placeholder": { zh: "描述你的结构模型…", en: "Describe your structure…" },
+  "chat.placeholder": { zh: "描述你的结构模型… (输入 /help 查看教程)", en: "Describe your structure… (/help for guide)" },
   "chat.send": { zh: "发送", en: "Send" },
-  "chat.example": { zh: "用自然语言描述结构模型, 例如: 「一根 2m 的简支梁, 跨中施加 10kN 竖向向下荷载」。", en: "Describe a structure in natural language, e.g. \"A 2m simply supported beam with a 10kN downward load at mid-span\"." },
+  "chat.example": {
+    zh: "🤖 我是结构力学建模 Agent，可以用自然语言帮你完成：\n\n① 建模：直接描述结构 → 我生成模型并应用\n　例：「建立 3x3 框架，每跨 1000mm，每层水平荷载 10kN」\n② 修改：在现有模型上调整\n　例：「把荷载改成 20kN」「加一层」\n③ 求解与解读：自动求解并汇报关键内力\n　例：「求一下支座反力」「最大弯矩在哪」\n\n📌 使用提示：\n· 描述尽量包含尺寸、跨度、层数、荷载大小与方向\n· 单位可用 mm / kN（我会自动换算）\n· 输入 /help 可查看命令与内置教程工程\n· 输入 /new 新建空白项目\n\n试试直接说：「建一个 2m 简支梁，跨中 10kN 竖向荷载」",
+    en: "🤖 I'm the structural modeling Agent. I can help you in natural language:\n\n① Modeling: describe a structure → I generate & apply it\n　e.g. \"Build a 3x3 frame, 1000mm per bay, 10kN lateral load per floor\"\n② Editing: adjust the current model\n　e.g. \"Change the load to 20kN\" \"Add one more story\"\n③ Solving & explanation: auto-solve and report key forces\n　e.g. \"What are the support reactions?\" \"Where is the max moment?\"\n\n📌 Tips:\n· Include dimensions, spans, stories, load values & directions\n· Units: mm / kN are fine (I'll convert)\n· Type /help for commands & built-in tutorial projects\n· Type /new to create a blank project\n\nTry: \"Build a 2m simply supported beam with a 10kN mid-span load\""
+  },
   "chat.needsConfig": { zh: "请先点击「设置」配置 base_url / api_key / model。", en: "Please configure base_url / api_key / model in Settings first." },
   "chat.sameModel": { zh: "⚠️ 模型似乎与当前画布完全相同 —— LLM 可能没有按你的要求生成新模型，请重新描述需求，或先新建一个空白项目再提问。", en: "⚠️ The model seems identical to the current canvas — the LLM may not have generated a new model per your request. Please re-describe, or start a new project first." },
   "chat.requestFailed": { zh: "请求失败: {msg}", en: "Request failed: {msg}" },
