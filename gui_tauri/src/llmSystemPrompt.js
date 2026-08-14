@@ -37,8 +37,10 @@ export function buildSystemPrompt(currentModel) {
     + `11. 如果用户要求"截面随机定"或未指定截面/材料，使用 schema 中示例的钢截面即可（A=0.01, Iz=1e-5, E=2.1e11）。\n\n`
     + `模型 schema：\n${schema}\n`;
 
-  if (currentModel) {
+  if (currentModel && (currentModel.nodes || []).length >= 2 && (currentModel.elements || []).length >= 1) {
     prompt += `\n【参考】当前画布模型 JSON —— 仅供结构形式参考，若用户要求新结构则必须生成全新模型，不要直接复制它：\n${JSON.stringify(currentModel, null, 2)}\n`;
+  } else {
+    prompt += `\n【参考】当前画布模型为空或未完成（${(currentModel?.nodes || []).length} 节点 / ${(currentModel?.elements || []).length} 单元），按用户要求从零生成完整模型。\n`;
   }
   return prompt;
 }
@@ -58,17 +60,28 @@ export function buildAgentSystemPrompt(currentModel) {
     + `建模规则：\n`
     + `- 用户描述新结构时，必须完全按要求的尺寸/跨度/层数/节点数生成，禁止原样返回当前画布模型。\n`
     + `- 单位换算：mm→m（1000mm=1.0m），kN→N（10kN=10000N）。\n`
-    + `- 网格框架（如 3x3）：3 跨 × 3 层 = 4×4 共 16 节点，每跨/层 1000mm=1.0m，水平/竖向杆件相连，支座设在底层柱脚。\n`
+    + `- 【网格框架生成规则(重要, 按此公式精确生成)】n跨×m层框架 = (n+1)×(m+1) 个节点：\n`
+    + `  节点 id = 层号*(n+1) + 列号, 坐标 x=列号*跨度, y=层号*层高(第0层在最底)。\n`
+    + `  例如 3跨×3层: 16 个节点 (id 0..15), 层/跨各 1.0m。\n`
+    + `  单元: 每层 n 根水平杆 (连接同层相邻列), 每列 m 根竖杆 (连接同列相邻层), 共 n*(m+1)+m*(n+1) 根, id 从 0 连续编号。\n`
+    + `  3跨×3层: 3*4+3*4=24 根单元。5跨×5层: 5*6+5*6=60 根。\n`
+    + `  支座: 底层 (n+1) 个柱脚节点全部约束 ["ux","uy"] (铰支)。\n`
+    + `  水平荷载加在各层柱顶节点 (direction "x"), 竖向荷载加在梁节点 (direction "y", 向下为负)。\n`
     + `- 荷载类型：nodalForce(节点力,node)、lateralUniformPressure(横向均布,element+position)、lateralLinearlyPressure(线性分布,element)、lateralForce(杆上集中力,element+position)、momentOnPoint(节点弯矩,node)、supportMove(支座位移,node,仅受约束节点)、temperature(T0/T1)。direction 为 x|y|rz，value 带符号。\n`
     + `- 材料 E 用 Pa（钢约 2.1e11），截面 A 用 m²，Iz 用 m⁴；未指定时用 A=0.01, Iz=1e-5, E=2.1e11。\n`
     + `- 节点/单元 id 从 0 连续编号。\n`
+    + `- 【JSON 输出要求】生成模型后必须: 1) 不省略任何节点/单元(数量必须与公式一致); 2) 不用 markdown 代码块包裹; 3) 输出完整 JSON, 不要用省略号或"..."。\n`
     + `- 若求解失败（如约束不足），修改模型后重试，最多 2 次。\n\n`
     + `回复要求：\n`
     + `- 最终回复使用与用户相同的语言（中文或英文），简明扼要，可含关键数值。\n`
-    + `- 每一步工具调用前后无需向用户复述，只在任务完成或需要用户决策时汇报。\n`;
+    + `- 每一步工具调用前后无需向用户复述，只在任务完成或需要用户决策时汇报。\n\n`
+    + `格式参照(2跨×2层框架的完整合法 JSON, 生成其他网格时按上述公式扩展此模式):\n`
+    + `{\n  "schemaVersion": "1.0", "title": "2x2框架", "solver": "builtin",\n  "nodes": [\n    {"id": 0, "type": "frame", "x": 0, "y": 0}, {"id": 1, "type": "frame", "x": 1, "y": 0}, {"id": 2, "type": "frame", "x": 2, "y": 0},\n    {"id": 3, "type": "frame", "x": 0, "y": 1}, {"id": 4, "type": "frame", "x": 1, "y": 1}, {"id": 5, "type": "frame", "x": 2, "y": 1},\n    {"id": 6, "type": "frame", "x": 0, "y": 2}, {"id": 7, "type": "frame", "x": 1, "y": 2}, {"id": 8, "type": "frame", "x": 2, "y": 2}\n  ],\n  "constraints": [{"node": 0, "dofs": ["ux","uy"]}, {"node": 1, "dofs": ["ux","uy"]}, {"node": 2, "dofs": ["ux","uy"]}],\n  "elements": [\n    {"id": 0, "type": "frame", "nodeI": 0, "nodeJ": 1, "section": 0, "material": 0}, {"id": 1, "type": "frame", "nodeI": 1, "nodeJ": 2, "section": 0, "material": 0},\n    {"id": 2, "type": "frame", "nodeI": 3, "nodeJ": 4, "section": 0, "material": 0}, {"id": 3, "type": "frame", "nodeI": 4, "nodeJ": 5, "section": 0, "material": 0},\n    {"id": 4, "type": "frame", "nodeI": 6, "nodeJ": 7, "section": 0, "material": 0}, {"id": 5, "type": "frame", "nodeI": 7, "nodeJ": 8, "section": 0, "material": 0},\n    {"id": 6, "type": "frame", "nodeI": 0, "nodeJ": 3, "section": 0, "material": 0}, {"id": 7, "type": "frame", "nodeI": 3, "nodeJ": 6, "section": 0, "material": 0},\n    {"id": 8, "type": "frame", "nodeI": 1, "nodeJ": 4, "section": 0, "material": 0}, {"id": 9, "type": "frame", "nodeI": 4, "nodeJ": 7, "section": 0, "material": 0},\n    {"id": 10, "type": "frame", "nodeI": 2, "nodeJ": 5, "section": 0, "material": 0}, {"id": 11, "type": "frame", "nodeI": 5, "nodeJ": 8, "section": 0, "material": 0}\n  ],\n  "materials": [{"id": 0, "E": 210000000000, "mu": 0.3, "alpha": 0}],\n  "sections": [{"id": 0, "A": 0.01, "Iz": 1e-5, "height": 0.2}],\n  "loads": [{"type": "nodalForce", "direction": "x", "value": 10000, "node": 6}]\n}\n`;
 
-  if (currentModel) {
-    prompt += `\n当前画布模型 JSON（参考）：\n${JSON.stringify(currentModel, null, 2)}\n`;
+  if (currentModel && (currentModel.nodes || []).length >= 2 && (currentModel.elements || []).length >= 1) {
+    prompt += `\n当前画布模型 JSON（参考，仅作格式参考，若用户要求新结构必须生成全新模型）：\n${JSON.stringify(currentModel, null, 2)}\n`;
+  } else {
+    prompt += `\n当前画布模型为空或未完成（${(currentModel?.nodes || []).length} 节点 / ${(currentModel?.elements || []).length} 单元），按用户要求从零生成完整模型。\n`;
   }
   return prompt;
 }

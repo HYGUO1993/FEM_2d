@@ -96,14 +96,56 @@ export function summarizeResults(results) {
   };
 }
 
+// —— JSON 容错解析: 修复 LLM 输出的常见小错 (markdown 包裹/尾逗号/缺尾括号/截断) ——
+export function parseModelJson(text) {
+  if (typeof text !== "string") return null;
+  let s = text.trim();
+  // 1. 剥 markdown 代码块 ```json ... ```
+  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fence) s = fence[1].trim();
+  // 2. 尝试直接解析
+  try {
+    return JSON.parse(s);
+  } catch {
+    /* 继续容错 */
+  }
+  // 3. 去掉首尾非 JSON 内容 (取第一个 { 到最后一个 })
+  const start = s.indexOf("{");
+  const end = s.lastIndexOf("}");
+  if (start >= 0 && end > start) s = s.slice(start, end + 1);
+  // 4. 修尾逗号 (},] 前多余的逗号)
+  s = s.replace(/,\s*([}\]])/g, "$1");
+  // 5. 补缺的右括号 (数左/右括号差)
+  for (let i = 0; i < 8; i++) {
+    try {
+      return JSON.parse(s);
+    } catch {
+      /* 尝试补一个括号 */
+    }
+    const open = (s.match(/{/g) || []).length;
+    const close = (s.match(/}/g) || []).length;
+    if (open > close) s += "}";
+    else if (open < close) break;
+    else break;
+  }
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
 // —— 工具执行器 (前端 store 直接操作) ——
 async function executeTool(name, args, st, onStep) {
   switch (name) {
     case "get_current_model":
       return JSON.stringify(st.model);
     case "validate_model": {
-      const m = JSON.parse(args.model || "{}");
-      return validateModel(m) || "OK: 模型有效";
+      const m = parseModelJson(args.model);
+      if (!m) return `模型 JSON 解析失败: 不是合法的 JSON (请输出完整无省略的 JSON, 不要用 markdown 代码块或省略号)`;
+      const err = validateModel(m);
+      if (err) return `校验失败: ${err} (生成后请核对节点/单元数量是否与公式一致)`;
+      return `OK: 模型有效 (${m.nodes.length} 节点 / ${m.elements.length} 单元 / ${(m.constraints || []).length} 约束 / ${(m.loads || []).length} 荷载)`;
     }
     case "solve": {
       const res = await st.solve();
@@ -112,7 +154,8 @@ async function executeTool(name, args, st, onStep) {
     case "get_result_summary":
       return JSON.stringify(summarizeResults(st.results));
     case "apply_model": {
-      const m = JSON.parse(args.model || "{}");
+      const m = parseModelJson(args.model);
+      if (!m) return `模型 JSON 解析失败: 不是合法的 JSON`;
       st.setModel(m);
       st.setTool("select");
       st.resetView();
