@@ -133,7 +133,15 @@ fn llm_chat(config: LlmConfig, messages: Vec<ChatMessage>) -> Result<String, Str
         .set("Authorization", &format!("Bearer {}", config.api_key))
         .set("Content-Type", "application/json")
         .send_json(&body)
-        .map_err(|e| format!("LLM 请求失败: {e}"))?;
+        .map_err(|e| match e {
+            // 非 2xx: 附上响应体, 便于定位 400/401 的具体原因
+            ureq::Error::Status(code, resp) => {
+                let text = resp.into_string().unwrap_or_default();
+                let snippet: String = text.chars().take(400).collect();
+                format!("LLM 请求失败: HTTP {code}: {snippet}")
+            }
+            other => format!("LLM 请求失败: {other}"),
+        })?;
 
     let value: serde_json::Value = response
         .into_json()
@@ -168,7 +176,15 @@ fn llm_chat_tools(
         .set("Authorization", &format!("Bearer {}", config.api_key))
         .set("Content-Type", "application/json")
         .send_json(&body)
-        .map_err(|e| format!("LLM 请求失败: {e}"))?;
+        .map_err(|e| match e {
+            // 非 2xx: 附上响应体, 便于定位 400/401 的具体原因
+            ureq::Error::Status(code, resp) => {
+                let text = resp.into_string().unwrap_or_default();
+                let snippet: String = text.chars().take(400).collect();
+                format!("LLM 请求失败: HTTP {code}: {snippet}")
+            }
+            other => format!("LLM 请求失败: {other}"),
+        })?;
 
     let value: serde_json::Value = response
         .into_json()

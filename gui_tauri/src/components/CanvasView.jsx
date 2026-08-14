@@ -49,6 +49,9 @@ export default function CanvasView() {
   const loadDialog = useStore((s) => s.loadDialog);
   // 内力图显示模式: null | "N" | "V" | "M" | "D"(挠度/变形图)
   const [diagramMode, setDiagramMode] = useState(null);
+  // CAD 式坐标输入 (节点工具)
+  const [nodeCoord, setNodeCoord] = useState("");
+  const [coordError, setCoordError] = useState("");
   // 显示选项
   const displayOptions = useStore((s) => s.displayOptions);
 
@@ -174,6 +177,38 @@ export default function CanvasView() {
       if (Math.abs(sx - c.x) <= 12 && sy >= c.y - 6 && sy <= c.y + c.h + 10) return c;
     }
     return null;
+  }
+
+  // —— CAD 式坐标创建节点: 支持 "x,y" / "x y" / "1000,500mm"(mm 自动换算米) ——
+  function createNodeByCoord() {
+    const text = nodeCoord.trim();
+    if (!text) return;
+    let s = text.toLowerCase().replace(/,/g, " ");
+    const isMm = s.endsWith("mm");
+    if (isMm) s = s.slice(0, -2).trim();
+    const parts = s.split(/\s+/).filter(Boolean);
+    if (parts.length !== 2) {
+      setCoordError(t("canvas.nodeCoordFmt"));
+      return;
+    }
+    const x = Number(parts[0]);
+    const y = Number(parts[1]);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      setCoordError(t("canvas.nodeCoordFmt"));
+      return;
+    }
+    const fx = isMm ? x / 1000 : x;
+    const fy = isMm ? y / 1000 : y;
+    const dup = (model.nodes || []).some(
+      (n) => Math.abs(n.x - fx) < 1e-9 && Math.abs(n.y - fy) < 1e-9
+    );
+    if (dup) {
+      setCoordError(t("canvas.nodeCoordDup", { x: fx, y: fy }));
+      return;
+    }
+    useStore.getState().addNode(Number(fx.toFixed(4)), Number(fy.toFixed(4)));
+    setNodeCoord("");
+    setCoordError("");
   }
 
   function onMouseDown(e) {
@@ -513,6 +548,27 @@ export default function CanvasView() {
       </button>
 
       <div className="canvas-hint">{t(TOOL_HINTS[tool])}</div>
+
+      {/* CAD 式节点坐标输入 (节点工具时显示) */}
+      {tool === "node" && (
+        <div className="node-coord-bar">
+          <input
+            className="node-coord-input"
+            value={nodeCoord}
+            onChange={(e) => setNodeCoord(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") createNodeByCoord();
+              if (e.key === "Escape") {
+                setNodeCoord("");
+                setCoordError("");
+              }
+            }}
+            placeholder={t("canvas.nodeCoordPlaceholder")}
+            spellCheck={false}
+          />
+          {coordError && <span className="node-coord-error">{coordError}</span>}
+        </div>
+      )}
 
       {solved && results && (
         <div className="diagram-bar">

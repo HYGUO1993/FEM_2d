@@ -75,7 +75,7 @@ export default function ChatPanel() {  const chatMessages = useStore((s) => s.ch
     const system = { role: "system", content: buildAgentSystemPrompt(st.model) };
     const history = st.chatMessages.slice(-10).map((m) => ({
       role: m.role === "user" ? "user" : "assistant",
-      content: m.content,
+      content: typeof m.content === "string" ? m.content : "",
     }));
     const messages = [system, ...history, { role: "user", content: text }];
     const reply = await agentLoop({

@@ -151,7 +151,13 @@ export async function agentLoop({ config, messages, onStep }) {
     }
 
     // 有工具调用 → 逐条执行
-    msgs.push(reply);
+    // 清洗 assistant 消息: 只保留 OpenAI 兼容字段 (剥离 reasoning_content 等推理模型特有字段,
+    // 部分 API 不接受回传; content 补空串防 null)
+    msgs.push({
+      role: reply.role || "assistant",
+      content: typeof reply.content === "string" ? reply.content : "",
+      tool_calls: reply.tool_calls,
+    });
     for (const tc of toolCalls) {
       const fn = tc.function || {};
       const name = fn.name || "";
