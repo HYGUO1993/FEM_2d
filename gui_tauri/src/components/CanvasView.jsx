@@ -266,7 +266,23 @@ export default function CanvasView() {
       if (n) st.setLoadDialog({ node: n.id, element: -1 });
       else {
         const el = hitElement(sx, sy);
-        if (el) st.setLoadDialog({ node: -1, element: el.id });
+        if (el) {
+          // 计算点击位置沿杆轴的投影 (距 nodeI 的米数) → 预填"杆件横向集中力"的位置
+          const me = (model.elements || []).find((e) => e.id === el.id);
+          const a = me ? (model.nodes || []).find((n) => n.id === me.nodeI) : null;
+          const b = me ? (model.nodes || []).find((n) => n.id === me.nodeJ) : null;
+          if (a && b) {
+            const w = screenToWorld(sx, sy, v);
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const len = Math.hypot(dx, dy) || 1e-9;
+            const t = ((w.x - a.x) * dx + (w.y - a.y) * dy) / (len * len);
+            const pos = Math.max(0, Math.min(len, t * len));
+            st.setLoadDialog({ node: -1, element: el.id, position: Number(pos.toFixed(3)) });
+          } else {
+            st.setLoadDialog({ node: -1, element: el.id });
+          }
+        }
       }
       return;
     }
@@ -617,14 +633,18 @@ export default function CanvasView() {
 function LoadDialog() {
   const dialog = useStore((s) => s.loadDialog);
   const model = useStore((s) => s.model);
-  // 从杆件打开 → 默认单元荷载; 从节点打开 → 默认节点集中力
+  // 从杆件打开 → 默认单元荷载; 点了杆件上具体位置 → 默认"杆件横向集中力"并预填位置
   const [type, setType] = useState(
-    dialog && dialog.element >= 0 ? "lateralUniformPressure" : "nodalForce"
+    dialog && dialog.element >= 0
+      ? dialog.position != null
+        ? "lateralForce"
+        : "lateralUniformPressure"
+      : "nodalForce"
   );
   const [direction, setDirection] = useState("y");
   const [value, setValue] = useState("-10000");
   const [element, setElement] = useState(dialog && dialog.element >= 0 ? String(dialog.element) : "0");
-  const [position, setPosition] = useState("1");
+  const [position, setPosition] = useState(dialog && dialog.position != null ? String(dialog.position) : "1");
   const [T0, setT0] = useState("0");
   const [T1, setT1] = useState("0");
 
