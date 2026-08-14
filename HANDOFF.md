@@ -113,8 +113,8 @@ cargo tauri build --debug   # 调试 exe (快速迭代)
 - `lateralForce` 杆件横向集中力（element+position）
 - `lateralUniformPressure` 横向均布（element+position=作用长度）
 - `lateralLinearlyPressure` 横向线性分布（element）
-- `momentOnPoint` 节点弯矩（node）
-- `axialForce` / `axialPressure` 轴向力/均布
+- `momentOnPoint` 节点弯矩（node；⚠️ 曾因求解器按 element 处理而崩溃，2026-08 已修）
+- `axialForce` / `axialPressure` 轴向力/均布（element+position；⚠️ 曾被求解器静默忽略，2026-08 已实现 FEF）
 - `temperature` 温度（T0/T1）
 - `supportMove` 支座位移（node，仅受约束节点）
 
@@ -132,6 +132,16 @@ cargo tauri build --debug   # 调试 exe (快速迭代)
 - `femcli.cpp`：JSON CLI（`solve`/`validate`），**MSVC /MT 静态链接**（仅依赖 KERNEL32.dll）
 - 测试：`ctest --test-dir build -C Release`（unit_tests）、`python verify/verify_femcli.py`（golden 回归，输入在 `tests/golden/inputs/`）
   - ⚠️ `verify/golden_generate.py` 是独立 Python 参考求解器，曾含与 C++ 相同的 LDLT 回代 bug（`z[j]`→`x[j]`，2026-08 已修并重新生成 golden.json）；改它后必须重跑 `python verify/golden_generate.py`
+  - 求解器对照：`python verify/compare_femcli_ref.py <model.json>...`（femcli vs 独立参考，逐项 maxdiff）
+  - 前端渲染测试：`node gui_tauri/scripts-test/render_check.mjs`（内力分布公式/反弯点/变形图几何）
+
+### 5.1 内力图渲染（重要，勿回退）
+- `gui_tauri/src/canvas/render.js` `computeForceDiagram` 按单元荷载**精确绘制杆内分布**：
+  `V(x)=V_i+Σq·x`、`M(x)=M_i-V_i·x-Σq·x²/2`（j 端自动等于 -M_j，跨节点连续）
+  ——均布荷载下剪力线性、弯矩抛物线（含反弯点），曾误画为"杆内恒定 V_i + 端值直线"。
+- `computeDeformed` 用 Hermite 三次插值（节点 rz 转角）画真实弯曲变形，勿改回直线。
+- 符号约定：弯矩 M_i 逆时针为正（CCW, y 向上），局部 x' 沿杆轴、y' 左侧法向；
+  荷载 value 为局部带符号值（与 `FixedEndForceCalcu` 一致）。
 
 ---
 
@@ -162,6 +172,9 @@ cargo tauri build --debug   # 调试 exe (快速迭代)
 7. **版本号三处同步**：`tauri.conf.json` / `Cargo.toml` / `package.json`。
 8. **CI**：`ci.yml`（C++ 构建）绿；`release.yml` 触发 `fem-v*`（勿用 `v*`，与 Tauri 发布冲突）；
    `tauri-release.yml` 触发 `app-v*`（Tauri 自动发布，尚未实测）。
+9. **桁架节点 rz**：truss 节点无转角自由度，`DOFIndexCalcu` 会把 `iaDOFIndex[2]` 置 -1
+   （曾遗留 0 → femcli 结果 JSON 中 truss 节点 rz 输出自由度 0 的位移垃圾值，2026-08 已修）；
+   改动 DOF 编号后必须重跑 `verify/compare_femcli_ref.py`（含 truss_bridge 等桁架案例）。
 
 ---
 

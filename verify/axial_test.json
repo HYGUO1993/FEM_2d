@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0",
+  "title": "悬臂梁 - 轴向集中力 + 轴向均布",
+  "solver": "builtin",
+  "nodes": [
+    { "id": 0, "type": "frame", "x": 0, "y": 0 },
+    { "id": 1, "type": "frame", "x": 4, "y": 0 }
+  ],
+  "constraints": [
+    { "node": 0, "dofs": ["ux", "uy", "rz"] }
+  ],
+  "elements": [
+    { "id": 0, "type": "frame", "nodeI": 0, "nodeJ": 1, "section": 0, "material": 0 }
+  ],
+  "materials": [
+    { "id": 0, "E": 210000000000, "mu": 0.3, "alpha": 0 }
+  ],
+  "sections": [
+    { "id": 0, "A": 0.02, "Iz": 0.0008, "height": 0.4 }
+  ],
+  "loads": [
+    { "type": "axialForce", "direction": "x", "value": 100000, "node": -1, "element": 0, "position": 4, "T0": 0, "T1": 0 },
+    { "type": "axialPressure", "direction": "x", "value": 20000, "node": -1, "element": 0, "position": 4, "T0": 0, "T1": 0 }
+  ]
+}

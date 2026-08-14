@@ -253,9 +253,9 @@ static json BuildResultJson(int nTotalNode, int nCons, int nElem,
 	for (int i = 0; i < nTotalNode; ++i) {
 		json d;
 		d["node"] = i;
-		d["ux"] = pDisp[nodes[i].iaDOFIndex[0]];
-		d["uy"] = pDisp[nodes[i].iaDOFIndex[1]];
-		d["rz"] = pDisp[nodes[i].iaDOFIndex[2]];
+		d["ux"] = (nodes[i].iaDOFIndex[0] >= 0) ? pDisp[nodes[i].iaDOFIndex[0]] : 0.0;
+		d["uy"] = (nodes[i].iaDOFIndex[1] >= 0) ? pDisp[nodes[i].iaDOFIndex[1]] : 0.0;
+		d["rz"] = (nodes[i].iaDOFIndex[2] >= 0) ? pDisp[nodes[i].iaDOFIndex[2]] : 0.0;  // 桁架节点无转角 → 0
 		disps.push_back(d);
 	}
 	out["displacements"] = disps;
@@ -281,9 +281,9 @@ static json BuildResultJson(int nTotalNode, int nCons, int nElem,
 	for (int i = 0; i < nCons; ++i) {
 		json r;
 		r["node"] = cons[i].iNode;
-		r["ux"] = (cons[i].iaConstrainedDOF[0] < 0) ? pLoadVect[nodes[cons[i].iNode].iaDOFIndex[0]] : 0.0;
-		r["uy"] = (cons[i].iaConstrainedDOF[1] < 0) ? pLoadVect[nodes[cons[i].iNode].iaDOFIndex[1]] : 0.0;
-		r["rz"] = (cons[i].iaConstrainedDOF[2] < 0) ? pLoadVect[nodes[cons[i].iNode].iaDOFIndex[2]] : 0.0;
+		r["ux"] = (cons[i].iaConstrainedDOF[0] < 0 && nodes[cons[i].iNode].iaDOFIndex[0] >= 0) ? pLoadVect[nodes[cons[i].iNode].iaDOFIndex[0]] : 0.0;
+		r["uy"] = (cons[i].iaConstrainedDOF[1] < 0 && nodes[cons[i].iNode].iaDOFIndex[1] >= 0) ? pLoadVect[nodes[cons[i].iNode].iaDOFIndex[1]] : 0.0;
+		r["rz"] = (cons[i].iaConstrainedDOF[2] < 0 && nodes[cons[i].iNode].iaDOFIndex[2] >= 0) ? pLoadVect[nodes[cons[i].iNode].iaDOFIndex[2]] : 0.0;
 		reacs.push_back(r);
 	}
 	out["reactions"] = reacs;

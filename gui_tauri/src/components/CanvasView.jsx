@@ -314,9 +314,9 @@ export default function CanvasView() {
         onMouseLeave={endDrag}
         onContextMenu={(e) => e.preventDefault()}
       >
-        {/* 变形图（红色虚线, 最底层） */}
-        {deformed.map((d, i) => (
-          <line key={`def-${i}`} className="deformed" x1={d.x1} y1={d.y1} x2={d.x2} y2={d.y2} />
+        {/* 变形图（红色虚线, 最底层, Hermite 三次插值曲线） */}
+        {deformed.map((d) => (
+          <path key={d.key} className="deformed" d={d.d} fill="none" />
         ))}
 
         {/* 内力图（N/V/M, 叠加在杆件下层） */}

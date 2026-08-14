@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0",
+  "title": "门式刚架 - 梁上均布荷载 (反弯点验证)",
+  "solver": "builtin",
+  "nodes": [
+    { "id": 0, "type": "frame", "x": 0, "y": 0 },
+    { "id": 1, "type": "frame", "x": 6, "y": 0 },
+    { "id": 2, "type": "frame", "x": 0, "y": 4 },
+    { "id": 3, "type": "frame", "x": 6, "y": 4 }
+  ],
+  "constraints": [
+    { "node": 0, "dofs": ["ux", "uy"] },
+    { "node": 1, "dofs": ["ux", "uy"] }
+  ],
+  "elements": [
+    { "id": 0, "type": "frame", "nodeI": 0, "nodeJ": 2, "section": 0, "material": 0 },
+    { "id": 1, "type": "frame", "nodeI": 1, "nodeJ": 3, "section": 0, "material": 0 },
+    { "id": 2, "type": "frame", "nodeI": 2, "nodeJ": 3, "section": 0, "material": 0 }
+  ],
+  "materials": [
+    { "id": 0, "E": 210000000000, "mu": 0.3, "alpha": 0 }
+  ],
+  "sections": [
+    { "id": 0, "A": 0.02, "Iz": 0.0008, "height": 0.4 }
+  ],
+  "loads": [
+    { "type": "lateralUniformPressure", "direction": "y", "value": -20000, "node": -1, "element": 2, "position": 6, "T0": 0, "T1": 0 }
+  ]
+}

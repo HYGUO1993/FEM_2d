@@ -1,0 +1,50 @@
+{
+  "displacements": [
+    {
+      "node": 0,
+      "rz": 0.0,
+      "ux": 0.0,
+      "uy": 0.0
+    },
+    {
+      "node": 1,
+      "rz": 0.00011904761904761905,
+      "ux": 0.0,
+      "uy": 0.0002380952380952381
+    }
+  ],
+  "endForces": [
+    {
+      "element": 0,
+      "nodeI": {
+        "M": -5000.0,
+        "N": 0.0,
+        "V": 0.0
+      },
+      "nodeJ": {
+        "M": 5000.0,
+        "N": 0.0,
+        "V": 0.0
+      },
+      "type": "frame"
+    }
+  ],
+  "message": "求解完成",
+  "reactions": [
+    {
+      "node": 0,
+      "rz": -5000.0,
+      "ux": 0.0,
+      "uy": 0.0
+    }
+  ],
+  "schemaVersion": "1.0",
+  "solver": "builtin",
+  "stats": {
+    "elementCount": 1,
+    "freeDOF": 3,
+    "nodeCount": 2,
+    "totalDOF": 6
+  },
+  "status": "ok"
+}

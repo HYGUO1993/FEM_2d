@@ -342,27 +342,61 @@ export function computeConstraints(model, view, selection) {
     .filter(Boolean);
 }
 
-/** 变形图: newPos = pos + u*deformScale, 红色虚线叠加 */
+/**
+ * 变形图: 沿杆件用 Hermite 三次插值 (利用节点位移 ux/uy + 转角 rz),
+ * 画出真实弯曲形状 (直线连接会丢失均布荷载下的挠曲形态)。
+ * 局部坐标: x' 沿杆轴, y' 左侧法向; rz = dv/dx' (小变形)。
+ * 返回 {key, d} 路径, 由 CanvasView 渲染为 <path>。
+ */
 export function computeDeformed(model, results, deformScale, view) {
   if (!results || !Array.isArray(results.displacements)) return [];
   const disp = new Map(results.displacements.map((d) => [d.node, d]));
   const byId = new Map((model.nodes || []).map((n) => [n.id, n]));
-  return (model.elements || [])
-    .map((e) => {
-      const a = byId.get(e.nodeI);
-      const b = byId.get(e.nodeJ);
-      if (!a || !b) return null;
-      const da = disp.get(e.nodeI);
-      const db = disp.get(e.nodeJ);
-      const ax = a.x + (da ? (da.ux || 0) * deformScale : 0);
-      const ay = a.y + (da ? (da.uy || 0) * deformScale : 0);
-      const bx = b.x + (db ? (db.ux || 0) * deformScale : 0);
-      const by = b.y + (db ? (db.uy || 0) * deformScale : 0);
-      const pa = worldToScreen(ax, ay, view);
-      const pb = worldToScreen(bx, by, view);
-      return { x1: pa.x, y1: pa.y, x2: pb.x, y2: pb.y };
-    })
-    .filter(Boolean);
+  const SEG = 12;
+  const out = [];
+  for (const e of model.elements || []) {
+    const a = byId.get(e.nodeI);
+    const b = byId.get(e.nodeJ);
+    if (!a || !b) continue;
+    const da = disp.get(e.nodeI);
+    const db = disp.get(e.nodeJ);
+    const uxa = da ? (da.ux || 0) * deformScale : 0;
+    const uya = da ? (da.uy || 0) * deformScale : 0;
+    const rza = da ? da.rz || 0 : 0;
+    const uxb = db ? (db.ux || 0) * deformScale : 0;
+    const uyb = db ? (db.uy || 0) * deformScale : 0;
+    const rzb = db ? db.rz || 0 : 0;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.hypot(dx, dy) || 1e-9;
+    const c = dx / len;
+    const s = dy / len;
+    // 局部位移 (i/j 端): 轴向 u、横向 v、斜率 dv/dt = rz*deformScale*len
+    const ua = c * uxa + s * uya;
+    const va = -s * uxa + c * uya;
+    const ub = c * uxb + s * uyb;
+    const vb = -s * uxb + c * uyb;
+    const ta = rza * deformScale * len;
+    const tb = rzb * deformScale * len;
+    const pts = [];
+    for (let k = 0; k <= SEG; k++) {
+      const t = k / SEG;
+      const t2 = t * t;
+      const t3 = t2 * t;
+      const h00 = 2 * t3 - 3 * t2 + 1;
+      const h10 = t3 - 2 * t2 + t;
+      const h01 = -2 * t3 + 3 * t2;
+      const h11 = t3 - t2;
+      const ux = ua + (ub - ua) * t; // 轴向线性
+      const v = h00 * va + h10 * ta + h01 * vb + h11 * tb; // 横向 Hermite
+      const wx = a.x + (t * len + ux) * c + v * -s;
+      const wy = a.y + (t * len + ux) * s + v * c;
+      const p = worldToScreen(wx, wy, view);
+      pts.push(`${p.x},${p.y}`);
+    }
+    out.push({ key: `def-${e.id}`, d: `M ${pts.join(" L ")}` });
+  }
+  return out;
 }
 
 /** 自动估算变形倍率: 0.15*span/max|u|; max|u|=0 时返回 0 */
@@ -384,87 +418,127 @@ export function estimateDeformScale(model, results) {
 }
 
 /**
- * 内力图: 在杆件上叠加 N/V/M 图 (局部坐标端力 → 屏幕偏移折线)
+ * 内力图: 按单元荷载精确绘制杆内 N/V/M 分布 (不再线性直连两端)。
  * kind: "N" | "V" | "M"
  *
- * 符号约定（结构力学惯例）:
- *  - 弯矩 M: 取「节点弯矩」连续值 —— i 端用 M_i, j 端用 -M_j
- *    (局部端力 M_i/M_j 符号相反, 直接画会在节点处断裂;
- *     统一为 i 端视角后, 共享节点处相邻单元连续)
- *    正弯矩画在杆轴上方(受拉侧), 负弯矩画在下方
- *  - 剪力 V: 两端同号(局部 V_i ≈ V_j 恒定), 直接画, 正负分侧
- *  - 轴力 N: 两端同号, 直接画, 正负分侧
- *
- * 偏移方向: 屏幕垂直向量取 (-uy, ux) → 世界坐标 y 向上翻转后,
- *           正偏移在屏幕上表现为向杆轴一侧平移, 符号由 M 约定统一。
+ * 符号约定（与求解器端力一致, 局部坐标 x' 沿杆轴, y' 左侧法向）:
+ *  - M: i 端取 M_i, 杆内 M(x) = M_i - V_i·x - Σ(荷载弯矩贡献), j 端自动等于 -M_j
+ *    (代数恒等: M(L) = -M_j), 跨节点连续
+ *  - V: V(x) = V_i + Σ(荷载剪力贡献), j 端自动等于 -V_j
+ *  - N: N(x) = N_i + Σ(轴向荷载贡献)
+ * 荷载贡献 (value 为局部坐标带符号值, 与 FixedEndForceCalcu 同约定):
+ *  - lateralUniformPressure q: V += q·x, M += q·x²/2  (x 截断于作用长度 a)
+ *  - lateralForce P@a:        V += P·[x≥a], M += P·(x-a)·[x≥a]
+ *  - lateralLinearlyPressure 0→q: V += q·x²/2a, M += q·x³/6a
+ *  - axialPressure q:         N += q·x
+ *  - axialForce P@a:          N += P·[x≥a]
+ * 正弯矩画在杆轴上方(受拉侧), 负画下方; V/N 正负分侧。
  */
+export function loadContribAt(loads, len, x) {
+  let V = 0;
+  let M = 0;
+  let N = 0;
+  for (const ld of loads) {
+    const a = ld.position || 0;
+    if (ld.type === "lateralUniformPressure") {
+      const aa = a <= 0 || a >= len ? len : Math.min(a, len);
+      const xx = Math.min(x, aa);
+      V += ld.value * xx;
+      M += (ld.value * xx * xx) / 2;
+    } else if (ld.type === "lateralForce") {
+      if (x >= a) {
+        V += ld.value;
+        M += ld.value * (x - a);
+      }
+    } else if (ld.type === "lateralLinearlyPressure") {
+      const aa = a <= 0 || a >= len ? len : Math.min(a, len);
+      const xx = Math.min(x, aa);
+      V += (ld.value * xx * xx) / (2 * aa);
+      M += (ld.value * xx * xx * xx) / (6 * aa);
+    } else if (ld.type === "axialPressure") {
+      const aa = a <= 0 || a >= len ? len : Math.min(a, len);
+      N += ld.value * Math.min(x, aa);
+    } else if (ld.type === "axialForce") {
+      if (x >= a) N += ld.value;
+    }
+  }
+  return { V, M, N };
+}
+
 export function computeForceDiagram(model, results, kind, view) {
   if (!results || !Array.isArray(results.endForces)) return [];
   const byId = new Map((model.nodes || []).map((n) => [n.id, n]));
   const forceById = new Map(results.endForces.map((f) => [f.element, f]));
-
-  // 全局最大 |值| 用于归一化
-  let maxVal = 1e-9;
-  for (const f of results.endForces) {
-    const ni = f.nodeI || {};
-    const nj = f.nodeJ || {};
-    maxVal = Math.max(maxVal, Math.abs(ni.N || 0), Math.abs(ni.V || 0), Math.abs(ni.M || 0),
-                               Math.abs(nj.N || 0), Math.abs(nj.V || 0), Math.abs(nj.M || 0));
+  const loadsByElem = new Map();
+  for (const ld of model.loads || []) {
+    if (ld.element == null || ld.element < 0) continue;
+    if (!loadsByElem.has(ld.element)) loadsByElem.set(ld.element, []);
+    loadsByElem.get(ld.element).push(ld);
   }
 
-  const out = [];
+  // —— 1) 逐单元采样内力分布 ——
+  const segs = [];
+  let maxVal = 1e-9;
   for (const el of model.elements || []) {
     const a = byId.get(el.nodeI);
     const b = byId.get(el.nodeJ);
     const f = forceById.get(el.id);
     if (!a || !b || !f) continue;
-
-    // 杆轴方向 (世界坐标)
     const dx = b.x - a.x;
     const dy = b.y - a.y;
     const len = Math.hypot(dx, dy) || 1e-9;
-    const ux = dx / len;
-    const uy = dy / len;
-
-    // 垂直方向 (世界坐标, 单位向量):
-    // 取 (-uy, ux) —— 对水平杆(uy=0)为 (0,1), 即世界 y 正方向(屏幕上方)
-    // worldToScreen 翻转 y: 世界 +y → 屏幕上方 ✓
-    const nx = -uy;
-    const ny = ux;
-
-    // 偏移量(世界单位, 米): 最大偏移 = 0.25 * 杆长
-    const amp = 0.25 * len;
-    const k = amp / maxVal;
-
+    const loads = loadsByElem.get(el.id) || [];
     const ni = f.nodeI || {};
     const nj = f.nodeJ || {};
+    const Mi = ni.M || 0;
+    const Vi = ni.V || 0;
+    const Ni = ni.N || 0;
 
-    // 节点连续值:
-    //  M 图: (M_i, -M_j) — 统一 i 端视角, 跨节点连续
-    //  V 图: (V_i, V_i) — 局部 V_j = -V_i(杆端方向相反), 杆内剪力恒定取 V_i
-    //  N 图: (N_i, N_i) — 杆内轴力恒定取 N_i
-    let fI, fJ;
-    if (kind === "M") {
-      fI = ni.M || 0;
-      fJ = -(nj.M || 0);
-    } else if (kind === "V") {
-      fI = ni.V || 0;
-      fJ = ni.V || 0;
-    } else {
-      fI = ni.N || 0;
-      fJ = ni.N || 0;
+    // 采样位置: 端点 + 集中荷载位置(剪/轴力跳变) + 均匀细分
+    const xs = [0, len];
+    for (const ld of loads) {
+      if ((ld.type === "lateralForce" || ld.type === "axialForce") && ld.position > 0 && ld.position < len) {
+        xs.push(ld.position);
+      }
     }
+    const SEG = 16;
+    for (let k = 1; k < SEG; k++) xs.push((len * k) / SEG);
+    xs.sort((p, q) => p - q);
 
-    const oI = fI * k;
-    const oJ = fJ * k;
+    const pts = [];
+    let lastX = -1;
+    for (const x of xs) {
+      if (x === lastX) continue;
+      lastX = x;
+      const cc = loadContribAt(loads, len, x);
+      let v;
+      if (kind === "M") v = Mi - Vi * x - cc.M;
+      else if (kind === "V") v = Vi + cc.V;
+      else v = Ni + cc.N;
+      maxVal = Math.max(maxVal, Math.abs(v));
+      pts.push({ x, v });
+    }
+    segs.push({ el, a, b, len, pts });
+  }
 
-    // 折线采样: 直线段两端的屏幕点
-    const pI = worldToScreen(a.x + nx * oI, a.y + ny * oI, view);
-    const pJ = worldToScreen(b.x + nx * oJ, b.y + ny * oJ, view);
-    out.push({
-      key: `fg-${kind}-${el.id}`,
-      d: `M ${pI.x},${pI.y} L ${pJ.x},${pJ.y}`,
-    });
+  // —— 2) 归一化并映射到屏幕 ——
+  const out = [];
+  for (const seg of segs) {
+    const { el, a, b, len, pts } = seg;
+    const ux = (b.x - a.x) / len;
+    const uy = (b.y - a.y) / len;
+    const nx = -uy; // 杆轴法向 (世界), 正偏移 → 杆轴一侧
+    const ny = ux;
+    const k = (0.25 * len) / maxVal;
+    const d =
+      "M " +
+      pts
+        .map((p) => {
+          const s = worldToScreen(a.x + nx * p.v * k, a.y + ny * p.v * k, view);
+          return `${s.x},${s.y}`;
+        })
+        .join(" L ");
+    out.push({ key: `fg-${kind}-${el.id}`, d, maxVal, samples: pts });
   }
   return out;
 }

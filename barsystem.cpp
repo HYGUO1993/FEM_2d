@@ -662,9 +662,11 @@ void GKAssembly(int nTotalDOF, int nTotalElem, Element* pElem, Node* pNode, Mate
 			for(i=0;i<6;i++)
 			{
 				GKi = iaDOFIndex[i];
+				if (GKi < 0) continue;   // 防御: 桁架节点(-1)挂刚架单元时跳过该行
 				for(j=0;j<6;j++)
 				{
 					GKj = iaDOFIndex[j];
+					if (GKj < 0) continue;
 					if(GKi>=GKj)
 					{
 						GKij = pDiag[GKi] - GKi + GKj;
@@ -777,6 +779,8 @@ bool LDLTSolve(int nRow, int* pDiag, double* pGK, double* pB)
  *       LATERAL_UNIFORM_PRESSURE(3, 满跨均布, a=总分布长度/位置)
  *       MOMENT_ON_A_POINT(4, 集中力矩)
  *       LATERAL_LINEARLY_PRESSURE(5, 线性分布, a=荷载作用长度)
+ *       AXIAL_PRESSURE(6, 轴向均布, a=作用长度, 沿局部 +x)
+ *       AXIAL_FORCE(7, 轴向集中力, a=距i端距离, 沿局部 +x)
  *       TEMPERATURE(9, 温度: dT0=上表面温变, dT1=下表面温变)
  * 注意：iDirect 为 0(X)/1(Y)/2(R)，对横向荷载用 1(Y 向局部)。
  */
@@ -825,6 +829,23 @@ void FixedEndForceCalcu(Element* pElem, Material* pMate, Section* pSect, Load* p
 			ds = qa * da / 6.0;
 			pFixedEndF[2] = -ds * (6.0 - 8.0 * dc + 3.0 * dg);
 			pFixedEndF[5] = ds * dc * (4.0 - 3.0 * dc);
+		}
+		break;
+	case AXIAL_FORCE:        // 轴向集中力 P（沿局部 +x 为正），距 i 端 a
+		{
+			double db = dl - da;
+			pFixedEndF[0] = -dQ * db / dl;   // N_i
+			pFixedEndF[3] = -dQ * da / dl;   // N_j
+		}
+		break;
+	case AXIAL_PRESSURE:     // 轴向均布 q（沿局部 +x 为正），a=作用长度(从 i 端)
+		if (da <= 0.0 || da >= dl) {          // 满跨
+			pFixedEndF[0] = -dQ * dl * 0.5;
+			pFixedEndF[3] = -dQ * dl * 0.5;
+		} else {                              // 部分均布(从 i 端起 a)
+			double qa = dQ * da;
+			pFixedEndF[0] = -qa * (dl - da * 0.5) / dl;   // N_i
+			pFixedEndF[3] = -qa * da * 0.5 / dl;          // N_j
 		}
 		break;
 	case MOMENT_ON_A_POINT:    // 集中力矩 M（垂直于平面），距 i 端 a
@@ -939,6 +960,11 @@ int DOFIndexCalcu(int & iBuf0, int nTotalNode, int nConstrainedNode, Constrained
 				}
 		}
 	}
+	// 桁架节点无转角自由度: 置 -1, 防止按自由度 0 误读
+	// (此前 iaDOFIndex[2] 遗留 0, 导致 femcli 结果 JSON 中 truss 节点 rz 输出自由度 0 的位移)
+	for (i = 0; i < nTotalNode; i++)
+		if ((pNode + i)->iType != FRAME_NODE)
+			(pNode + i)->iaDOFIndex[2] = -1;
 	return iBuf;
 }
 
@@ -1005,6 +1031,7 @@ void BandAndDiagCalcu(int nTotalElem, int nTotalDOF, Element* pElem, int** pElem
 		if ((pElem + i)->iType == TRUSS) {
 			for (j = 0; j < 4; j++) {
 				iDOFIndex = pElemDOF[i][j];
+				if (iDOFIndex < 0) continue;   // 防御: 桁架节点挂刚架单元
 				iBuf = iDOFIndex - iMiniDOF + 1;				//计算半带宽
 
 				if (iBuf > pDiag[iDOFIndex])
@@ -1014,6 +1041,7 @@ void BandAndDiagCalcu(int nTotalElem, int nTotalDOF, Element* pElem, int** pElem
 		else {
 			for (j = 0; j < 6; j++) {
 				iDOFIndex = pElemDOF[i][j];
+				if (iDOFIndex < 0) continue;   // 防御: 桁架节点挂刚架单元
 				iBuf = iDOFIndex - iMiniDOF + 1;				//计算半带宽
 				if (iBuf > pDiag[iDOFIndex])
 					pDiag[iDOFIndex] = iBuf;
@@ -1149,16 +1177,23 @@ void LoadVectorAssembly(int nLoad, int nTotalDOF, int nFreeDOF, int* pDiag, doub
 					pLoadVect[dof] += pLoad[i].dValue;
 				}
 			}
+		} else if (type == MOMENT_ON_A_POINT && pLoad[i].iLoadedNode >= 0) {
+			// 节点弯矩 (JSON/GUI/LLM: momentOnPoint 用 node 字段) → 直接叠加到节点 rz 自由度
+			int nodeId = pLoad[i].iLoadedNode;
+			int dof = pNode[nodeId].iaDOFIndex[2];
+			if (dof >= 0 && dof < nTotalDOF) pLoadVect[dof] += pLoad[i].dValue;
 		} else if (type == LATERAL_FORCE || type == LATERAL_UNIFORM_PRESSURE ||
 		           type == MOMENT_ON_A_POINT || type == LATERAL_LINEARLY_PRESSURE ||
+		           type == AXIAL_FORCE || type == AXIAL_PRESSURE ||
 		           type == TEMPERATURE) {
 			// 单元荷载：固端力法。计算固定端反力 FEF（局部坐标），
 			// 等效节点荷载 = -FEF，转整体坐标后叠加到两端节点自由度。
 			int eid = pLoad[i].iLoadedElem;
+			if (eid < 0) continue;   // 防御: 无有效单元(如节点弯矩已走上方分支)
 			double FEF[6] = {0,0,0,0,0,0};
 			FixedEndForceCalcu(pElem, pMate, pSect, &pLoad[i], FEF, eid);
-			// 保存到单元（供 InternalForceCalcu 叠加）
-			for (int k = 0; k < 6; ++k) pElem[eid].daFixedEndForce[k] = FEF[k];
+			// 累加到单元（供 InternalForceCalcu 叠加）——同一单元多个单元荷载时勿覆盖
+			for (int k = 0; k < 6; ++k) pElem[eid].daFixedEndForce[k] += FEF[k];
 
 			int n0 = pElem[eid].iaNode[0], n1 = pElem[eid].iaNode[1];
 			double c = pElem[eid].dCos, s = pElem[eid].dSin;
