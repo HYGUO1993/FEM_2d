@@ -10,7 +10,7 @@
 - **求解核心**：C++11（`barsystem.cpp` / `femcli.cpp`）
 - **LLM 助手**：OpenAI 兼容 API（deepseek 等），工具调用式 Agent
 
-当前版本：**v0.3.0**（GitHub Release 已发布，NSIS 安装包）
+当前版本：**v0.3.1**（GitHub Release 已发布，NSIS 安装包）
 仓库：https://github.com/HYGUO1993/femlab-studio
 
 ---
