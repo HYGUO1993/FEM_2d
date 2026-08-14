@@ -117,7 +117,7 @@ def ldlt_solve(A, b):
     x = [0.0]*n
     for i in range(n-1, -1, -1):
         s = z[i]
-        for j in range(i+1, n): s -= L[j][i]*z[j]
+        for j in range(i+1, n): s -= L[j][i]*x[j]
         x[i] = s
     return x
 
@@ -221,10 +221,10 @@ def solve_case(case_path):
 
 # ---------------------------------------------------------------- main
 cases = [
-    ("cantilever_frame", "test05.txt"),
-    ("simply_supported_beam", "test_beam.txt"),
-    ("triangle_truss", "test_triangle.txt"),
-    ("cantilever_udl", "test_cantilever_udl.txt"),
+    ("cantilever_frame", "tests/golden/inputs/test05.txt"),
+    ("simply_supported_beam", "tests/golden/inputs/test_beam.txt"),
+    ("triangle_truss", "tests/golden/inputs/test_triangle.txt"),
+    ("cantilever_udl", "tests/golden/inputs/test_cantilever_udl.txt"),
 ]
 result = {"cases": {}}
 for name, fname in cases:

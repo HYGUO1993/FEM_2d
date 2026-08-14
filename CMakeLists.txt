@@ -36,6 +36,15 @@ if (MSVC)
   target_compile_options(femcli PRIVATE /utf-8)
 endif()
 
+# MSVC 多配置生成器下产物在 build/bin/<Config>/femcli.exe;
+# 同步一份到 build/bin/femcli.exe 供 Tauri 打包引用 (tauri.conf.json resources)。
+# 单配置生成器(Linux CI)产物已直接在 build/bin/, 无需拷贝。
+if (MSVC AND CMAKE_CONFIGURATION_TYPES)
+  add_custom_command(TARGET femcli POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:femcli> ${CMAKE_BINARY_DIR}/bin/femcli.exe
+    COMMENT "同步 femcli.exe 副本到 ${CMAKE_BINARY_DIR}/bin/femcli.exe")
+endif()
+
 # Unit tests build with UNIT_TEST defined (excludes main)
 add_executable(unit_tests tests/test_basic.cpp barsystem.cpp)
 target_compile_definitions(unit_tests PRIVATE UNIT_TEST)

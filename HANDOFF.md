@@ -63,7 +63,8 @@
 # 1) C++ 求解器 (femcli.exe)
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release --parallel
-# 产物: build/bin/Release/femcli.exe + build/bin/femcli.exe(同步副本)
+# 产物: build/bin/Release/femcli.exe
+#        + build/bin/femcli.exe (CMake POST_BUILD 自动同步, tauri 打包引用此副本)
 
 # 2) 前端
 cd gui_tauri
@@ -129,7 +130,8 @@ cargo tauri build --debug   # 调试 exe (快速迭代)
   - 固端力法支持单元荷载
   - `SupportMoveAssembly`：支座位移等效荷载
 - `femcli.cpp`：JSON CLI（`solve`/`validate`），**MSVC /MT 静态链接**（仅依赖 KERNEL32.dll）
-- 测试：`ctest --test-dir build`（unit_tests）、`verify/` 脚本、`tests/golden/`
+- 测试：`ctest --test-dir build -C Release`（unit_tests）、`python verify/verify_femcli.py`（golden 回归，输入在 `tests/golden/inputs/`）
+  - ⚠️ `verify/golden_generate.py` 是独立 Python 参考求解器，曾含与 C++ 相同的 LDLT 回代 bug（`z[j]`→`x[j]`，2026-08 已修并重新生成 golden.json）；改它后必须重跑 `python verify/golden_generate.py`
 
 ---
 
