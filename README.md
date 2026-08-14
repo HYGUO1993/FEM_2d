@@ -27,7 +27,7 @@ FemLab Studio 是一个用于教学和工程实践的二维杆/桁架/刚架有�
 
 ### 方式一：桌面应用（推荐）
 
-**Windows** 用户可直接运行发布版安装包（MSI / setup.exe），或开发运行：
+**Windows** 用户可直接运行发布版安装包（NSIS setup.exe），或开发运行：
 
 ```powershell
 # 1. 构建前端
@@ -38,7 +38,7 @@ npm run build
 # 2. 运行 Tauri 应用
 cd src-tauri
 cargo tauri dev          # 开发模式
-cargo tauri build        # 打包安装包 (MSI + NSIS)
+cargo tauri build        # 打包安装包 (NSIS)
 ```
 
 构建产物：
@@ -64,7 +64,7 @@ build/bin/femcli.exe solve examples/beam_simple.json -o result.json
 ## 🎮 界面速览
 
 - **左侧栏**：项目管理（新建 / 保存本地 / 导入本地）、项目列表
-- **中央画布**：结构模型编辑区，右下角切换「原图 / 轴力N / 剪力V / 弯矩M」
+- **中央画布**：结构模型编辑区，右下角切换「原图 / 轴力N / 剪力V / 弯矩M / 挠度」
 - **右侧栏**：工具栏（选择/节点/杆件/荷载/约束/删除）、属性面板、求解结果、LLM 助手
 - **顶栏**：LLM 位置切换、撤销/重做、重置视图、求解
 
