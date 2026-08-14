@@ -534,7 +534,12 @@ export function computeForceDiagram(model, results, kind, view) {
       "M " +
       pts
         .map((p) => {
-          const s = worldToScreen(a.x + nx * p.v * k, a.y + ny * p.v * k, view);
+          // 沿杆轴展开 (ux,uy)·x + 法向偏移 (nx,ny)·v·k — 缺失轴向展开会缩成起点处竖线
+          const s = worldToScreen(
+            a.x + ux * p.x + nx * p.v * k,
+            a.y + uy * p.x + ny * p.v * k,
+            view
+          );
           return `${s.x},${s.y}`;
         })
         .join(" L ");

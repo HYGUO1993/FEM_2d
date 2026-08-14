@@ -47,7 +47,7 @@ export default function CanvasView() {
   const deformScale = useStore((s) => s.deformScale);
   const pendingNodeA = useStore((s) => s.pendingNodeA);
   const loadDialog = useStore((s) => s.loadDialog);
-  // 内力图显示模式: null | "N" | "V" | "M"
+  // 内力图显示模式: null | "N" | "V" | "M" | "D"(挠度/变形图)
   const [diagramMode, setDiagramMode] = useState(null);
   // 显示选项
   const displayOptions = useStore((s) => s.displayOptions);
@@ -287,11 +287,14 @@ export default function CanvasView() {
   const loads = useMemo(() => computeLoads(model, view, selection), [model, view, selection]);
   const constraints = useMemo(() => computeConstraints(model, view, selection), [model, view, selection]);
   const deformed = useMemo(
-    () => (solved && results ? computeDeformed(model, results, deformScale, view) : []),
-    [solved, results, model, deformScale, view]
+    () => (solved && results && diagramMode === "D" ? computeDeformed(model, results, deformScale, view) : []),
+    [solved, results, model, deformScale, diagramMode, view]
   );
   const forceDiagrams = useMemo(
-    () => (solved && results && diagramMode ? computeForceDiagram(model, results, diagramMode, view) : []),
+    () =>
+      solved && results && diagramMode && diagramMode !== "D"
+        ? computeForceDiagram(model, results, diagramMode, view)
+        : [],
     [solved, results, model, diagramMode, view]
   );
 
@@ -540,6 +543,13 @@ export default function CanvasView() {
             title={t("canvas.mDiagramTip")}
           >
             {t("canvas.mDiagram")}
+          </button>
+          <button
+            className={`btn small ${diagramMode === "D" ? "active" : ""}`}
+            onClick={() => setDiagramMode(diagramMode === "D" ? null : "D")}
+            title={t("canvas.dDiagramTip")}
+          >
+            {t("canvas.dDiagram")}
           </button>
         </div>
       )}

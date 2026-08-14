@@ -110,6 +110,13 @@ function approx(a, b, tol = 1e-6) {
       `V=${sV[0].v.toFixed(1)}→${sV[sV.length - 1].v.toFixed(1)}`);
     const vMidV = near(sV, 3, 0.2);
     check("V 跨中为 0", approx(vMidV, 0, 1e-6), `v_mid=${vMidV.toFixed(2)}`);
+    // 几何: path 必须沿杆轴展开 (x 覆盖单元起点→终点), 防止缩成起点处竖线
+    const beamPts = decode(mPath.d);
+    const xs = beamPts.map((p) => p.x);
+    const xMin = Math.min(...xs);
+    const xMax = Math.max(...xs);
+    check("M 图沿杆轴展开 (x∈[0,6])", approx(xMin, 0, 1e-6) && approx(xMax, 6, 1e-6),
+      `x=[${xMin.toFixed(2)},${xMax.toFixed(2)}] (期望 [0,6])`);
     // 柱: 无荷载, M 线性 0 → 顶端 41466.69
     const colM = computeForceDiagram(model, results, "M", null).find((p) => p.key === "fg-M-0");
     const sC = colM.samples;
