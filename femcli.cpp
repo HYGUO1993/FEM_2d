@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <set>
 #include "barsystem.h"
 #include "nlohmann/json.hpp"
 
@@ -365,11 +366,29 @@ int main(int argc, char* argv[])
 	                        pDisp.data(), pLoadVect.data(),
 	                        "", false, true, solveErr);
 	if (!ok) {
+		// 奇异等失败时附加孤立节点诊断: 未连接任何单元的节点会产生自由 DOF
+		string diag;
+		set<int> used;
+		for (int i = 0; i < nElem; ++i) {
+			used.insert(elems[i].iaNode[0]);
+			used.insert(elems[i].iaNode[1]);
+		}
+		vector<int> isolated;
+		for (int i = 0; i < nNode; ++i)
+			if (!used.count(i)) isolated.push_back(i);
+		if (!isolated.empty()) {
+			diag = "；存在孤立节点(未连接任何单元): ";
+			for (size_t k = 0; k < isolated.size(); ++k) {
+				if (k) diag += ", ";
+				diag += to_string(isolated[k]);
+			}
+			diag += "，请删除或连接该节点";
+		}
 		json errOut;
 		errOut["schemaVersion"] = "1.0";
 		errOut["solver"] = "builtin";
 		errOut["status"] = "error";
-		errOut["message"] = solveErr;
+		errOut["message"] = solveErr + diag;
 		ofstream fout(outputPath.c_str());
 		fout << errOut.dump(2) << endl;
 		fout.close();

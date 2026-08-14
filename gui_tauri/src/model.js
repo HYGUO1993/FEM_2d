@@ -95,6 +95,15 @@ export function validateModel(m) {
   for (const c of m.constraints) {
     if (!ids.has(c.node)) return t("validate.badCons");
   }
+  // 孤立节点检查: 未连接任何单元的节点在 frame 下产生自由转动 DOF → 刚度奇异
+  const used = new Set();
+  for (const e of m.elements) {
+    used.add(e.nodeI);
+    used.add(e.nodeJ);
+  }
+  for (const n of m.nodes) {
+    if (!used.has(n.id)) return t("validate.isolatedNode", { id: n.id });
+  }
   return null;
 }
 

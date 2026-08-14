@@ -235,6 +235,7 @@ const dict = {
   "validate.badElem": { zh: "单元 {id} 引用了不存在的节点", en: "Element {id} references a missing node" },
   "validate.badLoad": { zh: "荷载引用了不存在的节点", en: "Load references a missing node" },
   "validate.badCons": { zh: "约束引用了不存在的节点", en: "Constraint references a missing node" },
+  "validate.isolatedNode": { zh: "节点 {id} 未连接任何单元（孤立节点），请删除或连接它", en: "Node {id} is not connected to any element (isolated node). Delete or connect it" },
   "validate.llmDefault": { zh: "LLM 生成模型", en: "LLM Generated Model" },
 
   // ipc.js

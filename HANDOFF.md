@@ -175,6 +175,11 @@ cargo tauri build --debug   # 调试 exe (快速迭代)
 9. **桁架节点 rz**：truss 节点无转角自由度，`DOFIndexCalcu` 会把 `iaDOFIndex[2]` 置 -1
    （曾遗留 0 → femcli 结果 JSON 中 truss 节点 rz 输出自由度 0 的位移垃圾值，2026-08 已修）；
    改动 DOF 编号后必须重跑 `verify/compare_femcli_ref.py`（含 truss_bridge 等桁架案例）。
+10. **孤立节点是"内力图消失"最常见原因**：未连接单元的 frame 节点产生自由 DOF → 刚度奇异 → 求解失败 → 无内力图/变形图。
+    GUI 校验（`model.js validateModel`）与 femcli 报错均已加孤立节点诊断（2026-08）。
+    排查 GUI 问题时可用 WebView2 远程调试：`tauri.conf.json` windows 加
+    `"additionalBrowserArgs": "--remote-debugging-port=9222"`（**用完必须移除，勿随正式包发布**），
+    再连 `ws://127.0.0.1:9222/devtools/page/*` 用 CDP（Node ≥21 内置 WebSocket）读 DOM/zustand store。
 
 ---
 
