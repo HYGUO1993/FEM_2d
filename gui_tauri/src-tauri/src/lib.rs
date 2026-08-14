@@ -90,10 +90,18 @@ struct LlmConfig {
 }
 
 /// 对话消息
-#[derive(Serialize, Deserialize)]
+/// ⚠️ 必须完整保留 tool 调用字段: 前端发的 tool 消息含 tool_call_id、
+/// assistant 消息含 tool_calls, 若结构体缺字段, 经 Rust 反序列化→再序列化后
+/// 这些字段会丢失, DeepSeek/OpenAI 会报 400 "missing field `tool_call_id`"。
+#[derive(Serialize, Deserialize, Clone)]
 struct ChatMessage {
-    role: String,     // "system" | "user" | "assistant"
-    content: String,
+    role: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    content: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    tool_calls: Option<Vec<serde_json::Value>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    tool_call_id: Option<String>,
 }
 
 /// 获取应用数据目录
