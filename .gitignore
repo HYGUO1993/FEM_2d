@@ -68,3 +68,6 @@ build/x64/
 verify/_cmp_out.json
 verify/_render_tmp.json
 
+# 内部战略/讨论文档 — 不随 GitHub 同步
+secret/
+
